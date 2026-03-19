@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  /* Forced Dark Mode Theme */
+  --background: 0 0% 4%;
+  --foreground: 0 0% 93%;
+  
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 93%;
+  
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 210 100% 60%;
+  
+  --primary: 210 100% 60%;
+  --primary-foreground: 0 0% 100%;
+  
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 63%;
+  
+  --accent: 270 100% 60%;
+  --accent-foreground: 0 0% 100%;
+  
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    background-color: #0a0a0a;
+  }
+  
+  ::selection {
+    @apply bg-primary/30 text-primary-foreground;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/50;
+  }
+  
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  .glass-panel {
+    @apply bg-card/40 backdrop-blur-xl border border-white/[0.05] shadow-2xl;
+  }
+
+  .glass-panel-hover {
+    @apply hover:bg-card/60 hover:border-white/[0.1] transition-all duration-300;
+  }
+}
+
+/* Syntax Highlighting Fake Tokens */
+.token-keyword { color: #ff7b72; }
+.token-function { color: #d2a8ff; }
+.token-string { color: #a5d6ff; }
+.token-comment { color: #8b949e; }
+.token-type { color: #79c0ff; }
+.token-punctuation { color: #c9d1d9; }
+.token-property { color: #79c0ff; }

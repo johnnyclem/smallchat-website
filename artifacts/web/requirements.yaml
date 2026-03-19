@@ -1,0 +1,13 @@
+packages:
+  "framer-motion": "For premium scroll animations, layout transitions, and interactive visual elements on the landing page."
+  "clsx": "Utility for constructing className strings conditionally."
+  "tailwind-merge": "Utility to safely merge Tailwind CSS classes without style conflicts."
+
+images:
+  - path: "artifacts/web/public/images/hero-glow.png"
+    description: "A very subtle, dark, abstract glowing mesh background. Mostly deep black with very faint, soft electric blue and purple gradient light leaks in the corners. Extremely minimal and developer-focused."
+    aspect_ratio: "16:9"
+
+notes:
+  - This is a static showcase page with no backend dependencies.
+  - All content is hardcoded for the smallchat open-source project.

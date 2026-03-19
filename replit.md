@@ -15,13 +15,15 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Frontend**: React + Vite + Tailwind CSS v4 + Framer Motion
 
 ## Structure
 
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── web/                # Smallchat showcase website (React + Vite)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -49,6 +51,16 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
 ## Packages
+
+### `artifacts/web` (`@workspace/web`)
+
+Smallchat showcase/landing page website. Frontend-only React + Vite app with no backend dependency.
+
+- Dark mode design with animated terminal, code blocks, and scroll animations
+- Built with Framer Motion, Lucide React icons, Tailwind CSS v4
+- Sections: Hero, Core Concepts, Architecture, Features Grid, Compiler Pipeline, Quick Start, Footer
+- Source repo: https://github.com/johnnyclem/smallchat
+- Key files: `src/pages/Home.tsx`, `src/components/TerminalAnimation.tsx`, `src/components/ui/CodeBlock.tsx`
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
