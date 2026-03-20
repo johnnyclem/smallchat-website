@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Github, 
   Terminal, 
@@ -10,18 +10,29 @@ import {
   ShieldCheck, 
   Repeat, 
   PackageSearch,
-  Box
+  Box,
+  ArrowRight,
+  Brain,
+  Route,
+  Search,
+  Plug,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { TerminalAnimation } from "@/components/TerminalAnimation";
 import { useState } from "react";
 
-export default function Home() {
-  const { scrollYProgress } = useScroll();
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
 
+const stagger = {
+  visible: { transition: { staggerChildren: 0.1 } }
+};
+
+export default function Home() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -32,18 +43,16 @@ export default function Home() {
 
   return (
     <div className="relative w-full">
-      {/* Background with Generated Image */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <img 
           src={`${import.meta.env.BASE_URL}images/hero-glow.png`}
-          alt="Abstract dark background"
+          alt=""
           className="w-full h-full object-cover opacity-50"
         />
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-[100px] mask-image-gradient" />
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[100px]" />
       </div>
 
       <div className="relative z-10">
-        {/* Navigation */}
         <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/50 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -51,9 +60,11 @@ export default function Home() {
               <span className="font-bold tracking-tight text-white">smallchat</span>
             </div>
             <div className="hidden md:flex items-center space-x-6 text-sm text-muted-foreground">
-              <a href="#architecture" className="hover:text-white transition-colors">Architecture</a>
+              <a href="#problem" className="hover:text-white transition-colors">The Problem</a>
+              <a href="#how" className="hover:text-white transition-colors">How It Works</a>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#quickstart" className="hover:text-white transition-colors">Quick Start</a>
+              <a href="#developers" className="hover:text-white transition-colors">For Developers</a>
+              <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
             </div>
             <div className="flex items-center space-x-4">
               <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-white transition-colors">
@@ -63,33 +74,33 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <section className="pt-40 pb-20 px-6 min-h-screen flex flex-col items-center justify-center text-center">
+        {/* Hero */}
+        <section className="pt-32 pb-16 px-6 min-h-screen flex flex-col items-center justify-center text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
             className="max-w-4xl mx-auto space-y-8"
           >
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground mb-4">
-              <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
-              v0.0.1 — Draft Implementation
-            </div>
+            <motion.div variants={fadeUp} className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground">
+              <span className="flex h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
+              Open Source &middot; TypeScript &middot; MIT License
+            </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
-              Object-Oriented <br/> Inference
-            </h1>
+            <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
+              Teach AI to <br/> use any tool.
+            </motion.h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light">
-              A message-passing tool compiler inspired by the Smalltalk and Objective-C runtime.
-            </p>
+            <motion.p variants={fadeUp} className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+              smallchat is a compiler that lets AI models discover and use tools naturally &mdash; just by describing what they want to do, in plain language.
+            </motion.p>
 
-            <blockquote className="border-l-2 border-primary/50 pl-4 py-2 mx-auto max-w-md text-left italic text-gray-400 bg-white/[0.02] rounded-r-lg">
+            <motion.blockquote variants={fadeUp} className="border-l-2 border-primary/50 pl-4 py-2 mx-auto max-w-md text-left italic text-gray-400 bg-white/[0.02] rounded-r-lg">
               "The big idea is messaging." <br/>
               <span className="text-sm font-semibold text-primary/80 mt-1 block">— Alan Kay</span>
-            </blockquote>
+            </motion.blockquote>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
                 <Button size="lg" className="gap-2">
                   <Github className="w-5 h-5" />
@@ -106,212 +117,247 @@ export default function Home() {
                 npm install smallchat
                 <Copy className={`w-4 h-4 ml-2 transition-colors ${copied ? 'text-green-400' : 'text-muted-foreground group-hover:text-white'}`} />
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-            className="w-full mt-24 perspective-[1000px]"
+            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+            className="w-full mt-20"
           >
             <TerminalAnimation />
           </motion.div>
         </section>
 
-        {/* Core Concept */}
-        <section className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden">
+        {/* The Problem — Plain language */}
+        <section id="problem" className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden scroll-mt-20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,112,243,0.05)_0%,transparent_70%)] pointer-events-none" />
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Message Passing for AI Tools</h2>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                Smallchat models LLM tool use as <strong className="text-white font-medium">message dispatch</strong>. 
-                Instead of hardcoding function calls, the LLM expresses an <em>intent</em>, and the smallchat runtime dynamically resolves it to the most appropriate concrete implementation.
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-4xl mx-auto text-center space-y-12"
+          >
+            <motion.div variants={fadeUp} className="space-y-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">AI has a tool problem.</h2>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Today's AI models can search the web, write code, file tickets, and query databases &mdash; but only when developers 
+                hardcode each tool one by one. Every new tool means new wiring. It doesn't scale.
               </p>
-              <ul className="space-y-4 pt-4">
-                {[
-                  "Semantic interning of tool intents",
-                  "LRU cache for instant resolved dispatches",
-                  "Provider grouping with superclass chains",
-                  "Lazy schema loading for fast boots"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center text-gray-300">
-                    <div className="mr-3 p-1 rounded bg-primary/10 text-primary">
-                      <Zap className="w-4 h-4" />
-                    </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            {/* Concept Mapping Table */}
-            <div className="glass-panel rounded-2xl p-6 shadow-2xl relative">
-              <div className="absolute -top-3 -right-3 px-3 py-1 bg-accent/20 text-accent border border-accent/30 rounded-full text-xs font-mono font-bold tracking-wider">
-                CONCEPT MAPPING
-              </div>
-              <div className="grid grid-cols-2 gap-y-3 font-mono text-sm">
-                <div className="text-muted-foreground pb-2 border-b border-white/10 font-bold">Smalltalk / Obj-C</div>
-                <div className="text-white pb-2 border-b border-white/10 font-bold">smallchat</div>
-                
-                <div className="text-muted-foreground py-1">Object</div><div className="text-primary py-1">ToolProvider</div>
-                <div className="text-muted-foreground py-1">Class</div><div className="text-primary py-1">ToolClass</div>
-                <div className="text-muted-foreground py-1">SEL</div><div className="text-primary py-1">ToolSelector</div>
-                <div className="text-muted-foreground py-1">IMP</div><div className="text-primary py-1">ToolIMP</div>
-                <div className="text-muted-foreground py-1">Method</div><div className="text-primary py-1">ToolMethod</div>
-                <div className="text-muted-foreground py-1">Message send</div><div className="text-accent py-1">toolkit_dispatch()</div>
-                <div className="text-muted-foreground py-1">Method cache</div><div className="text-primary py-1">Resolution cache</div>
-                <div className="text-muted-foreground py-1">Protocol</div><div className="text-primary py-1">ToolProtocol</div>
-                <div className="text-muted-foreground py-1">Category</div><div className="text-primary py-1">ToolCategory</div>
-                <div className="text-muted-foreground py-1">NSProxy</div><div className="text-primary py-1">ToolProxy</div>
-              </div>
-            </div>
-          </div>
-        </section>
+            </motion.div>
 
-        {/* Architecture & Code Examples */}
-        <section id="architecture" className="py-32 px-6 scroll-mt-20">
-          <div className="max-w-6xl mx-auto space-y-24">
-            
-            <div className="text-center space-y-4 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">The Runtime Hot Path</h2>
-              <p className="text-muted-foreground text-lg">
-                Vectors act as semantic fingerprints (like <code className="bg-white/10 px-1 rounded text-sm">sel_registerName</code>). 
-                The runtime checks the cache, resolves the method, and executes the IMP.
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-8 items-start">
-              <CodeBlock 
-                filename="src/core/types.ts"
-                code={
-                  <>
-<span className="token-keyword">export</span> <span className="token-keyword">interface</span> <span className="token-type">ToolSelector</span> {'{\n'}
-  <span className="token-comment">/** Embedding vector — the "interned string" equivalent */</span>
-  <span className="token-property">vector</span>: <span className="token-type">Float32Array</span>;
-  
-  <span className="token-comment">/** Human-readable canonical form */</span>
-  <span className="token-property">canonical</span>: <span className="token-type">string</span>;
-  
-  <span className="token-property">parts</span>: <span className="token-type">string</span>[];
-  <span className="token-property">arity</span>: <span className="token-type">number</span>;
-{'}'}
-                  </>
-                }
-              />
-              <CodeBlock 
-                filename="src/runtime/dispatch.ts"
-                code={
-                  <>
-<span className="token-keyword">async</span> <span className="token-keyword">function</span> <span className="token-function">toolkit_dispatch</span>(
-  context: <span className="token-type">DispatchContext</span>,
-  intent: <span className="token-type">string</span>,
-  args?: <span className="token-type">Record</span>&lt;<span className="token-type">string</span>, <span className="token-type">unknown</span>&gt;
-): <span className="token-type">Promise</span>&lt;<span className="token-type">ToolResult</span>&gt; {'{\n'}
-  <span className="token-comment">// 1. Intern intent to Selector</span>
-  <span className="token-keyword">const</span> vector = <span className="token-keyword">await</span> context.embedder.<span className="token-function">embed</span>(intent);
-  <span className="token-keyword">const</span> selector = context.selectorTable.<span className="token-function">lookup</span>(vector);
-
-  <span className="token-comment">// 2. Inline cache hit?</span>
-  <span className="token-keyword">const</span> cached = context.cache.<span className="token-function">lookup</span>(selector);
-  <span className="token-keyword">if</span> (cached) <span className="token-keyword">return</span> cached.imp.<span className="token-function">execute</span>(args);
-
-  <span className="token-comment">// 3. Resolve & Cache</span>
-  <span className="token-keyword">const</span> imp = context.<span className="token-function">resolveMethod</span>(selector);
-  context.cache.<span className="token-function">store</span>(selector, imp);
-  
-  <span className="token-keyword">return</span> imp.<span className="token-function">execute</span>(args);
-{'}'}
-                  </>
-                }
-              />
-            </div>
-
-            {/* SCObject Hierarchy Section */}
-            <div className="pt-16 border-t border-white/5">
-              <div className="grid md:grid-cols-2 gap-16 items-center">
-                <div className="order-2 md:order-1 glass-panel p-8 rounded-2xl">
-                  <div className="space-y-4 font-mono text-sm leading-relaxed text-gray-300">
-                    <div className="text-accent font-bold">SCObject</div>
-                    <div className="pl-6 border-l border-white/10 space-y-3 relative before:absolute before:top-0 before:bottom-0 before:-left-px before:w-px before:bg-gradient-to-b before:from-accent before:to-transparent">
-                      <div className="flex items-center before:content-[''] before:w-4 before:h-px before:bg-white/10 before:mr-2">
-                        SCSelector <span className="text-muted-foreground ml-2 text-xs">// Wraps intent</span>
-                      </div>
-                      <div className="flex items-center before:content-[''] before:w-4 before:h-px before:bg-white/10 before:mr-2">
-                        SCData <span className="text-muted-foreground ml-2 text-xs">// Structured JSON</span>
-                      </div>
-                      <div className="flex items-center before:content-[''] before:w-4 before:h-px before:bg-white/10 before:mr-2">
-                        SCToolReference <span className="text-muted-foreground ml-2 text-xs">// Pass tools as args</span>
-                      </div>
-                      <div className="flex items-center before:content-[''] before:w-4 before:h-px before:bg-white/10 before:mr-2">
-                        SCArray
-                      </div>
-                      <div className="flex items-center before:content-[''] before:w-4 before:h-px before:bg-white/10 before:mr-2">
-                        SCDictionary
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="order-1 md:order-2 space-y-6">
-                  <div className="inline-flex items-center text-accent bg-accent/10 px-3 py-1 rounded-full text-sm font-medium">
-                    <Box className="w-4 h-4 mr-2" /> 
-                    SCObject System
-                  </div>
-                  <h3 className="text-3xl font-bold">Typed Position-Based Passing</h3>
-                  <p className="text-muted-foreground text-lg">
-                    Every non-primitive passed to a function is an <code className="text-white font-mono bg-white/10 px-1 rounded">SCObject</code>. 
-                    This NSObject-inspired root object enables type-safe function overloading and runtime introspection using <code className="text-white font-mono bg-white/10 px-1 rounded">isa</code> swizzling.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* Features Grid */}
-        <section id="features" className="py-24 px-6 bg-black/40 border-y border-white/5 relative scroll-mt-20">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-16 text-center">Runtime Capabilities</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 pt-4">
               {[
-                { icon: PackageSearch, title: "Semantic Intent", desc: "Vector embeddings match natural language directly to tool implementations." },
-                { icon: Zap, title: "Resolution Cache", desc: "LRU inline cache makes repeated dispatches virtually instantaneous." },
-                { icon: ShieldCheck, title: "Protocols", desc: "Type-safe capability interfaces guarantee provider conformance." },
-                { icon: Repeat, title: "Method Swizzling", desc: "Replace tool implementations at runtime for testing, mocking, or context shifts." },
-                { icon: Layers, title: "Overload System", desc: "Compiler generates semantic overloads. Multiple signatures per selector." },
-                { icon: Cpu, title: "Lazy Loading", desc: "NSProxy-style deferred initialization keeps the runtime lightweight." },
-              ].map((feature, i) => (
-                <div key={i} className="glass-panel-hover glass-panel p-6 rounded-2xl group">
-                  <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
-                  <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                { 
+                  label: "Without smallchat",
+                  items: ["Manually register every tool", "Hardcode function names", "Rebuild when tools change", "One model, one set of tools"],
+                  bad: true
+                },
+                {
+                  label: "The gap",
+                  items: ["Tools grow fast", "Models need flexibility", "Naming is inconsistent", "Discovery is manual"],
+                  bad: true
+                },
+                { 
+                  label: "With smallchat",
+                  items: ["AI describes what it wants", "Runtime finds the right tool", "New tools just work", "Any model, any provider"],
+                  bad: false
+                },
+              ].map((col, i) => (
+                <div key={i} className={`glass-panel rounded-2xl p-6 space-y-4 ${!col.bad ? 'border-primary/30 bg-primary/5' : ''}`}>
+                  <div className={`text-sm font-bold uppercase tracking-wider ${col.bad ? 'text-muted-foreground' : 'text-primary'}`}>
+                    {col.label}
+                  </div>
+                  <ul className="space-y-3 text-left">
+                    {col.items.map((item, j) => (
+                      <li key={j} className={`flex items-start text-sm ${col.bad ? 'text-gray-400' : 'text-gray-200'}`}>
+                        <span className={`mr-2 mt-0.5 ${col.bad ? 'text-red-400/60' : 'text-green-400'}`}>
+                          {col.bad ? '×' : '✓'}
+                        </span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
-        {/* Pipeline Section */}
-        <section className="py-32 px-6">
-          <div className="max-w-6xl mx-auto space-y-16">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Compiler Pipeline</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                From raw tool manifests to a fully resolved dispatch table — four compilation phases produce an optimized runtime artifact.
+        {/* How It Works — Simple 3-step explanation */}
+        <section id="how" className="py-32 px-6 scroll-mt-20">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-5xl mx-auto space-y-20"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+                How it works
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Think of it like a smart switchboard operator. Instead of connecting wires by hand, 
+                it listens to what you mean and routes you to the right person automatically.
               </p>
-            </div>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+            </motion.div>
+
+            <div className="space-y-16">
               {[
-                { step: "PARSE", desc: "Ingest MCP manifests, OpenAPI specs, and raw schemas into a unified tool representation." },
-                { step: "EMBED", desc: "Generate vector embeddings and intern selectors via the selector table." },
-                { step: "LINK", desc: "Resolve overloads, detect collisions, build dispatch tables and superclass chains." },
-                { step: "OUTPUT", desc: "Emit compiled artifact with embedded selectors, caches, and overload tables." },
+                {
+                  num: "01",
+                  icon: BookOpen,
+                  title: "Compile your tools",
+                  desc: "Point smallchat at your tool definitions — MCP servers, OpenAPI specs, or plain JSON schemas. The compiler reads them, understands what each tool does, and builds a lookup index.",
+                  detail: "Like creating a phone book, but instead of names and numbers, it maps meanings to tools."
+                },
+                {
+                  num: "02",
+                  icon: Search,
+                  title: "AI describes its intent",
+                  desc: "When an AI model needs to do something, it simply says what it wants in natural language. No function name memorization. No rigid schemas to follow.",
+                  detail: "\"Search for recent code changes\" — the AI says what it means, not which button to press."
+                },
+                {
+                  num: "03",
+                  icon: Route,
+                  title: "The runtime resolves it",
+                  desc: "smallchat instantly matches the intent to the best available tool and executes it. Results come back fast because frequently-used matches are cached.",
+                  detail: "Like autocomplete for tool calls — the more you use it, the faster it gets."
+                },
+              ].map((step, i) => (
+                <motion.div key={i} variants={fadeUp} className="grid md:grid-cols-[120px_1fr] gap-8 items-start">
+                  <div className="flex md:flex-col items-center md:items-start gap-4">
+                    <div className="text-5xl font-bold text-white/10 font-mono">{step.num}</div>
+                    <step.icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white">{step.title}</h3>
+                    <p className="text-lg text-muted-foreground leading-relaxed">{step.desc}</p>
+                    <p className="text-sm text-primary/70 italic">{step.detail}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* The Big Idea — Messaging analogy */}
+        <section className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(120,80,255,0.05)_0%,transparent_60%)] pointer-events-none" />
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16 items-center"
+          >
+            <motion.div variants={fadeUp} className="space-y-6">
+              <div className="inline-flex items-center text-accent bg-accent/10 px-3 py-1 rounded-full text-sm font-medium">
+                <Brain className="w-4 h-4 mr-2" />
+                The Big Idea
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Messages, not function calls.
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                In the 1970s, Alan Kay invented a style of programming where objects communicate by sending messages to each other. 
+                The receiver decides what to do — not the sender.
+              </p>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                smallchat applies this same principle to AI. The model sends a message describing its intent, 
+                and the runtime figures out the right tool to handle it. This decoupling is what makes the system flexible, 
+                extensible, and surprisingly elegant.
+              </p>
+              <p className="text-base text-muted-foreground/70 leading-relaxed">
+                Under the hood, the architecture maps directly to the Smalltalk and Objective-C runtime: 
+                selectors, method dispatch, inline caching, protocol conformance, and forwarding chains — all adapted 
+                for the world of AI tool use.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="glass-panel rounded-2xl p-6 shadow-2xl relative">
+              <div className="absolute -top-3 -right-3 px-3 py-1 bg-accent/20 text-accent border border-accent/30 rounded-full text-xs font-bold tracking-wider">
+                CONCEPT MAP
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-x-3 items-center pb-3 border-b border-white/10 font-bold">
+                  <div className="text-muted-foreground">Classic OOP</div>
+                  <div></div>
+                  <div className="text-white">smallchat</div>
+                </div>
+                {[
+                  ["Object", "ToolProvider", "A service that offers tools"],
+                  ["Class", "ToolClass", "A group of related tools"],
+                  ["Message send", "dispatch()", "Ask for something to happen"],
+                  ["Selector (SEL)", "ToolSelector", "The meaning of an intent"],
+                  ["Implementation", "ToolIMP", "The code that runs"],
+                  ["Method cache", "Resolution cache", "Remember past lookups"],
+                  ["Protocol", "ToolProtocol", "A capability contract"],
+                  ["Proxy", "ToolProxy", "Load details on demand"],
+                ].map(([classic, sc, hint], i) => (
+                  <div key={i} className="grid grid-cols-[1fr_auto_1fr] gap-x-3 items-center py-2 border-b border-white/5 group hover:bg-white/[0.02] rounded transition-colors">
+                    <div className="text-muted-foreground font-mono text-xs">{classic}</div>
+                    <ArrowRight className="w-3 h-3 text-white/20" />
+                    <div>
+                      <span className="text-primary font-mono text-xs">{sc}</span>
+                      <span className="text-muted-foreground/50 text-[11px] ml-2 hidden lg:inline">{hint}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Features — Human-readable language */}
+        <section id="features" className="py-24 px-6 scroll-mt-20">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-6xl mx-auto"
+          >
+            <motion.div variants={fadeUp} className="text-center mb-16 space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">What you get</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                A runtime designed for speed, flexibility, and real-world AI tool use.
+              </p>
+            </motion.div>
+            <motion.div variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { icon: Search, title: "Meaning-Based Matching", desc: "Tools are found by what they do, not what they're called. An AI can say \"search for code\" and get matched to the right tool — even if it's named something different." },
+                { icon: Zap, title: "Instant Repeat Lookups", desc: "Once a tool is matched, the result is cached. The second time the same intent comes up, resolution is nearly instant — no re-computation needed." },
+                { icon: ShieldCheck, title: "Capability Contracts", desc: "Define what a tool provider must support. If a provider says it conforms to a protocol, the runtime holds it to that promise." },
+                { icon: Repeat, title: "Swap Tools at Runtime", desc: "Need to test with a mock? Switch providers mid-session? Swap one tool implementation for another without restarting anything." },
+                { icon: Layers, title: "Smart Overloads", desc: "The compiler detects similar tools and groups them automatically. The right version is selected based on the arguments passed." },
+                { icon: Plug, title: "Works with MCP, REST, and more", desc: "Bring tools from MCP servers, OpenAPI specs, or plain JSON schemas. smallchat compiles them all into a single, unified dispatch table." },
+              ].map((feature, i) => (
+                <motion.div key={i} variants={fadeUp} className="glass-panel-hover glass-panel p-6 rounded-2xl group">
+                  <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
+                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Pipeline — simplified */}
+        <section className="py-24 px-6 bg-black/40 border-y border-white/5">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-5xl mx-auto space-y-16"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Four steps from definition to dispatch</h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                The compiler transforms raw tool definitions into an optimized artifact the runtime can use instantly.
+              </p>
+            </motion.div>
+            <motion.div variants={stagger} className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+              {[
+                { step: "PARSE", emoji: "📄", desc: "Read tool definitions from any format — MCP, OpenAPI, or JSON." },
+                { step: "EMBED", emoji: "🧠", desc: "Convert tool descriptions into semantic vectors for meaning-based lookup." },
+                { step: "LINK", emoji: "🔗", desc: "Detect similar tools, resolve overloads, and build the dispatch tables." },
+                { step: "OUTPUT", emoji: "📦", desc: "Produce a compiled artifact ready for the runtime to use." },
               ].map((phase, i) => (
-                <div key={i} className="flex flex-col md:flex-row items-center">
+                <motion.div key={i} variants={fadeUp} className="flex flex-col md:flex-row items-center">
                   <div className="glass-panel rounded-2xl p-6 w-56 text-center group hover:border-primary/30 transition-all duration-300">
-                    <div className="text-primary font-mono font-bold text-lg mb-2">{phase.step}</div>
+                    <div className="text-3xl mb-2">{phase.emoji}</div>
+                    <div className="text-primary font-mono font-bold text-sm mb-2">{phase.step}</div>
                     <p className="text-muted-foreground text-xs leading-relaxed">{phase.desc}</p>
                   </div>
                   {i < 3 && (
@@ -319,20 +365,126 @@ export default function Home() {
                       →
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
-        {/* Quick Start Section */}
+        {/* For Developers — The deep stuff, opt-in */}
+        <section id="developers" className="py-32 px-6 scroll-mt-20">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-6xl mx-auto space-y-16"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
+              <div className="inline-flex items-center text-accent bg-accent/10 px-3 py-1 rounded-full text-sm font-medium mx-auto">
+                <Box className="w-4 h-4 mr-2" />
+                For Developers
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Under the hood</h2>
+              <p className="text-muted-foreground text-lg">
+                The dispatch hot path: embed the intent, check the cache, resolve the tool, execute. 
+                Vectors act as semantic selectors — the AI equivalent of Objective-C's <code className="bg-white/10 px-1.5 py-0.5 rounded text-sm">sel_registerName</code>.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="grid lg:grid-cols-2 gap-8 items-start">
+              <CodeBlock 
+                filename="src/core/types.ts — ToolSelector"
+                code={
+                  <>
+<span className="token-keyword">export</span> <span className="token-keyword">interface</span> <span className="token-type">ToolSelector</span> {'{\n'}
+{"  "}<span className="token-comment">{"/** Embedding vector — the semantic fingerprint */"}</span>{'\n'}
+{"  "}<span className="token-property">vector</span>: <span className="token-type">Float32Array</span>;{'\n'}
+{'\n'}
+{"  "}<span className="token-comment">{"/** Human-readable canonical form */"}</span>{'\n'}
+{"  "}<span className="token-property">canonical</span>: <span className="token-type">string</span>;{'\n'}
+{'\n'}
+{"  "}<span className="token-property">parts</span>: <span className="token-type">string</span>[];{'\n'}
+{"  "}<span className="token-property">arity</span>: <span className="token-type">number</span>;{'\n'}
+{'}'}
+                  </>
+                }
+              />
+              <CodeBlock 
+                filename="src/runtime/dispatch.ts — Hot Path"
+                code={
+                  <>
+<span className="token-keyword">async function</span> <span className="token-function">toolkit_dispatch</span>({'\n'}
+{"  "}context: <span className="token-type">DispatchContext</span>,{'\n'}
+{"  "}intent: <span className="token-type">string</span>,{'\n'}
+{"  "}args?: <span className="token-type">Record</span>&lt;<span className="token-type">string</span>, <span className="token-type">unknown</span>&gt;{'\n'}
+{")"}: <span className="token-type">Promise</span>&lt;<span className="token-type">ToolResult</span>&gt; {'{\n'}
+{"  "}<span className="token-comment">{"// 1. Embed intent → Selector"}</span>{'\n'}
+{"  "}<span className="token-keyword">const</span> vector = <span className="token-keyword">await</span> embedder.<span className="token-function">embed</span>(intent);{'\n'}
+{"  "}<span className="token-keyword">const</span> sel = selectorTable.<span className="token-function">lookup</span>(vector);{'\n'}
+{'\n'}
+{"  "}<span className="token-comment">{"// 2. Cache hit? Return immediately"}</span>{'\n'}
+{"  "}<span className="token-keyword">const</span> cached = cache.<span className="token-function">lookup</span>(sel);{'\n'}
+{"  "}<span className="token-keyword">if</span> (cached) <span className="token-keyword">return</span> cached.imp.<span className="token-function">execute</span>(args);{'\n'}
+{'\n'}
+{"  "}<span className="token-comment">{"// 3. Resolve, cache, execute"}</span>{'\n'}
+{"  "}<span className="token-keyword">const</span> imp = <span className="token-function">resolve</span>(sel);{'\n'}
+{"  "}cache.<span className="token-function">store</span>(sel, imp);{'\n'}
+{"  "}<span className="token-keyword">return</span> imp.<span className="token-function">execute</span>(args);{'\n'}
+{'}'}
+                  </>
+                }
+              />
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="pt-8 border-t border-white/5">
+              <div className="grid md:grid-cols-2 gap-16 items-center">
+                <div className="glass-panel p-8 rounded-2xl">
+                  <div className="space-y-4 font-mono text-sm leading-relaxed text-gray-300">
+                    <div className="text-accent font-bold text-base">SCObject Hierarchy</div>
+                    <p className="text-xs text-muted-foreground font-sans mb-4">Every value passed to a tool is wrapped in a type-safe object, inspired by Objective-C's NSObject.</p>
+                    <div className="pl-6 border-l border-white/10 space-y-3">
+                      {[
+                        ["SCSelector", "Wraps an intent"],
+                        ["SCData", "Structured data (JSON)"],
+                        ["SCToolReference", "Pass tools as arguments"],
+                        ["SCArray", "Ordered collections"],
+                        ["SCDictionary", "Key-value pairs"],
+                      ].map(([name, hint], i) => (
+                        <div key={i} className="flex items-center text-sm">
+                          <span className="w-4 h-px bg-white/10 mr-2 shrink-0" />
+                          <span className="text-primary">{name}</span>
+                          <span className="text-muted-foreground ml-2 text-xs font-sans">— {hint}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-bold">Type-safe parameter passing</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    Every value passed through the system is wrapped in a typed object. 
+                    This enables function overloading (multiple tools can share a name but accept different argument types) 
+                    and runtime introspection (the system can inspect what it's working with).
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The compiler can also detect semantically similar tools and automatically generate overloaded 
+                    versions — so the right tool is chosen based on context, not just naming conventions.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Quick Start */}
         <section id="quickstart" className="py-24 px-6 bg-black/40 border-y border-white/5 scroll-mt-20">
-          <div className="max-w-3xl mx-auto space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Get Started</h2>
-              <p className="text-muted-foreground text-lg">Up and running in under a minute.</p>
-            </div>
-            <div className="glass-panel rounded-2xl overflow-hidden">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-3xl mx-auto space-y-12"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Try it in 60 seconds</h2>
+              <p className="text-muted-foreground text-lg">Clone, build, and run your first dispatch.</p>
+            </motion.div>
+            <motion.div variants={fadeUp} className="glass-panel rounded-2xl overflow-hidden">
               <div className="flex items-center px-4 py-3 border-b border-white/5 bg-black/40">
                 <div className="flex space-x-2">
                   <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
@@ -341,27 +493,29 @@ export default function Home() {
                 </div>
                 <div className="mx-auto text-xs text-muted-foreground font-mono">terminal</div>
               </div>
-              <div className="p-6 bg-black/50 font-mono text-sm space-y-4">
+              <div className="p-6 bg-black/50 font-mono text-sm space-y-5">
                 <div>
-                  <span className="text-muted-foreground select-none"># Install</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install</div>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm run build</div>
+                  <span className="text-muted-foreground select-none"># Clone and build</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>git clone https://github.com/johnnyclem/smallchat.git</div>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>cd smallchat && npm install && npm run build</div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground select-none"># Compile tool definitions</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat compile --source ./examples --output tools.smallchat.json</div>
+                  <span className="text-muted-foreground select-none"># Compile tool definitions from examples</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat compile --source ./examples --output tools.json</div>
+                  <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground select-none"># Inspect the compiled artifact</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat inspect tools.smallchat.json --providers --selectors</div>
+                  <span className="text-muted-foreground select-none"># See what was compiled</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat inspect tools.json --providers --selectors</div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground select-none"># Test dispatch resolution</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat resolve tools.smallchat.json "search for code"</div>
+                  <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat resolve tools.json "search for code"</div>
+                  <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* Footer */}
@@ -380,9 +534,6 @@ export default function Home() {
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <a href="https://github.com/johnnyclem/smallchat" className="hover:text-white transition-colors flex items-center">
                 <Github className="w-4 h-4 mr-2" /> Source Code
-              </a>
-              <a href="https://github.com/johnnyclem/smallchat/blob/main/ARCHITECTURE.md" className="hover:text-white transition-colors">
-                Architecture
               </a>
               <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-xs">
                 v0.0.1
