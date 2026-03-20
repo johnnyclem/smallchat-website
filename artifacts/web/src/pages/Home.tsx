@@ -551,10 +551,10 @@ export default function Home() {
                     Start building now
                   </Button>
                 </a>
-                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                <a href="https://github.com/johnnyclem/smallchat#readme" target="_blank" rel="noreferrer">
                   <Button variant="glass" size="lg" className="gap-2">
                     <FileText className="w-4 h-4" />
-                    Leave the bowl half-full
+                    Read docs
                   </Button>
                 </a>
               </div>
