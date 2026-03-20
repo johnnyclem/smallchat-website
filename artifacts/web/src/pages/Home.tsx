@@ -22,6 +22,7 @@ import { CodeBlock } from "@/components/ui/CodeBlock";
 import { TerminalAnimation } from "@/components/TerminalAnimation";
 import { HistoryTimeline } from "@/components/HistoryTimeline";
 import { CompilerComparison } from "@/components/CompilerComparison";
+import { SafetySpectrum } from "@/components/SafetySpectrum";
 import { useState } from "react";
 
 const fadeUp = {
@@ -65,6 +66,7 @@ export default function Home() {
               <a href="#history" className="hover:text-white transition-colors">History</a>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
               <a href="#comparison" className="hover:text-white transition-colors">Compare</a>
+              <a href="#safety" className="hover:text-white transition-colors">Safety</a>
               <a href="#crazy-ones" className="hover:text-white transition-colors">Philosophy</a>
               <a href="#developers" className="hover:text-white transition-colors">For Developers</a>
               <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
@@ -256,6 +258,9 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </section>
+
+        {/* Safety Spectrum */}
+        <SafetySpectrum />
 
         {/* Here's to the crazy ones */}
         <section id="crazy-ones" className="py-32 px-6 relative overflow-hidden scroll-mt-20">

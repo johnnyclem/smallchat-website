@@ -441,6 +441,7 @@ export function SafetySpectrum() {
               <button
                 key={a.id}
                 onClick={() => setActive(a.id)}
+                aria-label={`View ${a.label} approach`}
                 className={`flex items-center gap-2 transition-all duration-300 cursor-pointer ${
                   active === a.id ? `${a.color} font-medium` : "hover:text-white/60"
                 }`}
