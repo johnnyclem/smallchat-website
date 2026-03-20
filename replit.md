@@ -58,9 +58,10 @@ Smallchat showcase/landing page website. Frontend-only React + Vite app with no 
 
 - Dark mode design with animated terminal, code blocks, and scroll animations
 - Built with Framer Motion, Lucide React icons, Tailwind CSS v4
-- Sections: Hero, Core Concepts, Architecture, Features Grid, Compiler Pipeline, Quick Start, Footer
+- Sections: Hero, History Timeline (Smalltalk→ObjC→smallchat), The Problem, How It Works, Features, For Developers, Quick Start, Footer
+- History Timeline: scroll-driven animated section with parallax cards, connector dots, code snippets per era; respects prefers-reduced-motion
 - Source repo: https://github.com/johnnyclem/smallchat
-- Key files: `src/pages/Home.tsx`, `src/components/TerminalAnimation.tsx`, `src/components/ui/CodeBlock.tsx`
+- Key files: `src/pages/Home.tsx`, `src/components/HistoryTimeline.tsx`, `src/components/TerminalAnimation.tsx`, `src/components/ui/CodeBlock.tsx`
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 

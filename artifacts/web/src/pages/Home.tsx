@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { TerminalAnimation } from "@/components/TerminalAnimation";
+import { HistoryTimeline } from "@/components/HistoryTimeline";
 import { useState } from "react";
 
 const fadeUp = {
@@ -60,6 +61,7 @@ export default function Home() {
               <span className="font-bold tracking-tight text-white">smallchat</span>
             </div>
             <div className="hidden md:flex items-center space-x-6 text-sm text-muted-foreground">
+              <a href="#history" className="hover:text-white transition-colors">History</a>
               <a href="#problem" className="hover:text-white transition-colors">The Problem</a>
               <a href="#how" className="hover:text-white transition-colors">How It Works</a>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -129,6 +131,9 @@ export default function Home() {
             <TerminalAnimation />
           </motion.div>
         </section>
+
+        {/* History Timeline */}
+        <HistoryTimeline />
 
         {/* The Problem — Plain language */}
         <section id="problem" className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden scroll-mt-20">
