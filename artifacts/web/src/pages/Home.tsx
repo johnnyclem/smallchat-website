@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { TerminalAnimation } from "@/components/TerminalAnimation";
 import { HistoryTimeline } from "@/components/HistoryTimeline";
+import { CompilerComparison } from "@/components/CompilerComparison";
 import { useState } from "react";
 
 const fadeUp = {
@@ -63,6 +64,7 @@ export default function Home() {
               <a href="#compiler" className="hover:text-white transition-colors">The Compiler</a>
               <a href="#history" className="hover:text-white transition-colors">History</a>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#comparison" className="hover:text-white transition-colors">Compare</a>
               <a href="#crazy-ones" className="hover:text-white transition-colors">Philosophy</a>
               <a href="#developers" className="hover:text-white transition-colors">For Developers</a>
               <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
@@ -215,6 +217,9 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </section>
+
+        {/* Compiler Comparison Tool */}
+        <CompilerComparison />
 
         {/* Pipeline */}
         <section className="py-24 px-6 bg-black/40 border-y border-white/5">

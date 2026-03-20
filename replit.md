@@ -58,7 +58,8 @@ Smallchat showcase/landing page website. Frontend-only React + Vite app with no 
 
 - Dark mode design with animated terminal, code blocks, and scroll animations
 - Built with Framer Motion, Lucide React icons, Tailwind CSS v4
-- Sections: Hero, The Compiler, History Timeline (Smalltalk→ObjC→smallchat), Features, Pipeline, Philosophy ("Here's to the crazy ones"), Concept Map, For Developers, Quick Start ("Ready when you are"), Footer
+- Sections: Hero, The Compiler, History Timeline (Smalltalk→ObjC→smallchat), Features, Compiler Comparison (interactive), Pipeline, Philosophy ("Here's to the crazy ones"), Concept Map, For Developers, Quick Start ("Ready when you are"), Footer
+- Compiler Comparison: interactive tool that lets users select MCP tool groups, toggle "With/Without smallchat" to see context window, token, and cost differences. Uses pair-based overlap matrix for deterministic deduplication math. Component: `src/components/CompilerComparison.tsx`
 - History Timeline: scroll-driven animated section with parallax cards, connector dots, code snippets per era; respects prefers-reduced-motion
 - Source repo: https://github.com/johnnyclem/smallchat
 - Key files: `src/pages/Home.tsx`, `src/components/HistoryTimeline.tsx`, `src/components/TerminalAnimation.tsx`, `src/components/ui/CodeBlock.tsx`
