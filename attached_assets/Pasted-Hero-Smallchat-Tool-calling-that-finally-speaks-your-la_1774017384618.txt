@@ -1,0 +1,53 @@
+Hero
+Smallchat.
+Tool calling that finally speaks your language.
+Subhead
+Messages instead of schemas.
+Streaming that feels alive.
+One lightweight library that lets your LLM think, dispatch, and respond like it was built for it.
+
+Section: The compiler is back, baby
+You used to fight JSON schemas.
+You used to parse every delta by hand.
+You used to hope the model guessed right.
+Not anymore.
+The compiler is back, baby.
+Tools are objects again.
+Intent resolves with real semantics.
+And every token streams the moment it arrives.
+
+Section: Built for the way you already think
+Semantic dispatch finds the right tool before the first token leaves the model.
+Async generators hand you chunks in real time.
+Fallbacks that never throw.
+Cache that stays fresh across providers.
+All of it in plain TypeScript.
+Zero bloat.
+It is the difference between waiting for an answer and watching the answer arrive.
+
+Section: Here’s to the crazy ones
+Here is to the minds who never accepted the heavy way.
+Steve Jobs reminded us:
+“I think one of the things that really separates us from the high primates is that we’re tool builders. We can fashion tools that amplify these inherent abilities that we have to spectacular magnitudes. And so for me, a computer has always been a bicycle of the mind. Something that takes us far beyond our inherent abilities.”
+Smallchat is that same leap for your tools.
+It is for the ones who wanted messages instead of schemas.
+The ones who built in the quiet hours and left the bowl half-full on purpose.
+Technology is nothing. What’s important is that you have faith in people, that they’re basically good and smart, and if you give them tools, they’ll do wonderful things with them.
+Smallchat is the library that finally gets it.
+
+Section: Ready when you are
+Drop it in with one command.
+Watch it stream in your own UI.
+Or spin up the built-in server in seconds.
+From prototype to production in the time it takes to make coffee.
+
+CTA options (use whichever fits the moment on the page)
+Primary CTA – Hero and footer
+Start building now
+npm install smallchat
+Secondary CTA – After features
+See it stream
+Open the live demo
+Tertiary CTA – Bottom of page
+Leave the bowl half-full
+Read the architecture guide
