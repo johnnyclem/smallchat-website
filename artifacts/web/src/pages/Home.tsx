@@ -23,6 +23,7 @@ import { TerminalAnimation } from "@/components/TerminalAnimation";
 import { HistoryTimeline } from "@/components/HistoryTimeline";
 import { CompilerComparison } from "@/components/CompilerComparison";
 import { SafetySpectrum } from "@/components/SafetySpectrum";
+import { CaseStudy } from "@/components/CaseStudy";
 import { useState } from "react";
 
 const fadeUp = {
@@ -261,6 +262,9 @@ export default function Home() {
 
         {/* Safety Spectrum */}
         <SafetySpectrum />
+
+        {/* Case Study: AgentVault */}
+        <CaseStudy />
 
         {/* Here's to the crazy ones */}
         <section id="crazy-ones" className="py-32 px-6 relative overflow-hidden scroll-mt-20">
