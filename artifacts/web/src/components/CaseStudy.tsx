@@ -182,26 +182,13 @@ const pipelineSteps = [
   { label: "Arweave", icon: Database, desc: "Compact interned backup", color: "text-blue-400" },
 ];
 
-export function CaseStudy() {
+export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
   const [activeTab, setActiveTab] = useState<MetricTab>("security");
   const current = tabs.find((t) => t.id === activeTab)!;
 
-  return (
-    <section id="case-study" className="py-32 px-6 bg-black/40 border-y border-white/5 relative overflow-x-hidden overflow-y-visible scroll-mt-20">
-      <div
-        className="absolute inset-0 pointer-events-none transition-all duration-700"
-        style={{
-          background: `radial-gradient(ellipse at top, ${current.bgGlow} 0%, transparent 60%)`,
-        }}
-      />
-
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={stagger}
-        className="max-w-5xl mx-auto space-y-16"
-      >
+  const innerContent = (
+    <div className={embedded ? "space-y-12 relative" : "max-w-5xl mx-auto space-y-16"}>
+      {!embedded && (
         <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary/80 bg-primary/10 px-3 py-1.5 rounded-full">
             <Zap className="w-3.5 h-3.5" />
@@ -215,6 +202,7 @@ export function CaseStudy() {
             with Arweave backups that actually fit in a block.
           </p>
         </motion.div>
+      )}
 
         <motion.div variants={fadeUp} className="max-w-3xl mx-auto">
           <div className="glass-panel rounded-2xl p-6 md:p-8">
@@ -428,6 +416,26 @@ export function CaseStudy() {
             ))}
           </div>
         </motion.div>
+    </div>
+  );
+
+  if (embedded) return innerContent;
+
+  return (
+    <section id="case-study" className="py-32 px-6 bg-black/40 border-y border-white/5 relative overflow-x-hidden overflow-y-visible scroll-mt-20">
+      <div
+        className="absolute inset-0 pointer-events-none transition-all duration-700"
+        style={{
+          background: `radial-gradient(ellipse at top, ${current.bgGlow} 0%, transparent 60%)`,
+        }}
+      />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={stagger}
+      >
+        {innerContent}
       </motion.div>
     </section>
   );

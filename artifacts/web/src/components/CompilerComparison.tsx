@@ -88,7 +88,7 @@ function BarFill({ percent, color, animate }: { percent: number; color: string; 
   );
 }
 
-export function CompilerComparison() {
+export function CompilerComparison({ embedded = false }: { embedded?: boolean }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(["atlassian", "github", "linear"]));
   const [showAll, setShowAll] = useState(false);
   const [compiled, setCompiled] = useState(false);
@@ -163,15 +163,9 @@ export function CompilerComparison() {
   const activeCost = compiled ? stats.compiledCost : stats.rawCost;
   const activeTools = compiled ? stats.compiledToolCount : stats.rawToolCount;
 
-  return (
-    <section id="comparison" className="py-24 px-4 sm:px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6 }}
-        className="max-w-5xl mx-auto space-y-12 min-w-0"
-      >
+  const content = (
+    <div className={embedded ? "space-y-10 min-w-0" : "max-w-5xl mx-auto space-y-12 min-w-0"}>
+      {!embedded && (
         <div className="text-center space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             See the difference
@@ -180,6 +174,7 @@ export function CompilerComparison() {
             Pick some MCP tool groups. Toggle the compiler. Watch the numbers drop.
           </p>
         </div>
+      )}
 
         <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 min-w-0">
           <div className="space-y-4 min-w-0">
@@ -485,6 +480,20 @@ export function CompilerComparison() {
             </div>
           </div>
         </div>
+    </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <section id="comparison" className="py-24 px-4 sm:px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
+        {content}
       </motion.div>
     </section>
   );

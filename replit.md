@@ -58,7 +58,14 @@ Smallchat showcase/landing page website. Frontend-only React + Vite app with no 
 
 - Dark mode design with animated terminal, code blocks, and scroll animations
 - Built with Framer Motion, Lucide React icons, Tailwind CSS v4
-- Sections: Hero, The Compiler, History Timeline (Smalltalk→ObjC→smallchat), Features, Compiler Comparison (interactive), Pipeline, Safety Spectrum (interactive), Philosophy ("Here's to the crazy ones"), Concept Map, For Developers, Quick Start ("Ready when you are"), Footer
+- Page organized into 5 logical sections with tabbed navigation to reduce scroll length:
+  1. **Hero** — headline, tagline, CTA buttons, terminal animation
+  2. **What it does** (#what) — tabs: The Compiler / Features / How it works (pipeline)
+  3. **Why it matters** (#why) — tabs: Compare (CompilerComparison) / Safety (SafetySpectrum) / AgentVault (CaseStudy)
+  4. **Deep dive** (#deep-dive) — tabs: Architecture (concept map + Jobs quote) / Under the hood (code blocks + accordion) / History (HistoryTimeline)
+  5. **Get Started** (#quickstart) — terminal quickstart + Footer
+- Nav links: What it does, Why it matters, Deep dive, Get Started + GitHub icon
+- Sub-components accept `embedded` prop to render without section wrappers when used inside tabs
 - Safety Spectrum: interactive Goldilocks positioning — MCP (too rigid, blue), smallchat (just right, green), open agents like openclaw/nanoclaw (too dangerous, red). Gradient bar with three clickable stops, animated card transitions, traits tables, code examples, risk/benefit lists, contextual callout boxes. Component: `src/components/SafetySpectrum.tsx`
 - Case Study (AgentVault): tabbed section showing security wins, cost savings, and performance gains of using smallchat as pre-compiler before deploying to ICP canisters/Arweave. Pipeline diagram, before/after metrics, Rust code example, hero stat cards (84% token reduction, 40x resolution speed, 600x payload reduction). Component: `src/components/CaseStudy.tsx`
 - Compiler Comparison: interactive tool that lets users select MCP tool groups, toggle "With/Without smallchat" to see context window, token, and cost differences. Uses pair-based overlap matrix for deterministic deduplication math. Component: `src/components/CompilerComparison.tsx`

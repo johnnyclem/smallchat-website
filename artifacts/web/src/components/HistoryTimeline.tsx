@@ -224,7 +224,7 @@ function ConnectorDot({ color }: { color: string }) {
   );
 }
 
-export function HistoryTimeline() {
+export function HistoryTimeline({ embedded = false }: { embedded?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -232,6 +232,41 @@ export function HistoryTimeline() {
   });
 
   const bgOpacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0]);
+  const prefersReducedMotion = useReducedMotion();
+
+  const timelineContent = (
+    <>
+      <ConnectorDot color={eras[0].color} />
+      {eras.map((era, i) => (
+        <div key={i}>
+          <EraCard era={era} index={i} />
+          {i < eras.length - 1 && <ConnectorDot color={eras[i + 1].color} />}
+        </div>
+      ))}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-12 text-center">
+        <motion.div
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="space-y-6"
+        >
+          <div className="flex items-center justify-center gap-2 sm:gap-4 text-lg sm:text-2xl md:text-3xl font-bold flex-wrap">
+            <span style={{ color: eras[0].color }}>Smalltalk</span>
+            <span className="text-white/20">→</span>
+            <span style={{ color: eras[1].color }}>Objective-C</span>
+            <span className="text-white/20">→</span>
+            <span style={{ color: eras[2].color }}>smallchat</span>
+          </div>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            Same architecture. Same elegance. New frontier.
+          </p>
+        </motion.div>
+      </div>
+    </>
+  );
+
+  if (embedded) return <div className="space-y-0">{timelineContent}</div>;
 
   return (
     <section id="history" className="relative scroll-mt-20 overflow-hidden" ref={containerRef} style={{ position: "relative" }}>
@@ -269,34 +304,7 @@ export function HistoryTimeline() {
           </motion.div>
         </div>
 
-        <ConnectorDot color={eras[0].color} />
-        {eras.map((era, i) => (
-          <div key={i}>
-            <EraCard era={era} index={i} />
-            {i < eras.length - 1 && <ConnectorDot color={eras[i + 1].color} />}
-          </div>
-        ))}
-
-        <div className="max-w-4xl mx-auto px-6 pt-8 pb-24 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-center gap-2 sm:gap-4 text-lg sm:text-2xl md:text-3xl font-bold flex-wrap">
-              <span style={{ color: eras[0].color }}>Smalltalk</span>
-              <span className="text-white/20">→</span>
-              <span style={{ color: eras[1].color }}>Objective-C</span>
-              <span className="text-white/20">→</span>
-              <span style={{ color: eras[2].color }}>smallchat</span>
-            </div>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Same architecture. Same elegance. New frontier.
-            </p>
-          </motion.div>
-        </div>
+        {timelineContent}
       </div>
     </section>
   );

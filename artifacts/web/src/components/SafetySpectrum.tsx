@@ -164,26 +164,13 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.08 } },
 };
 
-export function SafetySpectrum() {
+export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
   const [active, setActive] = useState<Approach>("smallchat");
   const current = approaches.find((a) => a.id === active)!;
 
-  return (
-    <section id="safety" className="py-32 px-6 relative overflow-hidden scroll-mt-20">
-      <div
-        className="absolute inset-0 pointer-events-none transition-all duration-700"
-        style={{
-          background: `radial-gradient(ellipse at center, ${current.bgGlow} 0%, transparent 70%)`,
-        }}
-      />
-
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={stagger}
-        className="max-w-5xl mx-auto space-y-16"
-      >
+  const innerContent = (
+    <div className={embedded ? "space-y-12 relative" : "max-w-5xl mx-auto space-y-16"}>
+      {!embedded && (
         <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center text-primary bg-primary/10 px-3 py-1 rounded-full text-sm font-medium">
             <ShieldAlert className="w-4 h-4 mr-2" />
@@ -197,6 +184,7 @@ export function SafetySpectrum() {
             Most get it wrong.
           </p>
         </motion.div>
+      )}
 
         <motion.div variants={fadeUp}>
           <div className="relative max-w-3xl mx-auto">
@@ -453,6 +441,26 @@ export function SafetySpectrum() {
             ))}
           </div>
         </motion.div>
+    </div>
+  );
+
+  if (embedded) return innerContent;
+
+  return (
+    <section id="safety" className="py-32 px-6 relative overflow-hidden scroll-mt-20">
+      <div
+        className="absolute inset-0 pointer-events-none transition-all duration-700"
+        style={{
+          background: `radial-gradient(ellipse at center, ${current.bgGlow} 0%, transparent 70%)`,
+        }}
+      />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={stagger}
+      >
+        {innerContent}
       </motion.div>
     </section>
   );
