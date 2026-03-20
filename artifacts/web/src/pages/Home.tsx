@@ -5,18 +5,17 @@ import {
   Copy, 
   MessageSquare, 
   Zap, 
-  Layers, 
-  Cpu, 
-  ShieldCheck, 
-  Repeat, 
-  PackageSearch,
   Box,
   ArrowRight,
   Brain,
-  Route,
   Search,
   Plug,
-  BookOpen
+  Play,
+  FileText,
+  Shield,
+  RefreshCw,
+  Code2,
+  Rocket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -61,10 +60,10 @@ export default function Home() {
               <span className="font-bold tracking-tight text-white">smallchat</span>
             </div>
             <div className="hidden md:flex items-center space-x-6 text-sm text-muted-foreground">
+              <a href="#compiler" className="hover:text-white transition-colors">The Compiler</a>
               <a href="#history" className="hover:text-white transition-colors">History</a>
-              <a href="#problem" className="hover:text-white transition-colors">The Problem</a>
-              <a href="#how" className="hover:text-white transition-colors">How It Works</a>
               <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#crazy-ones" className="hover:text-white transition-colors">Philosophy</a>
               <a href="#developers" className="hover:text-white transition-colors">For Developers</a>
               <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
             </div>
@@ -90,23 +89,24 @@ export default function Home() {
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
-              Teach AI to <br/> use any tool.
+              Smallchat.
             </motion.h1>
-            
-            <motion.p variants={fadeUp} className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-              smallchat is a compiler that lets AI models discover and use tools naturally &mdash; just by describing what they want to do, in plain language.
-            </motion.p>
 
-            <motion.blockquote variants={fadeUp} className="border-l-2 border-primary/50 pl-4 py-2 mx-auto max-w-md text-left italic text-gray-400 bg-white/[0.02] rounded-r-lg">
-              "The big idea is messaging." <br/>
-              <span className="text-sm font-semibold text-primary/80 mt-1 block">— Alan Kay</span>
-            </motion.blockquote>
+            <motion.p variants={fadeUp} className="text-2xl md:text-3xl text-white/90 max-w-3xl mx-auto font-medium leading-snug tracking-tight">
+              Tool calling that finally speaks your language.
+            </motion.p>
+            
+            <motion.p variants={fadeUp} className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+              Messages instead of schemas.<br />
+              Streaming that feels alive.<br />
+              One lightweight library that lets your LLM think, dispatch, and respond like it was built for it.
+            </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
                 <Button size="lg" className="gap-2">
-                  <Github className="w-5 h-5" />
-                  View on GitHub
+                  <Rocket className="w-5 h-5" />
+                  Start building now
                 </Button>
               </a>
               <Button 
@@ -132,119 +132,183 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* History Timeline */}
-        <HistoryTimeline />
-
-        {/* The Problem — Plain language */}
-        <section id="problem" className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden scroll-mt-20">
+        {/* The compiler is back, baby */}
+        <section id="compiler" className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden scroll-mt-20">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,112,243,0.05)_0%,transparent_70%)] pointer-events-none" />
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
             className="max-w-4xl mx-auto text-center space-y-12"
           >
-            <motion.div variants={fadeUp} className="space-y-4">
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">AI has a tool problem.</h2>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Today's AI models can search the web, write code, file tickets, and query databases &mdash; but only when developers 
-                hardcode each tool one by one. Every new tool means new wiring. It doesn't scale.
-              </p>
+            <motion.div variants={fadeUp} className="space-y-6">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+                The compiler is back, baby.
+              </h2>
+              <div className="space-y-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                <p>
+                  You used to fight JSON schemas.<br />
+                  You used to parse every delta by hand.<br />
+                  You used to hope the model guessed right.
+                </p>
+                <p className="text-white font-medium">
+                  Not anymore.
+                </p>
+              </div>
             </motion.div>
 
             <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 pt-4">
               {[
-                { 
-                  label: "Without smallchat",
-                  items: ["Manually register every tool", "Hardcode function names", "Rebuild when tools change", "One model, one set of tools"],
-                  bad: true
-                },
-                {
-                  label: "The gap",
-                  items: ["Tools grow fast", "Models need flexibility", "Naming is inconsistent", "Discovery is manual"],
-                  bad: true
-                },
-                { 
-                  label: "With smallchat",
-                  items: ["AI describes what it wants", "Runtime finds the right tool", "New tools just work", "Any model, any provider"],
-                  bad: false
-                },
-              ].map((col, i) => (
-                <div key={i} className={`glass-panel rounded-2xl p-6 space-y-4 ${!col.bad ? 'border-primary/30 bg-primary/5' : ''}`}>
-                  <div className={`text-sm font-bold uppercase tracking-wider ${col.bad ? 'text-muted-foreground' : 'text-primary'}`}>
-                    {col.label}
-                  </div>
-                  <ul className="space-y-3 text-left">
-                    {col.items.map((item, j) => (
-                      <li key={j} className={`flex items-start text-sm ${col.bad ? 'text-gray-400' : 'text-gray-200'}`}>
-                        <span className={`mr-2 mt-0.5 ${col.bad ? 'text-red-400/60' : 'text-green-400'}`}>
-                          {col.bad ? '×' : '✓'}
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+                { text: "Tools are objects again.", icon: Box },
+                { text: "Intent resolves with real semantics.", icon: Search },
+                { text: "Every token streams the moment it arrives.", icon: Zap },
+              ].map((item, i) => (
+                <div key={i} className="glass-panel rounded-2xl p-6 border-primary/20 bg-primary/5 flex flex-col items-center text-center gap-4">
+                  <item.icon className="w-8 h-8 text-primary" />
+                  <p className="text-white font-medium text-lg">{item.text}</p>
                 </div>
               ))}
             </motion.div>
           </motion.div>
         </section>
 
-        {/* How It Works — Simple 3-step explanation */}
-        <section id="how" className="py-32 px-6 scroll-mt-20">
+        {/* History Timeline */}
+        <HistoryTimeline />
+
+        {/* Built for the way you already think */}
+        <section id="features" className="py-32 px-6 scroll-mt-20">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
             className="max-w-5xl mx-auto space-y-20"
           >
             <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
               <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-                How it works
+                Built for the way you already think
               </h2>
-              <p className="text-lg text-muted-foreground">
-                Think of it like a smart switchboard operator. Instead of connecting wires by hand, 
-                it listens to what you mean and routes you to the right person automatically.
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                It is the difference between waiting for an answer and watching the answer arrive.
               </p>
             </motion.div>
 
-            <div className="space-y-16">
+            <motion.div variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                {
-                  num: "01",
-                  icon: BookOpen,
-                  title: "Compile your tools",
-                  desc: "Point smallchat at your tool definitions — MCP servers, OpenAPI specs, or plain JSON schemas. The compiler reads them, understands what each tool does, and builds a lookup index.",
-                  detail: "Like creating a phone book, but instead of names and numbers, it maps meanings to tools."
-                },
-                {
-                  num: "02",
-                  icon: Search,
-                  title: "AI describes its intent",
-                  desc: "When an AI model needs to do something, it simply says what it wants in natural language. No function name memorization. No rigid schemas to follow.",
-                  detail: "\"Search for recent code changes\" — the AI says what it means, not which button to press."
-                },
-                {
-                  num: "03",
-                  icon: Route,
-                  title: "The runtime resolves it",
-                  desc: "smallchat instantly matches the intent to the best available tool and executes it. Results come back fast because frequently-used matches are cached.",
-                  detail: "Like autocomplete for tool calls — the more you use it, the faster it gets."
-                },
-              ].map((step, i) => (
-                <motion.div key={i} variants={fadeUp} className="grid md:grid-cols-[120px_1fr] gap-8 items-start">
-                  <div className="flex md:flex-col items-center md:items-start gap-4">
-                    <div className="text-5xl font-bold text-white/10 font-mono">{step.num}</div>
-                    <step.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="space-y-3">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white">{step.title}</h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed">{step.desc}</p>
-                    <p className="text-sm text-primary/70 italic">{step.detail}</p>
-                  </div>
+                { icon: Search, title: "Semantic dispatch", desc: "Finds the right tool before the first token leaves the model. No guessing, no rigid function names." },
+                { icon: Zap, title: "Async streaming", desc: "Async generators hand you chunks in real time. Watch answers arrive, not wait for them." },
+                { icon: Shield, title: "Fallbacks that never throw", desc: "Graceful degradation built in. When tools fail, the system recovers instead of crashing." },
+                { icon: RefreshCw, title: "Cache that stays fresh", desc: "Resolution cache works across providers. Repeat intents resolve instantly." },
+                { icon: Code2, title: "Plain TypeScript", desc: "All of it in plain TypeScript. Zero bloat. No framework lock-in, no magic decorators." },
+                { icon: Plug, title: "Any source, one runtime", desc: "MCP servers, OpenAPI specs, or JSON schemas. They all compile into a single, unified dispatch table." },
+              ].map((feature, i) => (
+                <motion.div key={i} variants={fadeUp} className="glass-panel-hover glass-panel p-6 rounded-2xl group">
+                  <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
+                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="flex justify-center pt-4">
+              <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                <Button variant="glass" size="lg" className="gap-2">
+                  <Play className="w-4 h-4" />
+                  See it stream
+                </Button>
+              </a>
+            </motion.div>
           </motion.div>
         </section>
 
-        {/* The Big Idea — Messaging analogy */}
+        {/* Pipeline */}
+        <section className="py-24 px-6 bg-black/40 border-y border-white/5">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-5xl mx-auto space-y-16"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Four steps from definition to dispatch</h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                The compiler transforms raw tool definitions into an optimized artifact the runtime can use instantly.
+              </p>
+            </motion.div>
+            <motion.div variants={stagger} className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+              {[
+                { step: "PARSE", emoji: "📄", desc: "Read tool definitions from any format — MCP, OpenAPI, or JSON." },
+                { step: "EMBED", emoji: "🧠", desc: "Convert tool descriptions into semantic vectors for meaning-based lookup." },
+                { step: "LINK", emoji: "🔗", desc: "Detect similar tools, resolve overloads, and build the dispatch tables." },
+                { step: "OUTPUT", emoji: "📦", desc: "Produce a compiled artifact ready for the runtime to use." },
+              ].map((phase, i) => (
+                <motion.div key={i} variants={fadeUp} className="flex flex-col md:flex-row items-center">
+                  <div className="glass-panel rounded-2xl p-6 w-56 text-center group hover:border-primary/30 transition-all duration-300">
+                    <div className="text-3xl mb-2">{phase.emoji}</div>
+                    <div className="text-primary font-mono font-bold text-sm mb-2">{phase.step}</div>
+                    <p className="text-muted-foreground text-xs leading-relaxed">{phase.desc}</p>
+                  </div>
+                  {i < 3 && (
+                    <div className="text-muted-foreground text-2xl px-2 rotate-90 md:rotate-0 my-2 md:my-0">
+                      →
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Here's to the crazy ones */}
+        <section id="crazy-ones" className="py-32 px-6 relative overflow-hidden scroll-mt-20">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(120,80,255,0.06)_0%,transparent_60%)] pointer-events-none" />
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-4xl mx-auto space-y-16"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-6">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+                Here's to the crazy ones.
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Here's to the minds who never accepted the heavy way.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp}>
+              <blockquote className="relative max-w-3xl mx-auto">
+                <div className="absolute -top-4 -left-2 text-6xl text-primary/10 font-serif">"</div>
+                <div className="glass-panel rounded-2xl p-8 md:p-12 space-y-6">
+                  <p className="text-lg md:text-xl text-gray-300 leading-relaxed italic">
+                    I think one of the things that really separates us from the high primates is that we're tool builders. 
+                    We can fashion tools that amplify these inherent abilities that we have to spectacular magnitudes. 
+                    And so for me, a computer has always been a bicycle of the mind. 
+                    Something that takes us far beyond our inherent abilities.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-px bg-primary/40" />
+                    <span className="text-sm font-semibold text-primary/80">Steve Jobs</span>
+                  </div>
+                </div>
+              </blockquote>
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="max-w-3xl mx-auto space-y-6 text-center">
+              <p className="text-xl md:text-2xl text-white/90 font-medium leading-relaxed">
+                Smallchat is that same leap for your tools.
+              </p>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                It is for the ones who wanted messages instead of schemas. 
+                The ones who built in the quiet hours and left the bowl half-full on purpose.
+              </p>
+              <blockquote className="border-l-2 border-primary/40 pl-6 py-2 text-left mx-auto max-w-xl">
+                <p className="text-base text-gray-400 italic leading-relaxed">
+                  Technology is nothing. What's important is that you have faith in people, that they're basically good and smart, 
+                  and if you give them tools, they'll do wonderful things with them.
+                </p>
+                <span className="text-sm font-semibold text-primary/80 mt-2 block">— Steve Jobs</span>
+              </blockquote>
+              <p className="text-lg text-muted-foreground leading-relaxed pt-4">
+                Smallchat is the library that finally gets it.
+              </p>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* Concept Map */}
         <section className="py-24 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(120,80,255,0.05)_0%,transparent_60%)] pointer-events-none" />
           <motion.div 
@@ -254,7 +318,7 @@ export default function Home() {
             <motion.div variants={fadeUp} className="space-y-6">
               <div className="inline-flex items-center text-accent bg-accent/10 px-3 py-1 rounded-full text-sm font-medium">
                 <Brain className="w-4 h-4 mr-2" />
-                The Big Idea
+                Architecture
               </div>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Messages, not function calls.
@@ -267,11 +331,6 @@ export default function Home() {
                 smallchat applies this same principle to AI. The model sends a message describing its intent, 
                 and the runtime figures out the right tool to handle it. This decoupling is what makes the system flexible, 
                 extensible, and surprisingly elegant.
-              </p>
-              <p className="text-base text-muted-foreground/70 leading-relaxed">
-                Under the hood, the architecture maps directly to the Smalltalk and Objective-C runtime: 
-                selectors, method dispatch, inline caching, protocol conformance, and forwarding chains — all adapted 
-                for the world of AI tool use.
               </p>
             </motion.div>
 
@@ -309,74 +368,7 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Features — Human-readable language */}
-        <section id="features" className="py-24 px-6 scroll-mt-20">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
-            className="max-w-6xl mx-auto"
-          >
-            <motion.div variants={fadeUp} className="text-center mb-16 space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">What you get</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                A runtime designed for speed, flexibility, and real-world AI tool use.
-              </p>
-            </motion.div>
-            <motion.div variants={stagger} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { icon: Search, title: "Meaning-Based Matching", desc: "Tools are found by what they do, not what they're called. An AI can say \"search for code\" and get matched to the right tool — even if it's named something different." },
-                { icon: Zap, title: "Instant Repeat Lookups", desc: "Once a tool is matched, the result is cached. The second time the same intent comes up, resolution is nearly instant — no re-computation needed." },
-                { icon: ShieldCheck, title: "Capability Contracts", desc: "Define what a tool provider must support. If a provider says it conforms to a protocol, the runtime holds it to that promise." },
-                { icon: Repeat, title: "Swap Tools at Runtime", desc: "Need to test with a mock? Switch providers mid-session? Swap one tool implementation for another without restarting anything." },
-                { icon: Layers, title: "Smart Overloads", desc: "The compiler detects similar tools and groups them automatically. The right version is selected based on the arguments passed." },
-                { icon: Plug, title: "Works with MCP, REST, and more", desc: "Bring tools from MCP servers, OpenAPI specs, or plain JSON schemas. smallchat compiles them all into a single, unified dispatch table." },
-              ].map((feature, i) => (
-                <motion.div key={i} variants={fadeUp} className="glass-panel-hover glass-panel p-6 rounded-2xl group">
-                  <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
-                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* Pipeline — simplified */}
-        <section className="py-24 px-6 bg-black/40 border-y border-white/5">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
-            className="max-w-5xl mx-auto space-y-16"
-          >
-            <motion.div variants={fadeUp} className="text-center space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Four steps from definition to dispatch</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                The compiler transforms raw tool definitions into an optimized artifact the runtime can use instantly.
-              </p>
-            </motion.div>
-            <motion.div variants={stagger} className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
-              {[
-                { step: "PARSE", emoji: "📄", desc: "Read tool definitions from any format — MCP, OpenAPI, or JSON." },
-                { step: "EMBED", emoji: "🧠", desc: "Convert tool descriptions into semantic vectors for meaning-based lookup." },
-                { step: "LINK", emoji: "🔗", desc: "Detect similar tools, resolve overloads, and build the dispatch tables." },
-                { step: "OUTPUT", emoji: "📦", desc: "Produce a compiled artifact ready for the runtime to use." },
-              ].map((phase, i) => (
-                <motion.div key={i} variants={fadeUp} className="flex flex-col md:flex-row items-center">
-                  <div className="glass-panel rounded-2xl p-6 w-56 text-center group hover:border-primary/30 transition-all duration-300">
-                    <div className="text-3xl mb-2">{phase.emoji}</div>
-                    <div className="text-primary font-mono font-bold text-sm mb-2">{phase.step}</div>
-                    <p className="text-muted-foreground text-xs leading-relaxed">{phase.desc}</p>
-                  </div>
-                  {i < 3 && (
-                    <div className="text-muted-foreground text-2xl px-2 rotate-90 md:rotate-0 my-2 md:my-0">
-                      →
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* For Developers — The deep stuff, opt-in */}
+        {/* For Developers */}
         <section id="developers" className="py-32 px-6 scroll-mt-20">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
@@ -479,15 +471,22 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Quick Start */}
+        {/* Ready when you are */}
         <section id="quickstart" className="py-24 px-6 bg-black/40 border-y border-white/5 scroll-mt-20">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
             className="max-w-3xl mx-auto space-y-12"
           >
             <motion.div variants={fadeUp} className="text-center space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Try it in 60 seconds</h2>
-              <p className="text-muted-foreground text-lg">Clone, build, and run your first dispatch.</p>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Ready when you are</h2>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                Drop it in with one command.
+                Watch it stream in your own UI.
+                Or spin up the built-in server in seconds.
+              </p>
+              <p className="text-muted-foreground">
+                From prototype to production in the time it takes to make coffee.
+              </p>
             </motion.div>
             <motion.div variants={fadeUp} className="glass-panel rounded-2xl overflow-hidden">
               <div className="flex items-center px-4 py-3 border-b border-white/5 bg-black/40">
@@ -500,23 +499,23 @@ export default function Home() {
               </div>
               <div className="p-6 bg-black/50 font-mono text-sm space-y-5">
                 <div>
-                  <span className="text-muted-foreground select-none"># Clone and build</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>git clone https://github.com/johnnyclem/smallchat.git</div>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>cd smallchat && npm install && npm run build</div>
+                  <span className="text-muted-foreground select-none"># Install</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install smallchat</div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground select-none"># Compile tool definitions from examples</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat compile --source ./examples --output tools.json</div>
+                  <span className="text-muted-foreground select-none"># Compile tool definitions</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat compile --source ./tools --output tools.json</div>
                   <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground select-none"># See what was compiled</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat inspect tools.json --providers --selectors</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
                   <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat resolve tools.json "search for code"</div>
                   <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground select-none"># Spin up the built-in server</span>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat serve tools.json --port 3000</div>
+                  <div className="text-green-400/70 text-xs mt-1 select-none">smallchat server running on http://localhost:3000 ✓</div>
                 </div>
               </div>
             </motion.div>
@@ -524,25 +523,40 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-white/10 bg-[#050505] pt-16 pb-8 px-6 text-center md:text-left">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 justify-center md:justify-start">
-                <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                <span className="font-bold text-lg text-white">smallchat</span>
+        <footer className="border-t border-white/10 bg-[#050505] pt-16 pb-8 px-6">
+          <div className="max-w-4xl mx-auto space-y-12">
+            <div className="text-center space-y-6">
+              <div className="flex items-center justify-center space-x-2">
+                <MessageSquare className="w-6 h-6 text-primary" />
+                <span className="font-bold text-2xl text-white">smallchat</span>
               </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                  <Button size="lg" className="gap-2">
+                    <Rocket className="w-5 h-5" />
+                    Start building now
+                  </Button>
+                </a>
+                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                  <Button variant="glass" size="lg" className="gap-2">
+                    <FileText className="w-4 h-4" />
+                    Leave the bowl half-full
+                  </Button>
+                </a>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-white/5">
               <p className="text-sm text-muted-foreground">
                 Built by Johnny Clem. MIT License.
               </p>
-            </div>
-            
-            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <a href="https://github.com/johnnyclem/smallchat" className="hover:text-white transition-colors flex items-center">
-                <Github className="w-4 h-4 mr-2" /> Source Code
-              </a>
-              <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-xs">
-                v0.0.1
-              </span>
+              <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                <a href="https://github.com/johnnyclem/smallchat" className="hover:text-white transition-colors flex items-center">
+                  <Github className="w-4 h-4 mr-2" /> Source Code
+                </a>
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-xs">
+                  v0.0.1
+                </span>
+              </div>
             </div>
           </div>
         </footer>
