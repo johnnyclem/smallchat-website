@@ -245,14 +245,14 @@ export function SafetySpectrum() {
                       }
                     />
                     <div
-                      className={`text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
+                      className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
                         isActive ? approach.positionColor : "text-white/30"
                       }`}
                     >
                       {approach.position}
                     </div>
                     <div
-                      className={`text-sm font-medium mt-1 transition-colors duration-300 ${
+                      className={`text-xs sm:text-sm font-medium mt-1 transition-colors duration-300 text-center ${
                         isActive ? "text-white" : "text-white/40"
                       }`}
                     >
@@ -436,7 +436,7 @@ export function SafetySpectrum() {
         </AnimatePresence>
 
         <motion.div variants={fadeUp} className="flex justify-center pt-4">
-          <div className="inline-flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
             {approaches.map((a) => (
               <button
                 key={a.id}
@@ -446,9 +446,9 @@ export function SafetySpectrum() {
                   active === a.id ? `${a.color} font-medium` : "hover:text-white/60"
                 }`}
               >
-                <a.icon className="w-4 h-4" />
-                {a.label}
-                {active === a.id && <ChevronRight className="w-3 h-3" />}
+                <a.icon className="w-4 h-4 shrink-0" />
+                <span className="text-xs sm:text-sm">{a.label}</span>
+                {active === a.id && <ChevronRight className="w-3 h-3 shrink-0" />}
               </button>
             ))}
           </div>

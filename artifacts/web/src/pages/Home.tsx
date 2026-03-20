@@ -45,7 +45,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full overflow-x-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <img 
           src={`${import.meta.env.BASE_URL}images/hero-glow.png`}

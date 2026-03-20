@@ -187,7 +187,7 @@ export function CaseStudy() {
   const current = tabs.find((t) => t.id === activeTab)!;
 
   return (
-    <section id="case-study" className="py-32 px-6 bg-black/40 border-y border-white/5 relative overflow-hidden scroll-mt-20">
+    <section id="case-study" className="py-32 px-6 bg-black/40 border-y border-white/5 relative overflow-x-hidden overflow-y-visible scroll-mt-20">
       <div
         className="absolute inset-0 pointer-events-none transition-all duration-700"
         style={{

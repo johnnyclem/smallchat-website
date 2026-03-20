@@ -285,7 +285,7 @@ export function HistoryTimeline() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-center gap-4 text-2xl md:text-3xl font-bold">
+            <div className="flex items-center justify-center gap-2 sm:gap-4 text-lg sm:text-2xl md:text-3xl font-bold flex-wrap">
               <span style={{ color: eras[0].color }}>Smalltalk</span>
               <span className="text-white/20">→</span>
               <span style={{ color: eras[1].color }}>Objective-C</span>

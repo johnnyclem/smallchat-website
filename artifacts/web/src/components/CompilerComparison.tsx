@@ -164,7 +164,7 @@ export function CompilerComparison() {
   const activeTools = compiled ? stats.compiledToolCount : stats.rawToolCount;
 
   return (
-    <section id="comparison" className="py-24 px-6 bg-black/40 border-y border-white/5 scroll-mt-20">
+    <section id="comparison" className="py-24 px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
