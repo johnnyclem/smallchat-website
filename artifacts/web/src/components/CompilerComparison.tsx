@@ -164,13 +164,13 @@ export function CompilerComparison() {
   const activeTools = compiled ? stats.compiledToolCount : stats.rawToolCount;
 
   return (
-    <section id="comparison" className="py-24 px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
+    <section id="comparison" className="py-24 px-4 sm:px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.6 }}
-        className="max-w-5xl mx-auto space-y-12"
+        className="max-w-5xl mx-auto space-y-12 min-w-0"
       >
         <div className="text-center space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
@@ -181,8 +181,8 @@ export function CompilerComparison() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8">
-          <div className="space-y-4">
+        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 min-w-0">
+          <div className="space-y-4 min-w-0">
             <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Select tool groups
             </div>
@@ -248,14 +248,14 @@ export function CompilerComparison() {
             )}
           </div>
 
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="space-y-6 min-w-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Context impact
               </div>
               <button
                 onClick={() => setCompiled(!compiled)}
-                className={`relative inline-flex h-9 items-center rounded-full px-1 transition-colors duration-300 w-[260px] border ${
+                className={`relative inline-flex h-9 items-center rounded-full px-1 transition-colors duration-300 w-full sm:w-[260px] border ${
                   compiled
                     ? "bg-primary/20 border-primary/40"
                     : "bg-white/5 border-white/10"
@@ -265,8 +265,8 @@ export function CompilerComparison() {
                   className="absolute h-7 rounded-full bg-white/10"
                   initial={false}
                   animate={{
-                    x: compiled ? 128 : 2,
-                    width: compiled ? 124 : 128,
+                    left: compiled ? "50%" : "2px",
+                    right: compiled ? "2px" : "50%",
                   }}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
@@ -279,10 +279,10 @@ export function CompilerComparison() {
               </button>
             </div>
 
-            <div className="glass-panel rounded-2xl p-6 space-y-6">
-              <div className="grid grid-cols-3 gap-4">
+            <div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 <div className="text-center">
-                  <div className="text-xs text-muted-foreground mb-1">Tools loaded</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Tools loaded</div>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`tools-${compiled}-${activeTools}`}
@@ -290,7 +290,7 @@ export function CompilerComparison() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.2 }}
-                      className={`text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
+                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
                     >
                       {activeTools}
                     </motion.div>
@@ -306,7 +306,7 @@ export function CompilerComparison() {
                   )}
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-muted-foreground mb-1">Tokens</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Tokens</div>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`tokens-${compiled}-${activeTokens}`}
@@ -314,7 +314,7 @@ export function CompilerComparison() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.2 }}
-                      className={`text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
+                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
                     >
                       {formatNumber(activeTokens)}
                     </motion.div>
@@ -330,7 +330,7 @@ export function CompilerComparison() {
                   )}
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-muted-foreground mb-1">Cost / request</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Cost / req</div>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`cost-${compiled}-${activeCost}`}
@@ -338,7 +338,7 @@ export function CompilerComparison() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.2 }}
-                      className={`text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
+                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
                     >
                       ${activeCost.toFixed(4)}
                     </motion.div>
@@ -414,7 +414,7 @@ export function CompilerComparison() {
                   className="space-y-3 pt-2 border-t border-white/5"
                 >
                   <div className="text-xs font-medium text-muted-foreground">What the compiler did</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {stats.overlapReduction > 0 && (
                       <div className="flex items-start gap-2 text-xs">
                         <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1.5 shrink-0" />
