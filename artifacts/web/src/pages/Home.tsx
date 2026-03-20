@@ -91,7 +91,7 @@ export default function Home() {
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
-              Smallchat.
+              smallchat.
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-2xl md:text-3xl text-white/90 max-w-3xl mx-auto font-medium leading-snug tracking-tight">
@@ -293,7 +293,7 @@ export default function Home() {
 
             <motion.div variants={fadeUp} className="max-w-3xl mx-auto space-y-6 text-center">
               <p className="text-xl md:text-2xl text-white/90 font-medium leading-relaxed">
-                Smallchat is that same leap for your tools.
+                [smallchat] is that same leap for your tools.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
                 It is for the ones who wanted messages instead of schemas. 
@@ -307,7 +307,7 @@ export default function Home() {
                 <span className="text-sm font-semibold text-primary/80 mt-2 block">— Steve Jobs</span>
               </blockquote>
               <p className="text-lg text-muted-foreground leading-relaxed pt-4">
-                Smallchat is the library that finally gets it.
+                smallchat is the library that finally gets it.
               </p>
             </motion.div>
           </motion.div>

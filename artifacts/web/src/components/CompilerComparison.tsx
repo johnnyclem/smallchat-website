@@ -21,7 +21,8 @@ const toolGroups: ToolGroup[] = [
   { id: "atlassian", name: "Atlassian", icon: "\u{1F537}", toolCount: 47, avgSchemaTokens: 320, description: "Jira issues, Confluence pages, Bitbucket repos, project management" },
   { id: "github", name: "GitHub", icon: "\u{1F419}", toolCount: 34, avgSchemaTokens: 280, description: "Repos, issues, PRs, actions, code search, gists" },
   { id: "slack", name: "Slack", icon: "\u{1F4AC}", toolCount: 22, avgSchemaTokens: 240, description: "Messages, channels, reactions, threads, user lookup" },
-  { id: "google", name: "Google Workspace", icon: "\u{1F4CA}", toolCount: 58, avgSchemaTokens: 350, description: "Docs, Sheets, Calendar, Drive, Gmail, Meet" },
+  { id: "google", name: "Google Drive", icon: "\u{1F4CA}", toolCount: 32, avgSchemaTokens: 310, description: "Drive files, Sheets, Docs, shared drives, permissions" },
+  { id: "icloud", name: "iCloud", icon: "\u{2601}\u{FE0F}", toolCount: 24, avgSchemaTokens: 270, description: "iCloud Drive files, photos, notes, reminders, sharing" },
   { id: "notion", name: "Notion", icon: "\u{1F4DD}", toolCount: 28, avgSchemaTokens: 290, description: "Pages, databases, blocks, search, comments" },
   { id: "linear", name: "Linear", icon: "\u{1F53A}", toolCount: 19, avgSchemaTokens: 260, description: "Issues, projects, cycles, teams, labels" },
   { id: "discord", name: "Discord", icon: "\u{1F3AE}", toolCount: 26, avgSchemaTokens: 250, description: "Messages, channels, roles, reactions, voice" },
@@ -36,7 +37,9 @@ const overlapPairs: OverlapPair[] = [
   { a: "atlassian", b: "notion", count: 3 },
   { a: "github", b: "linear", count: 5 },
   { a: "slack", b: "discord", count: 4 },
-  { a: "google", b: "notion", count: 5 },
+  { a: "google", b: "icloud", count: 7 },
+  { a: "google", b: "notion", count: 4 },
+  { a: "icloud", b: "notion", count: 2 },
   { a: "aws", b: "vercel", count: 2 },
 ];
 
@@ -444,6 +447,32 @@ export function CompilerComparison() {
                         <span className="text-muted-foreground"> — pre-built lookup replaces runtime discovery</span>
                       </div>
                     </div>
+                  </div>
+                  <div className="mt-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
+                    <div className="flex items-start gap-2 text-xs">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
+                      <div>
+                        <span className="text-orange-400 font-medium">Auth-aware merging</span>
+                        <span className="text-muted-foreground">
+                          {" "}— tools with similar semantics are <em>not</em> blindly merged when they require different auth tokens.
+                          Instead, the compiler generates an overloaded method signature with a provider parameter.
+                        </span>
+                      </div>
+                    </div>
+                    {selected.has("google") && selected.has("icloud") ? (
+                      <div className="rounded-lg bg-black/40 border border-white/5 p-3 font-mono text-[11px] leading-relaxed text-gray-400">
+                        <div className="text-muted-foreground text-[10px] font-sans mb-2 font-medium">Example: iCloud MCP + Google Drive MCP both expose <span className="text-orange-400">findFiles()</span></div>
+                        <div><span className="text-purple-400">// Before — two identical-looking tools, different accounts</span></div>
+                        <div><span className="text-blue-400">icloud</span>.findFiles(fileName: <span className="text-green-400">string</span>) {"->"} [<span className="text-green-400">URL</span>]?</div>
+                        <div><span className="text-blue-400">gdrive</span>.findFiles(fileName: <span className="text-green-400">string</span>) {"->"} [<span className="text-green-400">URL</span>]?</div>
+                        <div className="mt-2"><span className="text-purple-400">// After — compiler creates a unified overloaded signature</span></div>
+                        <div><span className="text-orange-400">findFiles</span>(fileName: <span className="text-green-400">string</span>, withProvider: <span className="text-blue-400">CloudStorageProvider</span>?) {"->"} [<span className="text-green-400">URL</span>]?</div>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-muted-foreground/60 italic">
+                        Try selecting both iCloud and Google Drive to see an example of auth-aware method signature generation.
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
