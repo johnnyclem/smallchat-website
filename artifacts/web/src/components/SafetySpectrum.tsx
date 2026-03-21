@@ -85,7 +85,7 @@ const approaches: ApproachData[] = [
       { text: "// Compiler ingests 150+ tools from 10 providers", className: "text-gray-500" },
       { text: "// outputs a single, type-safe dispatch table", className: "text-gray-500" },
       { text: "", className: "" },
-      { text: "import { CompiledToolkit } from 'smallchat';", className: "text-green-400" },
+      { text: "import { CompiledToolkit } from '@smallchat/core';", className: "text-green-400" },
       { text: "", className: "" },
       { text: "const toolkit = CompiledToolkit.load('./compiled.json');", className: "text-gray-300" },
       { text: "", className: "" },

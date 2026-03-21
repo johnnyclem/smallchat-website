@@ -101,7 +101,7 @@ export default function Home() {
   const [deepTab, setDeepTab] = useState<DeepDiveTab>("architecture");
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("npm install smallchat");
+    navigator.clipboard.writeText("npm install @smallchat/core");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -181,7 +181,7 @@ export default function Home() {
                 onClick={handleCopy}
               >
                 <Terminal className="w-4 h-4 text-muted-foreground" />
-                npm install smallchat
+                npm install @smallchat/core
                 <Copy className={`w-4 h-4 ml-2 transition-colors ${copied ? 'text-green-400' : 'text-muted-foreground group-hover:text-white'}`} />
               </Button>
             </motion.div>
@@ -670,21 +670,21 @@ export default function Home() {
               <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
                 <div>
                   <span className="text-muted-foreground select-none"># Install</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install smallchat</div>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install @smallchat/core</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground select-none"># Compile tool definitions</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat compile --source ./tools --output tools.json</div>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core compile --source ./tools --output tools.json</div>
                   <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat resolve tools.json "search for code"</div>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core resolve tools.json "search for code"</div>
                   <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground select-none"># Spin up the built-in server</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx smallchat serve tools.json --port 3000</div>
+                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core serve tools.json --port 3000</div>
                   <div className="text-green-400/70 text-xs mt-1 select-none">smallchat server running on http://localhost:3000 ✓</div>
                 </div>
               </div>

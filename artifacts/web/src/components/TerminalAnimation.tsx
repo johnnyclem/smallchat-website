@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const commands = [
-  { cmd: "npx smallchat compile --source ./examples", out: "Compiling tools... ✓ 3 tools embedded.\nArtifact saved to tools.smallchat.json" },
-  { cmd: "npx smallchat inspect tools.smallchat.json", out: "Selectors:\n- search:code [github.search_code]\n- create:issue [github.create_issue]" },
-  { cmd: "npx smallchat resolve tools.smallchat.json \"search for code\"", out: "Resolving intent...\nMatched: github.search_code (score: 0.98)\nReady for dispatch." }
+  { cmd: "npx @smallchat/core compile --source ./examples", out: "Compiling tools... ✓ 3 tools embedded.\nArtifact saved to tools.smallchat.json" },
+  { cmd: "npx @smallchat/core inspect tools.smallchat.json", out: "Selectors:\n- search:code [github.search_code]\n- create:issue [github.create_issue]" },
+  { cmd: "npx @smallchat/core resolve tools.smallchat.json \"search for code\"", out: "Resolving intent...\nMatched: github.search_code (score: 0.98)\nReady for dispatch." }
 ];
 
 export function TerminalAnimation() {
