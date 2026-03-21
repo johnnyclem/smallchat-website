@@ -41,6 +41,9 @@ type WhyTab = "compare" | "safety" | "case-study";
 type DeepDiveTab = "history" | "architecture" | "code";
 type HeroPlatform = "npm" | "swift";
 
+const DOCS_BASE = "https://docs.smallchat.dev";
+const GITHUB_URL = "https://github.com/johnnyclem/smallchat";
+
 function TabBar<T extends string>({ tabs, active, onChange }: { tabs: { id: T; label: string; icon?: React.ReactNode }[]; active: T; onChange: (id: T) => void }) {
   return (
     <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide justify-center flex-wrap">
@@ -104,7 +107,7 @@ export default function Home() {
 
   const installCommands: Record<HeroPlatform, { display: string; copy: string }> = {
     npm: { display: "npm install @smallchat/core", copy: "npm install @smallchat/core" },
-    swift: { display: ".package(url: \"smallchat.git\")", copy: ".package(url: \"https://github.com/johnnyclem/smallchat.git\", from: \"0.1.0\")" },
+    swift: { display: ".package(url: \"smallchat.git\")", copy: `.package(url: "${GITHUB_URL}.git", from: "0.1.0")` },
   };
 
   const handleCopy = () => {
@@ -135,10 +138,11 @@ export default function Home() {
               <a href="#what" className="hover:text-white transition-colors">What it does</a>
               <a href="#why" className="hover:text-white transition-colors">Why it matters</a>
               <a href="#deep-dive" className="hover:text-white transition-colors">Deep dive</a>
+              <a href={`${DOCS_BASE}/docs/intro`} className="hover:text-white transition-colors">Docs</a>
               <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
             </div>
             <div className="flex items-center space-x-4">
-              <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-white transition-colors">
+              <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-white transition-colors">
                 <Github className="w-5 h-5" />
               </a>
             </div>
@@ -176,7 +180,7 @@ export default function Home() {
 
             <motion.div variants={fadeUp} className="flex flex-col items-center gap-4 pt-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                <a href={`${DOCS_BASE}/docs/getting-started`}>
                   <Button size="lg" className="gap-2">
                     <Rocket className="w-5 h-5" />
                     Start building now
@@ -237,6 +241,9 @@ export default function Home() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 A message-passing tool compiler for LLMs — inspired by Smalltalk, built in TypeScript and Swift.
               </p>
+              <a href={`${DOCS_BASE}/docs/what-it-does`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium">
+                See the dispatch model <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </motion.div>
 
             <motion.div variants={fadeUp}>
@@ -468,7 +475,7 @@ export default function Home() {
                       The Swift 6 implementation brings full strict concurrency checking, actor-based state management, 
                       and protocol-driven architecture. Same philosophy, native performance.
                     </p>
-                    <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors">
+                    <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors">
                       Follow progress on GitHub <ArrowRight className="w-3.5 h-3.5" />
                     </a>
                   </div>
@@ -493,6 +500,9 @@ export default function Home() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 See the numbers, understand the tradeoffs, and explore real-world results.
               </p>
+              <a href={`${DOCS_BASE}/docs/why-it-matters`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium">
+                Read the motivation <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </motion.div>
 
             <motion.div variants={fadeUp}>
@@ -562,6 +572,9 @@ export default function Home() {
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 History, architecture, and the code that makes it work.
               </p>
+              <a href={`${DOCS_BASE}/docs/concepts`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium">
+                Explore the internals <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </motion.div>
 
             <motion.div variants={fadeUp}>
@@ -839,7 +852,7 @@ export default function Home() {
                 <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
                   <div>
                     <span className="text-muted-foreground select-none"># Add to Package.swift</span>
-                    <div className="text-gray-300"><span className="text-orange-400 select-none">// </span>.package(url: "https://github.com/johnnyclem/smallchat.git", from: "0.1.0")</div>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">// </span>{`.package(url: "${GITHUB_URL}.git", from: "0.1.0")`}</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground select-none"># Create a client</span>
@@ -866,13 +879,13 @@ export default function Home() {
                 <span className="font-bold text-2xl text-white">smallchat</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                <a href={`${DOCS_BASE}/docs/getting-started`}>
                   <Button size="lg" className="gap-2">
                     <Rocket className="w-5 h-5" />
                     Start building now
                   </Button>
                 </a>
-                <a href="https://github.com/johnnyclem/smallchat#readme" target="_blank" rel="noreferrer">
+                <a href={`${DOCS_BASE}/docs/intro`}>
                   <Button variant="glass" size="lg" className="gap-2">
                     <FileText className="w-4 h-4" />
                     Read docs
@@ -885,7 +898,7 @@ export default function Home() {
                 Built by Johnny Clem. MIT License.
               </p>
               <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                <a href="https://github.com/johnnyclem/smallchat" className="hover:text-white transition-colors flex items-center">
+                <a href={GITHUB_URL} className="hover:text-white transition-colors flex items-center">
                   <Github className="w-4 h-4 mr-2" /> Source Code
                 </a>
                 <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-xs">

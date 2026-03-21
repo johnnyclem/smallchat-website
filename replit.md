@@ -64,7 +64,8 @@ Smallchat showcase/landing page website. Frontend-only React + Vite app with no 
   3. **Why it matters** (#why) — tabs: Compare (CompilerComparison) / Safety (SafetySpectrum) / AgentVault (CaseStudy)
   4. **Deep dive** (#deep-dive) — tabs: Architecture (concept map + Jobs quote) / Under the hood (code blocks + accordion) / History (HistoryTimeline)
   5. **Get Started** (#quickstart) — dual TypeScript + Swift 6 terminal quickstarts + Footer
-- Nav links: What it does, Why it matters, Deep dive, Get Started + GitHub icon
+- Nav links: What it does, Why it matters, Deep dive, Docs (→ docs.smallchat.dev), Get Started + GitHub icon
+- Docs integration: CTAs link to docs.smallchat.dev (getting-started, intro, what-it-does, why-it-matters, concepts). URLs centralized via `DOCS_BASE` and `GITHUB_URL` constants in Home.tsx
 - Sub-components accept `embedded` prop to render without section wrappers when used inside tabs
 - Safety Spectrum: interactive Goldilocks positioning — MCP (too rigid, blue), smallchat (just right, green), open agents like openclaw/nanoclaw (too dangerous, red). Gradient bar with three clickable stops, animated card transitions, traits tables, code examples, risk/benefit lists, contextual callout boxes. Component: `src/components/SafetySpectrum.tsx`
 - Case Study (AgentVault): tabbed section showing security wins, cost savings, and performance gains of using smallchat as pre-compiler before deploying to ICP canisters/Arweave. Pipeline diagram, before/after metrics, Rust code example, hero stat cards (84% token reduction, 40x resolution speed, 600x payload reduction). Component: `src/components/CaseStudy.tsx`
