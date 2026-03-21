@@ -186,6 +186,9 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
   const [activeTab, setActiveTab] = useState<MetricTab>("security");
   const current = tabs.find((t) => t.id === activeTab)!;
 
+  const Wrapper = embedded ? "div" : motion.div;
+  const wrapperProps = embedded ? {} : { variants: fadeUp };
+
   const innerContent = (
     <div className={embedded ? "space-y-12 relative" : "max-w-5xl mx-auto space-y-16"}>
       {!embedded && (
@@ -204,7 +207,7 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
         </motion.div>
       )}
 
-        <motion.div variants={fadeUp} className="max-w-3xl mx-auto">
+        <Wrapper {...wrapperProps} className="max-w-3xl mx-auto">
           <div className="glass-panel rounded-2xl p-6 md:p-8">
             <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
               Execution Pipeline
@@ -236,9 +239,9 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
               ))}
             </div>
           </div>
-        </motion.div>
+        </Wrapper>
 
-        <motion.div variants={fadeUp}>
+        <Wrapper {...wrapperProps}>
           <div className="flex justify-center gap-2 mb-8">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -316,9 +319,9 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
               </div>
             </motion.div>
           </AnimatePresence>
-        </motion.div>
+        </Wrapper>
 
-        <motion.div variants={fadeUp} className="max-w-3xl mx-auto">
+        <Wrapper {...wrapperProps} className="max-w-3xl mx-auto">
           <div className="glass-panel rounded-2xl overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 bg-white/[0.02] border-b border-white/5">
               <div className="flex gap-1.5">
@@ -397,9 +400,9 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
               <div className="text-gray-500">{"// = 600x reduction in on-chain payload"}</div>
             </div>
           </div>
-        </motion.div>
+        </Wrapper>
 
-        <motion.div variants={fadeUp} className="max-w-3xl mx-auto">
+        <Wrapper {...wrapperProps} className="max-w-3xl mx-auto">
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
               { value: "84%", label: "Token reduction", sub: "LLM input cost", color: "text-yellow-400" },
@@ -415,7 +418,7 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
               </div>
             ))}
           </div>
-        </motion.div>
+        </Wrapper>
     </div>
   );
 

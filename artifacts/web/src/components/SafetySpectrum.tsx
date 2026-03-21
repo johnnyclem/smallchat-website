@@ -168,6 +168,9 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
   const [active, setActive] = useState<Approach>("smallchat");
   const current = approaches.find((a) => a.id === active)!;
 
+  const Wrapper = embedded ? "div" as const : motion.div;
+  const wrapperProps = embedded ? {} : { variants: fadeUp };
+
   const innerContent = (
     <div className={embedded ? "space-y-12 relative" : "max-w-5xl mx-auto space-y-16"}>
       {!embedded && (
@@ -186,7 +189,7 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
         </motion.div>
       )}
 
-        <motion.div variants={fadeUp}>
+        <Wrapper {...wrapperProps}>
           <div className="relative max-w-3xl mx-auto">
             <div className="h-2 rounded-full bg-white/5 relative overflow-hidden">
               <div
@@ -251,7 +254,7 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
               })}
             </div>
           </div>
-        </motion.div>
+        </Wrapper>
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -423,7 +426,7 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
           </motion.div>
         </AnimatePresence>
 
-        <motion.div variants={fadeUp} className="flex justify-center pt-4">
+        <Wrapper {...wrapperProps} className="flex justify-center pt-4">
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
             {approaches.map((a) => (
               <button
@@ -440,7 +443,7 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
               </button>
             ))}
           </div>
-        </motion.div>
+        </Wrapper>
     </div>
   );
 
