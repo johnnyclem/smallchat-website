@@ -13,6 +13,7 @@ const config: Config = {
   organizationName: 'johnnyclem',
   projectName: 'smallchat',
 
+  trailingSlash: false,
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
