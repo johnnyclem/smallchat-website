@@ -71,23 +71,22 @@ const eras: Era[] = [
     glowColor: "rgba(168,85,247,0.15)",
     paragraphs: [
       "Today, AI models need to use tools — search engines, APIs, databases, code runners. But every integration is hardwired. The model has to know the exact function name, the exact arguments.",
-      "smallchat applies the same message-passing architecture to AI tool use. The model describes its intent in natural language. The runtime — using vector embeddings as semantic selectors — resolves it to the right tool automatically.",
+      "smallchat applies the same message-passing architecture to AI tool use. The model describes its intent in natural language. The runtime — using vector embeddings as semantic selectors — resolves it to the right tool automatically. Built first in TypeScript, now coming to Swift 6 with actors, structured concurrency, and Sendable safety throughout.",
     ],
     codeSnippet: {
       label: "smallchat dispatch",
-      code: `// The AI says what it wants:
+      code: `// TypeScript — the AI says what it wants:
 await runtime.dispatch("search for recent code changes");
 
-// The runtime:
-//   1. Embeds the intent → ToolSelector (like SEL)
-//   2. Checks the resolution cache (like objc_msgSend)
-//   3. Resolves to github.search_code → ToolIMP
-//   4. Executes and returns the result`,
+// Swift 6 — actor-isolated, fully concurrent:
+// let client = ChatClient(transport: ws, api: api, configuration: config)
+// await client.login(user: currentUser)
+// for await message in client.messageStream { ... }`,
     },
     highlights: [
       { label: "Semantic selectors", detail: "Vector embeddings replace interned strings — meaning replaces naming." },
       { label: "Resolution cache", detail: "Same LRU caching strategy, adapted for AI's repeated intents." },
-      { label: "Forwarding chain", detail: "Unresolved intents fall through to discovery, just like forwardInvocation:." },
+      { label: "Swift 6 actors", detail: "Thread-safe by default. The compiler proves your concurrent code is correct." },
     ],
   },
 ];

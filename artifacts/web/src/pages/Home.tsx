@@ -36,9 +36,10 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } }
 };
 
-type WhatTab = "compiler" | "features" | "pipeline";
+type WhatTab = "compiler" | "features" | "pipeline" | "swift";
 type WhyTab = "compare" | "safety" | "case-study";
 type DeepDiveTab = "history" | "architecture" | "code";
+type HeroPlatform = "npm" | "swift";
 
 function TabBar<T extends string>({ tabs, active, onChange }: { tabs: { id: T; label: string; icon?: React.ReactNode }[]; active: T; onChange: (id: T) => void }) {
   return (
@@ -96,12 +97,18 @@ function AccordionItem({ title, icon, children, defaultOpen = false }: { title: 
 
 export default function Home() {
   const [copied, setCopied] = useState(false);
+  const [heroPlatform, setHeroPlatform] = useState<HeroPlatform>("npm");
   const [whatTab, setWhatTab] = useState<WhatTab>("compiler");
   const [whyTab, setWhyTab] = useState<WhyTab>("compare");
   const [deepTab, setDeepTab] = useState<DeepDiveTab>("architecture");
 
+  const installCommands: Record<HeroPlatform, { display: string; copy: string }> = {
+    npm: { display: "npm install @smallchat/core", copy: "npm install @smallchat/core" },
+    swift: { display: ".package(url: \"smallchat.git\")", copy: ".package(url: \"https://github.com/johnnyclem/smallchat.git\", from: \"0.1.0\")" },
+  };
+
   const handleCopy = () => {
-    navigator.clipboard.writeText("npm install @smallchat/core");
+    navigator.clipboard.writeText(installCommands[heroPlatform].copy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -148,9 +155,9 @@ export default function Home() {
             variants={stagger}
             className="max-w-4xl mx-auto space-y-8"
           >
-            <motion.div variants={fadeUp} className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground">
-              <span className="flex h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
-              Open Source &middot; TypeScript &middot; MIT License
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground">
+              <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+              Open Source &middot; TypeScript &middot; Swift 6 &middot; MIT License
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
@@ -167,23 +174,41 @@ export default function Home() {
               One lightweight library that lets your LLM think, dispatch, and respond like it was built for it.
             </motion.p>
 
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
-                <Button size="lg" className="gap-2">
-                  <Rocket className="w-5 h-5" />
-                  Start building now
+            <motion.div variants={fadeUp} className="flex flex-col items-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer">
+                  <Button size="lg" className="gap-2">
+                    <Rocket className="w-5 h-5" />
+                    Start building now
+                  </Button>
+                </a>
+                <Button 
+                  variant="glass" 
+                  size="lg" 
+                  className="gap-2 font-mono group relative overflow-hidden"
+                  onClick={handleCopy}
+                >
+                  <Terminal className="w-4 h-4 text-muted-foreground" />
+                  {installCommands[heroPlatform].display}
+                  <Copy className={`w-4 h-4 ml-2 transition-colors ${copied ? 'text-green-400' : 'text-muted-foreground group-hover:text-white'}`} />
                 </Button>
-              </a>
-              <Button 
-                variant="glass" 
-                size="lg" 
-                className="gap-2 font-mono group relative overflow-hidden"
-                onClick={handleCopy}
-              >
-                <Terminal className="w-4 h-4 text-muted-foreground" />
-                npm install @smallchat/core
-                <Copy className={`w-4 h-4 ml-2 transition-colors ${copied ? 'text-green-400' : 'text-muted-foreground group-hover:text-white'}`} />
-              </Button>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <button
+                  onClick={() => { setHeroPlatform("npm"); setCopied(false); }}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${heroPlatform === "npm" ? "bg-white/10 text-white" : "hover:text-white/70"}`}
+                >
+                  npm
+                </button>
+                <span className="text-white/20">|</span>
+                <button
+                  onClick={() => { setHeroPlatform("swift"); setCopied(false); }}
+                  className={`px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 ${heroPlatform === "swift" ? "bg-white/10 text-white" : "hover:text-white/70"}`}
+                >
+                  Swift Package Manager
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-medium">soon</span>
+                </button>
+              </div>
             </motion.div>
           </motion.div>
 
@@ -210,7 +235,7 @@ export default function Home() {
             <motion.div variants={fadeUp} className="text-center space-y-4">
               <h2 className="text-3xl md:text-5xl font-bold tracking-tight">What it does</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                A message-passing tool compiler for LLMs — inspired by Smalltalk, built in TypeScript.
+                A message-passing tool compiler for LLMs — inspired by Smalltalk, built in TypeScript and Swift.
               </p>
             </motion.div>
 
@@ -220,6 +245,7 @@ export default function Home() {
                   { id: "compiler" as WhatTab, label: "The Compiler", icon: <Zap className="w-3.5 h-3.5" /> },
                   { id: "features" as WhatTab, label: "Features", icon: <Search className="w-3.5 h-3.5" /> },
                   { id: "pipeline" as WhatTab, label: "How it works", icon: <ArrowRight className="w-3.5 h-3.5" /> },
+                  { id: "swift" as WhatTab, label: "Swift 6", icon: <Box className="w-3.5 h-3.5" /> },
                 ]}
                 active={whatTab}
                 onChange={setWhatTab}
@@ -289,7 +315,7 @@ export default function Home() {
                       { icon: Zap, title: "Async streaming", desc: "Async generators hand you chunks in real time. Watch answers arrive, not wait for them." },
                       { icon: Shield, title: "Fallbacks that never throw", desc: "Graceful degradation built in. When tools fail, the system recovers instead of crashing." },
                       { icon: RefreshCw, title: "Cache that stays fresh", desc: "Resolution cache works across providers. Repeat intents resolve instantly." },
-                      { icon: Code2, title: "Plain TypeScript", desc: "All of it in plain TypeScript. Zero bloat. No framework lock-in, no magic decorators." },
+                      { icon: Code2, title: "TypeScript + Swift 6", desc: "TypeScript today, Swift 6 coming soon. Zero bloat. No framework lock-in, no magic decorators." },
                       { icon: Plug, title: "Any source, one runtime", desc: "MCP servers, OpenAPI specs, or JSON schemas. They all compile into a single, unified dispatch table." },
                     ].map((feature, i) => (
                       <div key={i} className="glass-panel-hover glass-panel p-5 sm:p-6 rounded-2xl group">
@@ -339,6 +365,112 @@ export default function Home() {
                         )}
                       </div>
                     ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {whatTab === "swift" && (
+                <motion.div
+                  key="swift"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-8"
+                >
+                  <div className="text-center max-w-3xl mx-auto space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-sm font-medium text-orange-400">
+                      <span className="flex h-2 w-2 rounded-full bg-orange-400 animate-pulse"></span>
+                      Coming soon
+                    </div>
+                    <h3 className="text-2xl md:text-4xl font-bold tracking-tight">
+                      Pure Swift 6. Zero compromises.
+                    </h3>
+                    <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                      Actors for thread safety. Structured concurrency for streaming. Sendable everywhere. 
+                      The same message-passing architecture, native on Apple platforms.
+                    </p>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {[
+                      { title: "Actor isolation", desc: "ChatClient is an actor — all mutable state is automatically protected from data races. No locks, no @unchecked Sendable hacks.", color: "text-orange-400" },
+                      { title: "AsyncStream native", desc: "Real-time message and state streams use Swift's built-in AsyncStream. Subscribe, iterate, done.", color: "text-blue-400" },
+                      { title: "Sendable throughout", desc: "Every model — User, Room, Message, ConnectionState — conforms to Sendable. The compiler proves your code is safe.", color: "text-green-400" },
+                      { title: "Protocol-driven transport", desc: "ChatTransport and ChatAPI are protocols. Swap WebSocket for QUIC, or mock everything in tests — zero code changes.", color: "text-purple-400" },
+                      { title: "Optimistic updates", desc: "Messages appear instantly in the UI. The actor appends locally, then confirms with the server. Duplicates are deduplicated automatically.", color: "text-yellow-400" },
+                      { title: "Structured concurrency", desc: "Task groups for parallel room bootstrapping. Cooperative cancellation. No callback pyramids, no Combine chains.", color: "text-cyan-400" },
+                    ].map((item, i) => (
+                      <div key={i} className="glass-panel-hover glass-panel p-5 sm:p-6 rounded-2xl group">
+                        <h4 className={`text-base sm:text-lg font-semibold ${item.color} mb-2`}>{item.title}</h4>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-6 items-start">
+                    <CodeBlock
+                      filename="Sources/SmallChat/ChatClient.swift"
+                      code={
+                        <>
+<span className="token-keyword">public actor</span> <span className="token-type">ChatClient</span> {'{\n'}
+{"  "}<span className="token-keyword">private let</span> transport: <span className="token-type">ChatTransport</span>{'\n'}
+{"  "}<span className="token-keyword">private let</span> api: <span className="token-type">ChatAPI</span>{'\n'}
+{"  "}<span className="token-keyword">private(set) public var</span> connectionState: <span className="token-type">ConnectionState</span> = .disconnected{'\n'}
+{'\n'}
+{"  "}<span className="token-keyword">public let</span> messageStream: <span className="token-type">AsyncStream</span>{'<'}<span className="token-type">Message</span>{'>\n'}
+{"  "}<span className="token-keyword">public let</span> stateStream: <span className="token-type">AsyncStream</span>{'<'}<span className="token-type">ConnectionState</span>{'>\n'}
+{'\n'}
+{"  "}<span className="token-keyword">public func</span> <span className="token-function">sendMessage</span>(to roomID: <span className="token-type">String</span>, content: <span className="token-type">String</span>) <span className="token-keyword">async throws</span> {'{\n'}
+{"    "}<span className="token-keyword">guard let</span> user = currentUser <span className="token-keyword">else</span> {'{\n'}
+{"      "}<span className="token-keyword">throw</span> <span className="token-type">ChatError</span>.notAuthenticated{'\n'}
+{"    }\n"}
+{"    "}<span className="token-comment">{"// Optimistic update"}</span>{'\n'}
+{"    "}<span className="token-keyword">let</span> msg = <span className="token-type">Message</span>(id: <span className="token-type">UUID</span>().uuidString, ...){'\n'}
+{"    "}messageContinuation?.<span className="token-function">yield</span>(msg){'\n'}
+{"    "}<span className="token-keyword">try await</span> transport.<span className="token-function">send</span>(data: payload){'\n'}
+{"  }\n"}
+{'}'}
+                        </>
+                      }
+                    />
+                    <CodeBlock
+                      filename="Sources/SmallChat/Models.swift"
+                      code={
+                        <>
+<span className="token-keyword">public struct</span> <span className="token-type">Message</span>: <span className="token-type">Sendable</span>, <span className="token-type">Codable</span>, <span className="token-type">Identifiable</span> {'{\n'}
+{"  "}<span className="token-keyword">public let</span> id: <span className="token-type">String</span>{'\n'}
+{"  "}<span className="token-keyword">public let</span> roomID: <span className="token-type">String</span>{'\n'}
+{"  "}<span className="token-keyword">public let</span> author: <span className="token-type">User</span>{'\n'}
+{"  "}<span className="token-keyword">public let</span> content: <span className="token-type">String</span>{'\n'}
+{"  "}<span className="token-keyword">public let</span> timestamp: <span className="token-type">Date</span>{'\n'}
+{'}\n'}
+{'\n'}
+<span className="token-keyword">public enum</span> <span className="token-type">ConnectionState</span>: <span className="token-type">Sendable</span>, <span className="token-type">Equatable</span> {'{\n'}
+{"  "}<span className="token-keyword">case</span> disconnected{'\n'}
+{"  "}<span className="token-keyword">case</span> connecting{'\n'}
+{"  "}<span className="token-keyword">case</span> connected{'\n'}
+{"  "}<span className="token-keyword">case</span> failed(<span className="token-type">String</span>){'\n'}
+{'}\n'}
+{'\n'}
+<span className="token-keyword">public protocol</span> <span className="token-type">ChatTransport</span>: <span className="token-type">Sendable</span> {'{\n'}
+{"  "}<span className="token-keyword">var</span> receivedMessages: <span className="token-type">AsyncThrowingStream</span>{'<'}<span className="token-type">Data</span>, <span className="token-keyword">any</span> <span className="token-type">Error</span>{'>'} {'{ get }\n'}
+{"  "}<span className="token-keyword">func</span> <span className="token-function">connect</span>() <span className="token-keyword">async throws</span>{'\n'}
+{"  "}<span className="token-keyword">func</span> <span className="token-function">send</span>(data: <span className="token-type">Data</span>) <span className="token-keyword">async throws</span>{'\n'}
+{'}'}
+                        </>
+                      }
+                    />
+                  </div>
+
+                  <div className="glass-panel rounded-2xl p-5 sm:p-6 max-w-3xl mx-auto text-center space-y-3">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      The Swift 6 implementation brings full strict concurrency checking, actor-based state management, 
+                      and protocol-driven architecture. Same philosophy, native performance.
+                    </p>
+                    <a href="https://github.com/johnnyclem/smallchat" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors">
+                      Follow progress on GitHub <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </motion.div>
               )}
@@ -658,34 +790,68 @@ export default function Home() {
                 Or spin up the built-in server in seconds.
               </p>
             </motion.div>
-            <motion.div variants={fadeUp} className="glass-panel rounded-2xl overflow-hidden">
-              <div className="flex items-center px-4 py-3 border-b border-white/5 bg-black/40">
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                  <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+
+            <motion.div variants={fadeUp} className="space-y-6">
+              <div className="glass-panel rounded-2xl overflow-hidden">
+                <div className="flex items-center px-4 py-3 border-b border-white/5 bg-black/40">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  </div>
+                  <div className="mx-auto text-xs text-muted-foreground font-mono">TypeScript</div>
                 </div>
-                <div className="mx-auto text-xs text-muted-foreground font-mono">terminal</div>
+                <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
+                  <div>
+                    <span className="text-muted-foreground select-none"># Install</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install @smallchat/core</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Compile tool definitions</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core compile --source ./tools --output tools.json</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core resolve tools.json "search for code"</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Spin up the built-in server</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core serve tools.json --port 3000</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">smallchat server running on http://localhost:3000 ✓</div>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
-                <div>
-                  <span className="text-muted-foreground select-none"># Install</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install @smallchat/core</div>
+
+              <div className="glass-panel rounded-2xl overflow-hidden border-orange-500/10">
+                <div className="flex items-center px-4 py-3 border-b border-white/5 bg-black/40">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  </div>
+                  <div className="mx-auto flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                    Swift 6
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-medium font-sans">coming soon</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-muted-foreground select-none"># Compile tool definitions</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core compile --source ./tools --output tools.json</div>
-                  <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core resolve tools.json "search for code"</div>
-                  <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground select-none"># Spin up the built-in server</span>
-                  <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core serve tools.json --port 3000</div>
-                  <div className="text-green-400/70 text-xs mt-1 select-none">smallchat server running on http://localhost:3000 ✓</div>
+                <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
+                  <div>
+                    <span className="text-muted-foreground select-none"># Add to Package.swift</span>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">// </span>.package(url: "https://github.com/johnnyclem/smallchat.git", from: "0.1.0")</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Create a client</span>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">let </span>client = ChatClient(transport: ws, api: api, configuration: config)</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Connect and stream</span>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">await </span>client.login(user: currentUser)</div>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">for await </span>message <span className="text-orange-400">in</span> client.messageStream {'{'}</div>
+                    <div className="text-gray-300">{"    "}print(message.content)</div>
+                    <div className="text-gray-300">{'}'}</div>
+                  </div>
                 </div>
               </div>
             </motion.div>
