@@ -1,8 +1,42 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import fs from "fs";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+function serveDocsPlugin(): Plugin {
+  const publicDir = path.resolve(import.meta.dirname, "public");
+  return {
+    name: "serve-docs",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url || !req.url.startsWith("/docs")) return next();
+        const urlPath = req.url.split("?")[0].split("#")[0];
+        if (urlPath === "/docs" || urlPath === "/docs/") {
+          res.writeHead(302, { Location: "/docs/intro" });
+          res.end();
+          return;
+        }
+        const ext = path.extname(urlPath);
+        if (ext && ext !== ".html") return next();
+        const candidates = [
+          path.join(publicDir, urlPath, "index.html"),
+          path.join(publicDir, urlPath + ".html"),
+          path.join(publicDir, urlPath),
+        ];
+        for (const candidate of candidates) {
+          if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            fs.createReadStream(candidate).pipe(res);
+            return;
+          }
+        }
+        next();
+      });
+    },
+  };
+}
 
 const rawPort = process.env.PORT;
 
@@ -29,6 +63,7 @@ if (!basePath) {
 export default defineConfig({
   base: basePath,
   plugins: [
+    serveDocsPlugin(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),

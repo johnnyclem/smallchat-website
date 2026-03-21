@@ -41,7 +41,7 @@ type WhyTab = "compare" | "safety" | "case-study";
 type DeepDiveTab = "history" | "architecture" | "code";
 type HeroPlatform = "npm" | "swift";
 
-const DOCS_BASE = "https://docs.smallchat.dev";
+const DOCS_BASE = "";
 const GITHUB_URL = "https://github.com/johnnyclem/smallchat";
 
 function TabBar<T extends string>({ tabs, active, onChange }: { tabs: { id: T; label: string; icon?: React.ReactNode }[]; active: T; onChange: (id: T) => void }) {
