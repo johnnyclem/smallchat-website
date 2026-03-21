@@ -54,7 +54,7 @@ const config: Config = {
         alt: 'smallchat logo',
         src: 'img/logo.svg',
         srcDark: 'img/logo.svg',
-        href: '/',
+        href: '/docs/intro',
       },
       style: 'dark',
       items: [
