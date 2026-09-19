@@ -19,6 +19,7 @@ const sidebars: SidebarsConfig = {
         'concepts/overloading',
         'concepts/streaming',
         'concepts/swizzling',
+        'concepts/truth-ledger',
       ],
     },
     {

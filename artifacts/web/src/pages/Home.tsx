@@ -17,6 +17,7 @@ import {
   Code2,
   Rocket,
   ChevronDown,
+  ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -331,6 +332,38 @@ export default function Home() {
                         <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
                       </div>
                     ))}
+                  </div>
+                  <div className="glass-panel rounded-2xl p-6 sm:p-8 border-accent/20 bg-accent/5 relative">
+                    <div className="absolute -top-3 left-6 px-3 py-1 bg-accent/20 text-accent border border-accent/30 rounded-full text-xs font-bold tracking-wider">
+                      NEW
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6 sm:gap-8 items-start">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <ScrollText className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
+                          <h4 className="text-lg sm:text-xl font-semibold text-white">Memory that knows what it knows</h4>
+                        </div>
+                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                          The vendored Short-Hand compactor now reads an asserted truth ledger — Stenographer's TB/UV format —
+                          so long-running agents keep facts with authorship, evidence, and dispute state intact.
+                          Signed tombstones compact as ground truth. Unverified assertions stay visibly flagged.
+                          Overridden facts are displaced, never silently kept. In TypeScript and Swift.
+                        </p>
+                      </div>
+                      <div className="space-y-2 font-mono text-[11px] sm:text-xs">
+                        {[
+                          { marker: "[TB]", color: "text-green-400", text: "Signed + evidence-backed — compaction relies on it" },
+                          { marker: "[TB ⚠ CONTESTED]", color: "text-yellow-400", text: "Still authoritative — carries its dispute through every level" },
+                          { marker: "[UV — UNVERIFIED]", color: "text-orange-400", text: "Flagged, never blocking — never reads as proven" },
+                          { marker: "overridden / refuted", color: "text-muted-foreground", text: "History — excluded and displaced on the next sync" },
+                        ].map((rule, i) => (
+                          <div key={i} className="flex items-start gap-2 py-1.5 border-b border-white/5">
+                            <span className={`${rule.color} font-bold shrink-0`}>{rule.marker}</span>
+                            <span className="text-muted-foreground font-sans">{rule.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
