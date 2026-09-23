@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+
+  --color-ink: #0d0b08;
+  --color-panel: #16130e;
+  --color-line: #2a251c;
+  --color-paper: #f1eadb;
+  --color-dim: #a39a88;
+  --color-gold: #e8b04b;
+  --color-tb: #e8b04b;
+  --color-uv: #7fb2ff;
+  --color-objection: #ff6b4a;
+  --color-ok: #7ed9a0;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-ink text-paper font-sans antialiased overflow-x-hidden;
+  }
+  /* Let wide code blocks scroll inside their card instead of stretching the grid. */
+  .grid > * {
+    min-width: 0;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-gold) 35%, transparent);
+  }
+}
+
+@layer utilities {
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      color-mix(in srgb, var(--color-gold) 7%, transparent) 31px,
+      color-mix(in srgb, var(--color-gold) 7%, transparent) 32px
+    );
+  }
+  .panel {
+    @apply bg-panel/80 border border-line rounded-2xl;
+  }
+}
