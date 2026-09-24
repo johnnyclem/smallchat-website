@@ -13,8 +13,8 @@ const SCRIPT: Line[] = [
     who: "@ingest",
     text: (
       <>
-        Setting <code className="text-paper">LOG_BUDGET = 30</code> in{" "}
-        <code className="text-dim">ingest/config.ts</code> so we stop truncating…
+        Setting <code className="text-white">LOG_BUDGET = 30</code> in{" "}
+        <code className="text-muted-foreground">ingest/config.ts</code> so we stop truncating…
       </>
     ),
   },
@@ -25,7 +25,7 @@ const SCRIPT: Line[] = [
     text: (
       <>
         Understood. TB-0007 is authoritative, so I'm using{" "}
-        <code className="text-ok">LOG_BUDGET = 100</code> instead.
+        <code className="text-green-400">LOG_BUDGET = 100</code> instead.
       </>
     ),
   },
@@ -45,14 +45,14 @@ export function Transcript() {
   }, [shown]);
 
   return (
-    <div className="panel ruled relative overflow-hidden p-5 sm:p-6 min-h-[380px] font-mono text-[13px] leading-relaxed shadow-2xl shadow-black/60">
-      <div className="flex items-center gap-2 pb-4 mb-4 border-b border-line text-dim text-xs">
-        <span className="size-2.5 rounded-full bg-objection/80" />
-        <span className="size-2.5 rounded-full bg-gold/80" />
-        <span className="size-2.5 rounded-full bg-ok/80" />
+    <div className="glass-panel relative overflow-hidden rounded-2xl p-5 sm:p-6 min-h-[360px] font-mono text-[13px] leading-relaxed text-left">
+      <div className="flex items-center gap-2 pb-4 mb-4 border-b border-white/5 text-muted-foreground text-xs">
+        <span className="size-2.5 rounded-full bg-red-500/80" />
+        <span className="size-2.5 rounded-full bg-yellow-400/80" />
+        <span className="size-2.5 rounded-full bg-green-500/80" />
         <span className="ml-2 truncate min-w-0">~/.claude/projects/ingest/5f2c….jsonl</span>
         <span className="ml-auto flex shrink-0 items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-objection animate-pulse" /> recording
+          <span className="size-1.5 rounded-full bg-red-500 animate-pulse" /> recording
         </span>
       </div>
       <div className="space-y-4">
@@ -65,17 +65,17 @@ export function Transcript() {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                className="rounded-xl border border-objection/40 bg-objection/10 p-4"
+                className="rounded-xl border border-red-500/40 bg-red-500/10 p-4"
               >
-                <div className="flex items-center gap-2 text-objection text-xs font-semibold tracking-wide">
+                <div className="flex items-center gap-2 text-red-400 text-xs font-semibold tracking-wide">
                   <Gavel className="size-3.5" /> OBJECTION · OBJ-0012
-                  <span className="text-dim font-normal">↳ TB-0007</span>
+                  <span className="text-muted-foreground font-normal">↳ TB-0007</span>
                 </div>
-                <p className="mt-2 text-paper font-sans text-sm">
-                  <span className="text-objection">LOG_BUDGET 30</span> is dead; the budget is{" "}
-                  <span className="text-ok">100</span>.
+                <p className="mt-2 text-white font-sans text-sm">
+                  <span className="text-red-400">LOG_BUDGET 30</span> is dead; the budget is{" "}
+                  <span className="text-green-400">100</span>.
                 </p>
-                <p className="mt-1.5 text-dim text-xs">
+                <p className="mt-1.5 text-muted-foreground text-xs">
                   signed johnnyclem · evidence commit a1b2c3 · delivered over the smallchat channel
                 </p>
               </motion.div>
@@ -87,9 +87,9 @@ export function Transcript() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.35 }}
               >
-                <span className={line.kind === "user" ? "text-gold" : "text-uv"}>{line.who}</span>
-                <span className="text-dim"> › </span>
-                <span className="text-paper/90 font-sans text-sm">{line.text}</span>
+                <span className={line.kind === "user" ? "text-primary" : "text-sky-400"}>{line.who}</span>
+                <span className="text-muted-foreground"> › </span>
+                <span className="text-white/90 font-sans text-sm">{line.text}</span>
               </motion.div>
             ),
           )}
