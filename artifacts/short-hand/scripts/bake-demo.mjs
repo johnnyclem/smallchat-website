@@ -37,7 +37,6 @@ const script = [
 const messages = script.map(([role, content], i) => ({ id: `m${i + 1}`, role, content, timestamp: 1_790_000_000_000 + i * 60_000 }));
 const engine = new CompactionEngine({ memtableSize: 6, contextBudget: 4096 });
 await engine.addMessages(messages);
-await engine.flush();
 for (const lvl of [2, 3, 4]) { try { await engine.recompact(lvl); } catch (e) { console.error("recompact", lvl, e.message); } }
 const rawTokens = messages.reduce((n, m) => n + estimateTokens(m.content), 0);
 const budgets = Array.from({ length: 12 }, (_, i) => 40 + i * 20);
