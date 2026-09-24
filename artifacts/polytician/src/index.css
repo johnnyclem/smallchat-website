@@ -4,6 +4,6 @@
 @source "../../../lib/site-kit/src";
 
 :root {
-  --primary: 38 95% 56%;
-  --primary-glow: rgba(248, 168, 40, 0.35);
+  --primary: 255 91% 76%;
+  --primary-glow: rgba(169, 139, 250, 0.35);
 }

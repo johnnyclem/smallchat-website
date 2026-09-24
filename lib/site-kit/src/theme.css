@@ -1,0 +1,75 @@
+/*
+ * Shared look for the smallchat family sites. Same tokens as smallchat
+ * (artifacts/web); each site sets --primary / --primary-glow on :root.
+ * Import after `@import "tailwindcss"` and add `@source` for this folder.
+ */
+@theme inline {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-card: hsl(var(--card));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --radius-lg: var(--radius);
+}
+
+:root {
+  --background: 0 0% 4%;
+  --foreground: 0 0% 93%;
+  --card: 0 0% 7%;
+  --border: 0 0% 15%;
+  --primary-foreground: 0 0% 4%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 63%;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-color: #0a0a0a;
+  }
+  /* Let wide code blocks scroll inside their card instead of stretching the grid. */
+  .grid > * {
+    min-width: 0;
+  }
+  ::selection {
+    @apply bg-primary/30 text-white;
+  }
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/50;
+}
+@utility glass-panel {
+  @apply bg-card/40 backdrop-blur-xl border border-white/[0.05] shadow-2xl;
+}
+@utility glass-panel-hover {
+  @apply hover:bg-card/60 hover:border-white/[0.1] transition-all duration-300;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-all h-12 px-8 text-lg cursor-pointer;
+}
+@utility btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:-translate-y-0.5;
+  box-shadow: 0 0 15px var(--primary-glow);
+  &:hover {
+    box-shadow: 0 0 25px var(--primary-glow);
+  }
+}
+@utility btn-glass {
+  @apply glass-panel hover:bg-white/10 text-white;
+}
