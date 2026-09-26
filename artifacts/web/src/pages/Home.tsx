@@ -26,6 +26,7 @@ import { HistoryTimeline } from "@/components/HistoryTimeline";
 import { CompilerComparison } from "@/components/CompilerComparison";
 import { SafetySpectrum } from "@/components/SafetySpectrum";
 import { CaseStudy } from "@/components/CaseStudy";
+import { MacAppShowcase, MAC_TABS, type MacChat } from "@/components/MacAppShowcase";
 import { useState } from "react";
 
 const fadeUp = {
@@ -104,6 +105,7 @@ export default function Home() {
   const [heroPlatform, setHeroPlatform] = useState<HeroPlatform>("npm");
   const [whatTab, setWhatTab] = useState<WhatTab>("compiler");
   const [whyTab, setWhyTab] = useState<WhyTab>("compare");
+  const [macChat, setMacChat] = useState<MacChat>("direct");
   const [deepTab, setDeepTab] = useState<DeepDiveTab>("architecture");
 
   const installCommands: Record<HeroPlatform, { display: string; copy: string }> = {
@@ -138,6 +140,7 @@ export default function Home() {
             <div className="hidden md:flex items-center space-x-6 text-sm text-muted-foreground">
               <a href="#what" className="hover:text-white transition-colors">What it does</a>
               <a href="#why" className="hover:text-white transition-colors">Why it matters</a>
+              <a href="#mac-app" className="hover:text-white transition-colors">Mac app</a>
               <a href="#deep-dive" className="hover:text-white transition-colors">Deep dive</a>
               <a href={`${DOCS_BASE}/docs/intro`} className="hover:text-white transition-colors">Docs</a>
               <a href="#quickstart" className="hover:text-white transition-colors">Get Started</a>
@@ -587,6 +590,47 @@ export default function Home() {
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+        </section>
+
+
+        {/* ═══════════════════════════════════════════════════════
+            SECTION 3½: THE MAC APP
+            An interactive window of the agent messenger
+        ═══════════════════════════════════════════════════════ */}
+        <section id="mac-app" className="py-20 sm:py-24 px-4 sm:px-6 border-t border-white/5 scroll-mt-20">
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger}
+            className="max-w-5xl mx-auto space-y-10"
+          >
+            <motion.div variants={fadeUp} className="text-center space-y-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Your agents, in one chat app</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                A native macOS messenger for your Claude Code sessions. Watch them work, talk to one or all, and approve what they want remembered.
+              </p>
+            </motion.div>
+
+            <motion.div variants={fadeUp}>
+              <TabBar<MacChat> tabs={MAC_TABS} active={macChat} onChange={setMacChat} />
+            </motion.div>
+
+            <motion.div variants={fadeUp}>
+              <MacAppShowcase chat={macChat} onSelect={setMacChat} />
+            </motion.div>
+
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <code className="font-mono text-sm text-white/90 bg-white/[0.04] border border-white/10 rounded-lg px-4 py-2.5">
+                swift run SmallChatApp
+              </code>
+              <a
+                href="https://github.com/johnnyclem/smallchat-swift"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+              >
+                macOS 14+ · smallchat-swift <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </motion.div>
           </motion.div>
         </section>
 
