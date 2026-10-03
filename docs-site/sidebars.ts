@@ -25,7 +25,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'CLI Reference',
-      items: ['cli/index', 'cli/compile', 'cli/inspect', 'cli/resolve', 'cli/serve'],
+      items: ['cli/index', 'cli/compile', 'cli/inspect', 'cli/resolve', 'cli/explain', 'cli/replay', 'cli/serve'],
     },
     {
       type: 'category',
@@ -36,6 +36,11 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Manifests',
       items: ['manifests/format', 'manifests/examples'],
+    },
+    {
+      type: 'category',
+      label: 'Integrations',
+      items: ['integrations/index', 'integrations/loom-mcp'],
     },
     'architecture',
   ],

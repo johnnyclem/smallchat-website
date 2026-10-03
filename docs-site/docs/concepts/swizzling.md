@@ -5,121 +5,125 @@ sidebar_label: Method Swizzling
 
 # Method Swizzling
 
-Method swizzling replaces a tool implementation at runtime — analogous to method swizzling in Objective-C. The original implementation can be preserved and optionally called from the replacement.
+Method swizzling replaces a tool implementation at runtime — analogous to
+method swizzling in Objective-C. The original implementation is returned, so
+the replacement can delegate to it.
 
-## `runtime.swizzle()`
+This page shows the TypeScript API of `@smallchat/core`.
 
-```typescript
-runtime.swizzle(toolClass, selector, newImplementation);
-```
-
-Parameters:
-
-- `toolClass` — string identifier of the `ToolClass` to modify
-- `selector` — `ToolSelector` identifying the method to replace
-- `newImplementation` — `ToolIMP` that replaces the original
+## `runtime.swizzle(toolClass, selector, newImp)`
 
 ```typescript
-import { ToolRuntime } from '@smallchat/core';
-
-const runtime = new ToolRuntime({ ... });
-await runtime.load('./tools.json');
-
-// Get the selector for the intent we want to intercept
-const sel = runtime.intern('search for code');
-
-// Replace the implementation
-runtime.swizzle('github', sel, async (args) => {
-  console.log('[intercepted] github.search_code called with:', args);
-  return { output: 'mocked result for tests' };
-});
+swizzle(toolClass: ToolClass, selector: ToolSelector, newImp: ToolIMP): ToolIMP | null
 ```
 
-## Cache flush on swizzle
+- `toolClass` — the registered `ToolClass` (provider) to modify
+- `selector` — the `ToolSelector` whose implementation is replaced; every
+  other selector of that class that dispatched to the same implementation
+  (the tool's aliases) is swizzled with it
+- `newImp` — the replacement `ToolIMP`
+- returns the original `ToolIMP`, or `null` when the selector had none
 
-Every call to `swizzle()` automatically flushes cache entries that reference the affected selector. This ensures subsequent dispatches pick up the new implementation rather than the stale cached one.
+Find the class, selector and current implementation of a tool by its
+canonical id:
 
 ```typescript
-// Before swizzle: cache may contain resolved entries for 'search for code'
-runtime.swizzle('github', sel, newImpl);
-// After swizzle: those entries are purged; next dispatch resolves fresh
+import { loadRuntime } from '@smallchat/core';
+import type { ExecuteOptions, ToolIMP, ToolResult } from '@smallchat/core';
+
+const { runtime } = await loadRuntime('./tools.toolkit.json');
+
+const tool = runtime.getTool('github/search_code')!;   // { id, imp, selectors }
+const github = runtime.context.getClasses().find(c => c.name === 'github')!;
+const selector = runtime.selectorTable.get(tool.selectors[0])!;
+
+/** The same tool (id, schema, annotations) with another execute(). */
+function withExecute(
+  imp: ToolIMP,
+  execute: (args: Record<string, unknown>, options?: ExecuteOptions) => Promise<ToolResult>,
+): ToolIMP {
+  return {
+    providerId: imp.providerId,
+    toolName: imp.toolName,
+    transportType: imp.transportType,
+    schema: imp.schema,
+    schemaLoader: () => imp.schemaLoader(),
+    constraints: imp.constraints,
+    annotations: imp.annotations,
+    execute,
+  };
+}
+
+const original = runtime.swizzle(github, selector, withExecute(tool.imp, async (args, options) => {
+  console.log('[intercepted] github/search_code called with:', args);
+  return tool.imp.execute(args, options);
+}));
 ```
+
+The replacement keeps the tool's canonical id, so `dispatchById`, proofs and
+decision logs still name `github/search_code`, and arguments are still
+validated against its `inputSchema` before `execute` runs.
+
+## Takes effect on the next dispatch
+
+`swizzle()` flushes the whole resolution cache (entries are keyed by intent,
+not by selector) and rebuilds the dispatch index, so the next dispatch runs
+the new implementation.
 
 ## Use cases
 
 ### Testing and mocking
 
-Swizzle in test setup to replace live API calls with deterministic fixtures:
+Replace live API calls with deterministic fixtures:
 
 ```typescript
 beforeEach(async () => {
-  await runtime.load('./tools.json');
-
-  const sel = runtime.intern('search for code');
-  runtime.swizzle('github', sel, async (args) => ({
-    output: fixtures.searchResults,
+  ({ runtime } = await loadRuntime('./tools.toolkit.json'));
+  const tool = runtime.getTool('github/search_code')!;
+  const github = runtime.context.getClasses().find(c => c.name === 'github')!;
+  runtime.swizzle(github, runtime.selectorTable.get(tool.selectors[0])!, withExecute(tool.imp, async () => ({
+    content: fixtures.searchResults,
     metadata: { mocked: true },
-  }));
+  })));
 });
 ```
 
 ### Routing and A/B testing
 
-Redirect traffic between implementations without changing dispatch configuration:
-
 ```typescript
-const sel = runtime.intern('send message');
-const control = runtime.getImplementation('slack', sel);
-const experiment = newSlackClientImpl;
-
-let experimentTraffic = 0;
-runtime.swizzle('slack', sel, async (args) => {
-  if (++experimentTraffic % 10 === 0) {
-    return experiment(args);  // 10% of calls go to experiment
-  }
-  return control(args);
-});
+let calls = 0;
+runtime.swizzle(slack, sendSelector, withExecute(control, async (args, options) =>
+  ++calls % 10 === 0 ? experiment.execute(args, options) : control.execute(args, options)));
 ```
 
 ### Hot upgrades
 
-Upgrade a tool implementation without restarting or recompiling:
-
 ```typescript
-// Load a new version of a provider at runtime
-const newImpl = await loadNewProviderVersion('github', '2.0.0');
-
-const sel = runtime.intern('create issue');
-runtime.swizzle('github', sel, newImpl);
-
-// Update the provider version so the cache invalidates
-runtime.setProviderVersion('2.0.0');
+const upgraded = await loadNewProviderVersion('github', '2.0.0'); // a ToolIMP
+runtime.swizzle(github, createIssueSelector, upgraded);
+// Expire resolutions cached against the old provider version
+runtime.setProviderVersion('github', '2.0.0');
 ```
+
+To replace a whole provider, register a new `ToolClass` with the same name
+instead: `runtime.registerClass(cls)` replaces the old one and re-indexes.
 
 ### Wrapping / decoration
 
-Call the original implementation and add pre/post processing:
-
 ```typescript
-const sel = runtime.intern('search for code');
-const original = runtime.getImplementation('github', sel);
-
-runtime.swizzle('github', sel, async (args) => {
-  const start = Date.now();
-  const result = await original(args);
-  const elapsed = Date.now() - start;
-
-  metrics.record('github.search_code.latency', elapsed);
-  return result;
-});
+runtime.swizzle(github, selector, withExecute(tool.imp, async (args, options) => {
+  const start = performance.now();
+  try {
+    return await tool.imp.execute(args, options);
+  } finally {
+    metrics.record('github/search_code.latency', performance.now() - start);
+  }
+}));
 ```
 
-## `getImplementation()`
+## Core selectors
 
-Retrieve the current implementation for a class/selector before swizzling (to preserve it for delegation):
-
-```typescript
-const original = runtime.getImplementation('github', sel);
-```
-
-Returns `null` if no implementation is registered for that selector in the given class.
+Selectors of a class registered with `runtime.registerCoreClass(cls)` are
+protected: another class cannot swizzle or shadow them unless the core class
+was registered with `{ swizzlable: true }`. The owning class can always
+swizzle its own selectors.

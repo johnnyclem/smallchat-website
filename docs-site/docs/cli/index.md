@@ -10,19 +10,19 @@ The `@smallchat/core` package ships a CLI for compiling manifests, inspecting ar
 ## Installation
 
 ```bash
-npm install @smallchat/core
+npm install @smallchat/core@^1
 ```
 
 After installation, the `smallchat` binary is available via `npx`:
 
 ```bash
-npx @smallchat/core <command> [options]
+npx -y @smallchat/core@^1 <command> [options]
 ```
 
 Or install globally:
 
 ```bash
-npm install -g @smallchat/core
+npm install -g @smallchat/core@^1
 smallchat <command> [options]
 ```
 
@@ -30,30 +30,32 @@ smallchat <command> [options]
 
 | Command | Description |
 |---------|-------------|
-| [`compile`](./compile) | Compile tool manifests to a dispatch artifact |
-| [`inspect`](./inspect) | Inspect a compiled artifact |
-| [`resolve`](./resolve) | Test dispatch resolution against an artifact |
-| [`serve`](./serve) | Start a MCP 2025-11-25 compliant HTTP server |
+| [`compile`](./compile.md) | Compile tool manifests to a dispatch artifact |
+| [`inspect`](./inspect.md) | Inspect a compiled artifact |
+| [`resolve`](./resolve.md) | Test dispatch resolution against an artifact |
+| [`explain`](./explain.md) | Explain a resolution: candidates, tiers, policy verdicts, proof digest |
+| [`replay`](./replay.md) | Check golden dispatch traces or a decision log against an artifact (exit 0/1/2) |
+| [`serve`](./serve.md) | Serve a toolkit as one MCP server (stdio, or Streamable HTTP with `--http`) that forwards calls to the upstream servers |
 
 ## Global options
 
 | Option | Description |
 |--------|-------------|
 | `--help`, `-h` | Show help for a command |
-| `--version`, `-v` | Print the package version |
+| `--version`, `-V` | Print the package version |
 
 ## Quick reference
 
 ```bash
 # Compile all manifests in ./tools → tools.json
-npx @smallchat/core compile --source ./tools --output tools.json
+npx -y @smallchat/core@^1 compile --source ./tools --output tools.json
 
 # Inspect what's in tools.json
-npx @smallchat/core inspect tools.json --providers --selectors
+npx -y @smallchat/core@^1 inspect tools.json --providers --selectors
 
 # Test a dispatch
-npx @smallchat/core resolve tools.json "search for code"
+npx -y @smallchat/core@^1 resolve tools.json "search for code"
 
-# Start the MCP server on port 3001
-npx @smallchat/core serve --source ./tools --port 3001
+# Serve the toolkit over stdio (or --http for Streamable HTTP at :3001/mcp)
+npx -y @smallchat/core@^1 serve --source tools.json
 ```

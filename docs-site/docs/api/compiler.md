@@ -5,156 +5,167 @@ sidebar_label: ToolCompiler
 
 # ToolCompiler API Reference
 
-`ToolCompiler` runs the Parse → Embed → Overload → Link pipeline and emits a compiled artifact.
+`ToolCompiler` runs the Parse → Embed → Link pipeline over provider manifests, and `buildArtifact()` turns its result into a format 1.0 artifact: the file `smallchat compile` writes, pinned to the embedder that produced its vectors. The compiler never merges distinct tools. Two tools whose embeddings are at or above `duplicateThreshold` are a `DuplicateToolError`, unless `allowDuplicates` keeps both and reports the pair.
+
+This page documents the TypeScript package, `@smallchat/core`. Types are in `src/core/types.ts` and `src/compiler/compiler.ts`.
 
 ## Constructor
 
 ```typescript
-import { ToolCompiler, LocalEmbedder, MemoryVectorIndex } from '@smallchat/core';
+import { ToolCompiler, createEmbedder, MemoryVectorIndex } from '@smallchat/core';
 
-const compiler = new ToolCompiler(embedder, vectorIndex);
+const embedder = await createEmbedder('onnx'); // or 'hash' for tests
+const compiler = new ToolCompiler(embedder, new MemoryVectorIndex(), {
+  duplicateThreshold: 0.95,
+});
 ```
-
-Parameters:
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `embedder` | `Embedder` | Embedding provider — use `LocalEmbedder` for zero-dependency local inference |
-| `vectorIndex` | `VectorIndex` | Vector similarity index — use `MemoryVectorIndex` for in-memory |
-
-## `compile(manifests, options?)`
-
-Compile an array of `ProviderManifest` objects:
-
-```typescript
-import type { ProviderManifest, CompilationResult } from '@smallchat/core';
-
-const manifests: ProviderManifest[] = [
-  JSON.parse(fs.readFileSync('./tools/github-manifest.json', 'utf8')),
-  JSON.parse(fs.readFileSync('./tools/slack-manifest.json', 'utf8')),
-];
-
-const result: CompilationResult = await compiler.compile(manifests, {
-  overloadThreshold: 0.88,
-});
-```
+| `embedder` | `Embedder` | Produces the vectors. Use `createEmbedder('onnx')` (the bundled all-MiniLM-L6-v2 model, the default for `smallchat compile`) or `'hash'`, a deterministic placeholder for tests with no semantic meaning. A custom embedder must declare a `fingerprint` for its artifact to be written and loaded. |
+| `vectorIndex` | `VectorIndex` | Where the compiler indexes selectors while it links, e.g. `MemoryVectorIndex` |
+| `options` | `CompilerOptions` | Optional. Options set here win over the project's smallchat.json `compiler` block. |
 
 ### `CompilerOptions`
 
 ```typescript
 interface CompilerOptions {
-  overloadThreshold?: number;   // Default: 0.88 — similarity threshold for auto-grouping overloads
-  selectorThreshold?: number;   // Default: 0.95 — deduplication threshold
-  emitHeader?: boolean;         // Default: false — emit TypeScript declarations
+  duplicateThreshold?: number;         // Default 0.95: cosine at or above which two tools are duplicates
+  allowDuplicates?: boolean;           // Default false: keep duplicates and report them instead of throwing
+  collisionThreshold?: number;         // Default 0.89: cosine at or above which selectors are reported as colliding
+  generateSemanticOverloads?: boolean; // Default false: group similar tools with different argument signatures
+  semanticOverloadThreshold?: number;  // Default 0.82: similarity for that grouping
+  compileApps?: boolean;               // Default true when a tool declares a ui:// resource
+  appVectorIndex?: VectorIndex;        // Index for the MCP Apps component compiler
+  /** @deprecated Use duplicateThreshold. */
+  deduplicationThreshold?: number;
 }
 ```
+
+## `compile(manifests, projectManifest?)`
+
+Compiles an array of `ProviderManifest` objects. `projectManifest` is the parsed smallchat.json: its `providerHints` / `toolHints` and its `compiler` thresholds apply (constructor options win).
+
+```typescript
+import { readFileSync } from 'node:fs';
+import { ToolCompiler, DuplicateToolError, createEmbedder, MemoryVectorIndex } from '@smallchat/core';
+import type { ProviderManifest, CompilationResult } from '@smallchat/core';
+
+const compiler = new ToolCompiler(await createEmbedder('onnx'), new MemoryVectorIndex());
+const manifests: ProviderManifest[] = [
+  JSON.parse(readFileSync('./manifests/github-manifest.json', 'utf8')),
+  JSON.parse(readFileSync('./manifests/slack-manifest.json', 'utf8')),
+];
+
+try {
+  const result: CompilationResult = await compiler.compile(manifests);
+  console.log(`${result.toolCount} tools, ${result.uniqueSelectorCount} selectors`);
+} catch (err) {
+  if (err instanceof DuplicateToolError) console.error(err.pairs); // the tools that embed alike
+  throw err;
+}
+```
+
+It throws `DuplicateToolError` (with `pairs`) for near-duplicate tools unless `allowDuplicates`, and `SelectorConflictError` when two tools claim one selector, one tool id, or one alias phrase.
 
 ### `CompilationResult`
 
 ```typescript
 interface CompilationResult {
-  artifact: CompiledArtifact;                 // the compiled output, ready to serialize
-  collisions: SelectorCollision[];            // selector name conflicts
-  overloadGroups: SemanticOverloadGroup[];    // auto-generated overload groups
-  stats: {
-    providers: number;
-    tools: number;
-    selectors: number;
-    deduplicated: number;   // selectors that were merged
-    overloads: number;
-  };
+  selectors: Map<string, ToolSelector>;                  // every selector (primary and alias), by canonical
+  dispatchTables: Map<string, Map<string, ToolIMP>>;     // provider id → selector canonical → implementation
+  protocols: ToolProtocol[];
+  tools: CompiledToolRef[];                              // every tool, in manifest order, with its selectors
+  toolCount: number;
+  uniqueSelectorCount: number;                           // selectors are never shared between tools
+  duplicates: DuplicateToolPair[];                       // non-empty only under allowDuplicates
+  collisions: SelectorCollision[];                       // { selectorA, selectorB, similarity, hint }
+  overloadTables: Map<string, OverloadTableData>;
+  semanticOverloads: SemanticOverloadGroup[];            // reported only; 1.0 artifacts carry no overload tables
+  appArtifact?: AppArtifact;                             // when tools declare ui:// resources
 }
+```
+
+## Writing an artifact
+
+`buildArtifact(result, manifests, fingerprint)` produces the validated `ArtifactV1` (tools keyed by `<providerId>/<toolName>` with their descriptions, schemas and annotations, provider launch specs, selectors, the embedder fingerprint and a content hash). `writeArtifact(path, artifact)` writes JSON, or SQLite for a `.db` path. `loadRuntime(path)` loads it with the embedder it records.
+
+```typescript
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  ToolCompiler,
+  MemoryVectorIndex,
+  buildArtifact,
+  createEmbedder,
+  fingerprintOf,
+  writeArtifact,
+} from '@smallchat/core';
+import type { ProviderManifest } from '@smallchat/core';
+
+async function compileAll(sourceDir: string, outputPath: string) {
+  const embedder = await createEmbedder('onnx');
+  const compiler = new ToolCompiler(embedder, new MemoryVectorIndex());
+
+  const manifests: ProviderManifest[] = readdirSync(sourceDir)
+    .filter((f) => f.endsWith('-manifest.json'))
+    .map((f) => JSON.parse(readFileSync(join(sourceDir, f), 'utf8')));
+
+  const result = await compiler.compile(manifests);
+  for (const collision of result.collisions) {
+    console.warn(`Selectors ${collision.selectorA} and ${collision.selectorB} collide (${collision.similarity.toFixed(3)}): ${collision.hint}`);
+  }
+
+  await writeArtifact(outputPath, buildArtifact(result, manifests, fingerprintOf(embedder)));
+  console.log(`Wrote ${outputPath}: ${result.toolCount} tools, ${result.uniqueSelectorCount} selectors`);
+}
+
+await compileAll('./manifests', './tools.toolkit.json');
 ```
 
 ## Manifest format
 
 ```typescript
-import type { ProviderManifest, ToolDefinition } from '@smallchat/core';
-
 interface ProviderManifest {
-  id: string;
+  id: string;                         // provider id: the first half of every tool id
   name: string;
-  transportType: 'mcp' | 'http' | 'local';
-  description?: string;
+  transportType: 'mcp' | 'rest' | 'local' | 'grpc';
   tools: ToolDefinition[];
+  endpoint?: string;
+  launch?: LaunchSpec;                // how to start or reach the upstream server
+  version?: string;
+  compilerHints?: ProviderCompilerHints;
 }
 
 interface ToolDefinition {
-  name: string;
+  name: string;                       // the upstream tool name, verbatim
   description: string;
-  providerId: string;
-  transportType: 'mcp' | 'http' | 'local';
   inputSchema: JSONSchemaType;
+  providerId: string;
+  transportType: 'mcp' | 'rest' | 'local' | 'grpc';
+  title?: string;
+  outputSchema?: Record<string, unknown>;
+  annotations?: ToolAnnotations;      // MCP hints, e.g. destructiveHint
+  compilerHints?: CompilerHint;       // e.g. aliases, pinSelector, exclude
 }
 ```
+
+See [manifest format](../manifests/format.md) for every field.
 
 ## Parsers
 
-Utilities for converting other formats to `ProviderManifest`:
+The parsers produce the compiler's intermediate representation, `ParsedTool[]`; `compile()` calls `parseMCPManifest` itself.
 
-### `parseMCPManifest(json)`
-
-Parse a raw MCP server manifest (the `tools/list` response format):
-
-```typescript
-import { parseMCPManifest } from '@smallchat/core';
-
-const manifest = parseMCPManifest(rawMCPResponse);
-```
-
-### `parseOpenAPISpec(spec)`
-
-Parse an OpenAPI 3.x specification into a `ProviderManifest`:
+| Function | Input | Output |
+|----------|-------|--------|
+| `parseMCPManifest(manifest)` | a `ProviderManifest` | `ParsedTool[]`, with provider hints merged into each tool |
+| `parseOpenAPISpec(spec)` | an OpenAPI 3.x document | `ParsedTool[]`, one per operation with an `operationId` |
+| `parseRawSchema(definition)` | one `ToolDefinition` | a `ParsedTool` |
 
 ```typescript
+import { readFileSync } from 'node:fs';
 import { parseOpenAPISpec } from '@smallchat/core';
 
-const spec = JSON.parse(fs.readFileSync('./openapi.json', 'utf8'));
-const manifest = parseOpenAPISpec(spec);
-```
-
-### `parseRawSchema(schema)`
-
-Parse a raw JSON Schema object:
-
-```typescript
-import { parseRawSchema } from '@smallchat/core';
-```
-
-## Programmatic compilation workflow
-
-```typescript
-import {
-  ToolCompiler,
-  LocalEmbedder,
-  MemoryVectorIndex,
-} from '@smallchat/core';
-import * as fs from 'fs';
-import * as path from 'path';
-
-async function compileAll(sourceDir: string, outputPath: string) {
-  const embedder = new LocalEmbedder();
-  const vectorIndex = new MemoryVectorIndex();
-  const compiler = new ToolCompiler(embedder, vectorIndex);
-
-  // Load all manifests from the source directory
-  const manifests = fs
-    .readdirSync(sourceDir)
-    .filter((f) => f.endsWith('-manifest.json'))
-    .map((f) => JSON.parse(fs.readFileSync(path.join(sourceDir, f), 'utf8')));
-
-  const result = await compiler.compile(manifests, { overloadThreshold: 0.88 });
-
-  // Report collisions
-  for (const collision of result.collisions) {
-    console.warn(`Collision: ${collision.selector} → [${collision.tools.join(', ')}]`);
-  }
-
-  // Write artifact
-  fs.writeFileSync(outputPath, JSON.stringify(result.artifact, null, 2));
-  console.log(`Wrote ${outputPath}`);
-  console.log(`  ${result.stats.tools} tools, ${result.stats.selectors} selectors`);
-}
-
-await compileAll('./tools', './tools.json');
+const tools = parseOpenAPISpec(JSON.parse(readFileSync('./openapi.json', 'utf8')));
+console.log(tools.map((t) => t.name));
 ```

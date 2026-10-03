@@ -4,6 +4,9 @@ sidebar_label: Introduction
 slug: /intro
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Introduction
 
 > "The big idea is messaging." — Alan Kay
@@ -16,7 +19,7 @@ Modern AI applications have a tool problem. You have dozens of tools across mult
 
 smallchat takes a different approach: **semantic dispatch**.
 
-Intent strings are embedded into vectors at compile time. At runtime, `toolkit_dispatch` embeds the incoming intent, does a cosine similarity search across the selector table, and routes to the best-matching implementation. Repeated dispatches hit an LRU cache and skip the embedding entirely.
+Tool descriptions are embedded into vectors at compile time. At runtime, `toolkit_dispatch` embeds the incoming intent, does a cosine similarity search across the selector table, and proposes the best-matching tool; it runs only when the dispatch policy allows. Repeated dispatches hit an LRU cache and skip the embedding entirely.
 
 ## The Obj-C runtime metaphor
 
@@ -35,7 +38,7 @@ If you have ever written Objective-C, the model is immediately familiar:
 | Protocol | ToolProtocol (capability interface) |
 | Category | ToolCategory (capability extension) |
 | `respondsToSelector:` | `canHandle(selector)` |
-| `forwardInvocation:` | Fallback chain (superclass → broadened → LLM) |
+| `forwardInvocation:` | Refinement: no tool chosen → `needs-disambiguation` / `unresolved` with options to call by tool id |
 | NSProxy | ToolProxy (lazy schema loading) |
 | NSObject | SCObject (typed parameter hierarchy) |
 
@@ -43,30 +46,75 @@ If you have not, the model is still straightforward: tools are grouped into clas
 
 ## Install
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```bash
-npm install @smallchat/core
+npm install @smallchat/core@^1
 ```
 
-Package: `@smallchat/core` — version `0.1.0`
+Package: `@smallchat/core` — version `1.0.0`. Requires Node.js 22 or later.
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+Add to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/johnnyclem/smallchat-swift", from: "1.0.0"),
+]
+```
+
+Requires Swift 6.1+. Builds on macOS 14+, iOS 17+ (libraries) and Linux.
+
+</TabItem>
+</Tabs>
 
 ## First dispatch
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```typescript
-import { ToolRuntime, LocalEmbedder, MemoryVectorIndex } from '@smallchat/core';
+import { loadRuntime } from '@smallchat/core';
 
-const embedder = new LocalEmbedder();
-const vectorIndex = new MemoryVectorIndex();
-const runtime = new ToolRuntime({ embedder, vectorIndex });
+// Load a compiled artifact (it records, and enforces, its embedder)
+const { runtime } = await loadRuntime('./tools.toolkit.json');
 
-// Load a compiled artifact
-await runtime.load('./tools.json');
+// Propose a tool for a natural-language intent (nothing runs)...
+const resolution = await runtime.resolve('search for code');
 
-// Dispatch natural-language intent
-const result = await runtime.dispatch('search for code', { query: 'typescript generics' });
-console.log(result.output);
+// ...then run exactly that tool, with its arguments schema-checked
+if (resolution.outcome === 'resolved') {
+  const result = await runtime.dispatchById(resolution.chosen!, { query: 'typescript generics' });
+  console.log(result.content);
+} else {
+  console.log(resolution.outcome, resolution.candidates.map(c => c.toolId));
+}
 ```
 
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+import SmallChat
+
+// Load a toolkit (a compiled artifact or a manifest directory)
+let runtime = try await MCPToolkit.load(source: "./tools.toolkit.json").runtime
+
+// Dispatch natural-language intent
+let result = try await runtime.dispatch("search for code", args: ["query": "typescript generics"])
+print(result.content ?? "")
+```
+
+</TabItem>
+</Tabs>
+
 ## Streaming dispatch
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
 for await (const event of runtime.dispatchStream('search for code', { query: 'react hooks' })) {
@@ -75,9 +123,28 @@ for await (const event of runtime.dispatchStream('search for code', { query: 're
 }
 ```
 
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+for try await event in runtime.dispatchStream("search for code", args: ["query": "react hooks"]) {
+    switch event {
+    case .chunk(let content, _):
+        print(content, terminator: "")
+    case .done:
+        print("\nDone.")
+    default:
+        break
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
 ## Next steps
 
-- **[Getting Started](./getting-started)** — install, compile, and run your first dispatch
-- **[What it does](./what-it-does)** — the compile → embed → dispatch pipeline in detail
-- **[Why it matters](./why-it-matters)** — the problem smallchat solves, and why this approach works
-- **[Deep Dive](./concepts/)** — internals: SelectorTable, ResolutionCache, OverloadTable, streaming, swizzling
+- **[Getting Started](./getting-started.md)** — install, compile, and run your first dispatch
+- **[What it does](./what-it-does.md)** — the compile → embed → dispatch pipeline in detail
+- **[Why it matters](./why-it-matters.md)** — the problem smallchat solves, and why this approach works
+- **[Deep Dive](./concepts/index.md)** — internals: SelectorTable, ResolutionCache, OverloadTable, streaming, swizzling
