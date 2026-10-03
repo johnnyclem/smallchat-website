@@ -6,12 +6,13 @@ import { levelInfo } from "./levels";
 
 const BUDGETS = demo.frames.map((f) => f.tokenBudget);
 
-/** Drag the token budget; see the context frame short-hand builds for it. */
+/** Drag the token budget; see the typed context frame short-hand builds for it. */
 export function BudgetDemo() {
   const [index, setIndex] = useState(3);
   const [showSource, setShowSource] = useState(false);
   const frame = demo.frames[index];
   const pct = Math.round((frame.tokenUsage / demo.rawTokens) * 100);
+  const omitted = Object.entries(frame.omitted as Record<string, number>);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -36,9 +37,9 @@ export function BudgetDemo() {
           className="w-full accent-primary cursor-pointer"
         />
         <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
-          {frame.sections.map((s, i) => (
+          {frame.sections.map((s) => (
             <motion.div
-              key={`${s.level}-${i}`}
+              key={s.kind}
               layout
               className="h-full"
               style={{ background: levelInfo(s.level).color }}
@@ -47,15 +48,20 @@ export function BudgetDemo() {
             />
           ))}
         </div>
+        <p className="text-xs text-muted-foreground font-mono">
+          {omitted.length > 0
+            ? <>items left out at this budget: {omitted.map(([kind, n]) => `${kind} ${n}`).join(" · ")}</>
+            : "nothing left out at this budget"}
+        </p>
       </div>
 
       <div className="space-y-3">
         <AnimatePresence initial={false}>
-          {frame.sections.map((s, i) => {
+          {frame.sections.map((s) => {
             const info = levelInfo(s.level);
             return (
               <motion.div
-                key={`${s.level}-${i}`}
+                key={s.kind}
                 layout
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -64,7 +70,7 @@ export function BudgetDemo() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="size-2 rounded-full" style={{ background: info.color }} />
-                  <span className={`font-mono text-xs font-bold ${info.text}`}>L{s.level} · {info.name}</span>
+                  <span className={`font-mono text-xs font-bold ${info.text}`}>L{s.level} · {s.kind}</span>
                   <span className="ml-auto font-mono text-xs text-muted-foreground">{s.tokenEstimate} tok</span>
                 </div>
                 <pre className="font-mono text-xs sm:text-[13px] leading-6 text-white/80 whitespace-pre-wrap break-words">{s.content}</pre>
@@ -99,7 +105,10 @@ export function BudgetDemo() {
             </motion.ol>
           )}
         </AnimatePresence>
-        <p className="text-xs text-muted-foreground font-mono">real CompactionEngine output · Tier 0 regex compactor · zero dependencies</p>
+        <p className="text-xs text-muted-foreground font-mono">
+          {demo.tombstones} corrections · {demo.archived} superseded entries archived, not deleted
+        </p>
+        <p className="text-xs text-muted-foreground font-mono">real @shorthand/core 1.0.0 CompactionEngine output · Tier 0 regex compactor · tokens by its ~4 chars/token estimate</p>
       </div>
     </div>
   );

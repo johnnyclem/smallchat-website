@@ -1,7 +1,8 @@
-// Bakes the budget-slider demo from a real short-hand build, so every frame
-// on the page is actual CompactionEngine output (Tier 0 regex compactor).
+// Bakes the budget-slider demo from a real @shorthand/core build (the short-hand
+// repo, 1.0.0), so every frame on the page is actual CompactionEngine output
+// (Tier 0 regex compactor): typed sections, items and omitted counts included.
 //
-//   git clone https://github.com/johnnyclem/short-hand && (cd short-hand && npm i && npm run build)
+//   git clone https://github.com/johnnyclem/short-hand && (cd short-hand && npm ci && npm run build)
 //   node scripts/bake-demo.mjs /path/to/short-hand > src/data/demo.json
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -42,4 +43,4 @@ const rawTokens = messages.reduce((n, m) => n + estimateTokens(m.content), 0);
 const budgets = Array.from({ length: 12 }, (_, i) => 40 + i * 20);
 const frames = budgets.map((b) => engine.buildContextFrame(b));
 const state = engine.getState();
-console.log(JSON.stringify({ rawTokens, messages: messages.map(({ role, content }) => ({ role, content })), tombstones: state.tombstones.length, frames }));
+console.log(JSON.stringify({ rawTokens, messages: messages.map(({ role, content }) => ({ role, content })), tombstones: state.tombstones.length, archived: (state.archive ?? []).filter((a) => a.reason === "superseded").length, frames }));
