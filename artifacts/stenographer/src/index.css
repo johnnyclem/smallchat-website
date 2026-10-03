@@ -7,3 +7,15 @@
   --primary: 38 95% 56%;
   --primary-glow: rgba(248, 168, 40, 0.35);
 }
+
+/* The hero's copy button holds the npm install command, which is wider than a
+   narrow phone: tighten its padding there and let the label truncate instead of
+   widening the page (the button still copies the whole command). */
+@media (max-width: 639px) {
+  #top .btn-glass {
+    padding-inline: 1.25rem;
+  }
+}
+#top .btn-glass > span {
+  min-width: 0;
+}
