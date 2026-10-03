@@ -71,22 +71,22 @@ const eras: Era[] = [
     glowColor: "rgba(168,85,247,0.15)",
     paragraphs: [
       "Today, AI models need to use tools — search engines, APIs, databases, code runners. But every integration is hardwired. The model has to know the exact function name, the exact arguments.",
-      "smallchat applies the same message-passing architecture to AI tool use. The model describes its intent in natural language. The runtime — using vector embeddings as semantic selectors — resolves it to the right tool automatically. Built first in TypeScript, now coming to Swift 6 with actors, structured concurrency, and Sendable safety throughout.",
+      "smallchat applies the same message-passing architecture to AI tool use. The model describes its intent in natural language. The runtime — using vector embeddings as semantic selectors — proposes the one tool that handles it, and asks when nothing matches cleanly. 1.0 ships in TypeScript (@smallchat/core) and Swift (smallchat-swift), which share the same conformance vectors.",
     ],
     codeSnippet: {
       label: "smallchat dispatch",
       code: `// TypeScript — the AI says what it wants:
-await runtime.dispatch("search for recent code changes");
+const r = await runtime.resolve("search for recent code changes");
+if (r.outcome === "resolved") await runtime.dispatchById(r.chosen!, args);
 
-// Swift 6 — actor-isolated, fully concurrent:
-// let client = ChatClient(transport: ws, api: api, configuration: config)
-// await client.login(user: currentUser)
-// for await message in client.messageStream { ... }`,
+// Swift — the same rules, on an actor:
+// let resolution = try await runtime.resolve("search for recent code changes")
+// let result = try await runtime.dispatchById(toolId, args: args)`,
     },
     highlights: [
       { label: "Semantic selectors", detail: "Vector embeddings replace interned strings — meaning replaces naming." },
-      { label: "Resolution cache", detail: "Same LRU caching strategy, adapted for AI's repeated intents." },
-      { label: "Swift 6 actors", detail: "Thread-safe by default. The compiler proves your concurrent code is correct." },
+      { label: "Resolution cache", detail: "Same LRU caching strategy, keyed by the intent's full text." },
+      { label: "Swift 6 language mode", detail: "ToolRuntime is an actor; the compiler checks actor isolation and Sendable." },
     ],
   },
 ];

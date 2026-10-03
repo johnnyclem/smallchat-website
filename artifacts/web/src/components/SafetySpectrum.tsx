@@ -68,44 +68,44 @@ const approaches: ApproachData[] = [
   {
     id: "smallchat",
     label: "smallchat",
-    tagline: "Type-checked. Semantically mapped. Sandboxed by design.",
+    tagline: "Schema-checked. Semantically resolved. Exact by id.",
     color: "text-green-400",
     bgGlow: "rgba(34,197,94,0.06)",
     icon: ShieldCheck,
     position: "Just Right",
     positionColor: "text-green-400",
     traits: [
-      { label: "Context cost", value: "Minimal — compiled", good: true },
-      { label: "Type safety", value: "Full compile-time checks", good: true },
+      { label: "Context cost", value: "Minimal with intent dispatch", good: true },
+      { label: "Type safety", value: "JSON Schema, checked before a tool runs", good: true },
       { label: "Flexibility", value: "Semantic dispatch", good: true },
-      { label: "Security", value: "Only compiler-fed tools", good: true },
+      { label: "Security", value: "Only your tools, one policy", good: true },
     ],
     codeTitle: "smallchat compiled output",
     codeLines: [
       { text: "// Compiler ingests 150+ tools from 10 providers", className: "text-gray-500" },
-      { text: "// outputs a single, type-safe dispatch table", className: "text-gray-500" },
+      { text: "// into one content-hashed artifact", className: "text-gray-500" },
       { text: "", className: "" },
-      { text: "import { CompiledToolkit } from '@smallchat/core';", className: "text-green-400" },
+      { text: "import { loadRuntime } from '@smallchat/core';", className: "text-green-400" },
       { text: "", className: "" },
-      { text: "const toolkit = CompiledToolkit.load('./compiled.json');", className: "text-gray-300" },
+      { text: "const { runtime } = await loadRuntime('./tools.toolkit.json');", className: "text-gray-300" },
       { text: "", className: "" },
-      { text: "// Semantic dispatch — no exact name matching", className: "text-gray-500" },
-      { text: 'const result = await toolkit.dispatch(', className: "text-gray-300" },
+      { text: "// Semantic resolution — proposes one tool, runs nothing", className: "text-gray-500" },
+      { text: 'const r = await runtime.resolve(', className: "text-gray-300" },
       { text: '  "find my recent cloud files about quarterly reports"', className: "text-orange-300" },
       { text: ");", className: "text-gray-300" },
       { text: "", className: "" },
-      { text: "// Compiler already resolved:", className: "text-gray-500" },
-      { text: "//   - which providers have file-search capabilities", className: "text-gray-500" },
-      { text: "//   - auth-aware routing (iCloud vs Google Drive)", className: "text-gray-500" },
-      { text: "//   - deduplicated overlapping schemas", className: "text-gray-500" },
+      { text: "// Run exactly that tool; args are schema-checked first", className: "text-gray-500" },
+      { text: "if (r.outcome === 'resolved')", className: "text-gray-300" },
+      { text: "  await runtime.dispatchById(r.chosen!, { query: 'quarterly' });", className: "text-gray-300" },
+      { text: "// else needs-disambiguation: the caller picks a tool id", className: "text-gray-500" },
     ],
     risks: [],
     benefits: [
-      "Compile-time type checking catches errors before runtime",
-      "Semantic vectors replace verbose schemas — tiny context footprint",
-      "Auth-aware merging creates safe overloaded signatures",
-      "Only tools fed into the compiler are accessible — no escape hatch",
-      "Cross-provider deduplication eliminates redundancy",
+      "Arguments are validated against each tool's JSON Schema before anything runs",
+      "With intent dispatch, the model sends an intent and the schemas stay with the runtime",
+      "By default, below HIGH confidence a tool runs only with an LLM verifier's approval",
+      "Tools annotated destructive run only by exact id, a pinned phrase or EXACT similarity",
+      "Every decision carries a replayable proof and a canonical call digest",
     ],
   },
   {
@@ -367,9 +367,11 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
                         The compiler is your security boundary.
                       </div>
                       <p>
-                        smallchat can only access the tools you explicitly feed into the compiler.
-                        There is no shell access, no filesystem escape hatch, no ambient authority.
-                        If a tool was not in the compilation input, it does not exist at runtime.
+                        smallchat can only run the tools you compile or register, and MCP calls name them exactly.
+                        It adds no shell or filesystem access; its only tool of its own is the read-only
+                        smallchat_resolve (off with --no-resolve-tool).
+                        A tool you did not compile or register does not exist at runtime.
+                        Each tool still has whatever access its own server gives it.
                       </p>
                     </div>
                   </div>
@@ -415,8 +417,8 @@ export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
                       <p>
                         MCP's structured output approach is sandboxed and predictable — but it pays for safety with rigidity.
                         Every tool dumps its full JSON schema into the context window, burning tokens before the conversation even starts.
-                        Adding more providers means linearly more cost, with no deduplication, no semantic understanding, and no way to
-                        merge overlapping capabilities.
+                        Adding more providers means linearly more cost, and nothing helps the model choose
+                        between overlapping tools.
                       </p>
                     </div>
                   </div>

@@ -124,7 +124,7 @@ function Group() {
   return (
     <>
       <Bubble mine>
-        <span className="font-semibold">@all</span> what's left before we tag 0.4?
+        <span className="font-semibold">@all</span> what's left before we tag 1.0?
       </Bubble>
       <Bubble from="@quill-7" color="#2dd4bf">
         Changelog is drafted. Waiting on the upload fix.
