@@ -6,8 +6,10 @@ import demo from "@/data/demo.json";
 const QUERIES = Object.keys(demo.search);
 const byId = new Map(demo.concepts.map((c) => [c.id, c]));
 const top = Math.max(...Object.values(demo.search).flatMap((r) => r.map((x) => x.score)));
+/** score 0.5 is cosine 0 (orthogonal): bars start there, so unrelated concepts show none. */
+const ORTHOGONAL = 0.5;
 
-/** search_concepts over eight saved concepts, with real cosine scores. */
+/** search_concepts over eight saved concepts, with the scores polytician 3.x returns. */
 export function SearchDemo() {
   const [query, setQuery] = useState(QUERIES[0]);
   const results = demo.search[query as keyof typeof demo.search];
@@ -46,7 +48,7 @@ export function SearchDemo() {
                 <motion.div
                   className="h-full rounded-full bg-primary"
                   initial={false}
-                  animate={{ width: `${Math.max(0, r.score / top) * 100}%` }}
+                  animate={{ width: `${Math.max(0, (r.score - ORTHOGONAL) / (top - ORTHOGONAL)) * 100}%` }}
                   transition={{ duration: 0.4 }}
                 />
               </div>
@@ -56,7 +58,7 @@ export function SearchDemo() {
         })}
       </div>
       <p className="text-center text-xs text-muted-foreground font-mono">
-        cosine similarity · {demo.model} · computed by polytician, not by this page
+        score = (1 + cosine) / 2 · bars from 0.5 (orthogonal) · {demo.model} · computed by polytician, not by this page
       </p>
     </div>
   );

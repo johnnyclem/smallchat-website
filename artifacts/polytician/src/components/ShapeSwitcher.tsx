@@ -94,7 +94,9 @@ export function ShapeSwitcher() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">Rule-based pipeline, no LLM. Plug one in for richer graphs.</p>
+                <p className="text-xs text-muted-foreground">
+                  convert_concept markdown→thoughtform with the rule-based NLP pipeline (POLYTICIAN_NLP_PIPELINE=rule-based, default config). Origin {hero.thoughtformProvenance.origin}, no LLM.
+                </p>
               </div>
             )}
 
