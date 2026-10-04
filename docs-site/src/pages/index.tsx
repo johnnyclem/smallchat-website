@@ -8,19 +8,18 @@ import clsx from 'clsx';
 
 const TERMINAL_LINES: Array<{ type: 'comment' | 'prompt' | 'output' | 'blank'; text?: string }> = [
   { type: 'comment', text: '# Install' },
-  { type: 'prompt', text: 'npm install @smallchat/core' },
+  { type: 'prompt', text: 'npm install @smallchat/core@^1' },
   { type: 'blank' },
   { type: 'comment', text: '# Compile tool definitions' },
-  { type: 'prompt', text: 'npx @smallchat/core compile --source ./tools --output tools.json' },
-  { type: 'output', text: 'Compiling tools... ✓ 3 tools from 2 providers embedded.' },
+  { type: 'prompt', text: 'npx -y @smallchat/core@^1 compile --source ./tools --output tools.json' },
+  { type: 'output', text: 'Output: tools.json (format 1.0, content-hashed)' },
   { type: 'blank' },
-  { type: 'comment', text: '# Test a natural-language dispatch' },
-  { type: 'prompt', text: 'npx @smallchat/core resolve tools.json "search for code"' },
-  { type: 'output', text: 'Matched: github.search_code (confidence: 0.98)' },
+  { type: 'comment', text: '# See which tool an intent resolves to (nothing runs)' },
+  { type: 'prompt', text: 'npx -y @smallchat/core@^1 resolve tools.json "search for code"' },
+  { type: 'output', text: 'Chosen: github/search_code' },
   { type: 'blank' },
-  { type: 'comment', text: '# Spin up the built-in MCP server' },
-  { type: 'prompt', text: 'npx @smallchat/core serve tools.json --port 3000' },
-  { type: 'output', text: 'smallchat server running on http://localhost:3000 ✓' },
+  { type: 'comment', text: '# Serve it as an MCP server (stdio)' },
+  { type: 'prompt', text: 'npx -y @smallchat/core@^1 serve --source tools.json' },
 ];
 
 function TerminalWindow() {
@@ -88,7 +87,7 @@ const FEATURES = [
   {
     icon: '⚡',
     title: 'What it does',
-    desc: 'smallchat compiles tool definitions, embeds semantic fingerprints, and dispatches natural-language intent to the best-matching implementation — at runtime, with caching.',
+    desc: 'smallchat compiles tool definitions, embeds semantic fingerprints, and resolves natural-language intent to at most one tool. It runs that tool only when the dispatch policy allows.',
     href: '/docs/what-it-does',
     linkLabel: 'See the dispatch model',
   },
@@ -181,9 +180,9 @@ function ComparisonTable() {
               </td>
             </tr>
             <tr>
-              <td>Bundle size</td>
+              <td>Packaging</td>
               <td>Multiple adapter packages</td>
-              <td>&lt; 5 MB, zero dependencies</td>
+              <td>One package, <code>@smallchat/core</code></td>
             </tr>
           </tbody>
         </table>
@@ -196,7 +195,7 @@ function ComparisonTable() {
 
 function InstallStrip() {
   const [copied, setCopied] = useState(false);
-  const cmd = 'npm install @smallchat/core';
+  const cmd = 'npm install @smallchat/core@^1';
 
   function copyCmd() {
     navigator.clipboard.writeText(cmd).then(() => {
@@ -300,7 +299,7 @@ export default function Home(): JSX.Element {
           <div className="section-eyebrow">What you get</div>
           <div className="section-title">The Obj-C runtime for LLM tooling</div>
           <div className="section-subtitle">
-            Selectors, dispatch tables, forwarding chains, method swizzling — applied to tool
+            Selectors, dispatch tables, overloads, method swizzling — applied to tool
             orchestration.
           </div>
         </div>

@@ -109,17 +109,16 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
     const rawSchemaTokens = selectedGroups.reduce((sum, g) => sum + g.toolCount * g.avgSchemaTokens, 0);
     const rawTokens = rawSchemaTokens + BASELINE_TOKENS;
 
-    let overlapReduction = 0;
+    // Cross-provider overlaps are flagged as collisions. 1.0 never merges
+    // distinct tools: each keeps its own <providerId>/<toolName> id.
+    let overlapCount = 0;
     for (const pair of overlapPairs) {
       if (selectedIds.has(pair.a) && selectedIds.has(pair.b)) {
-        overlapReduction += pair.count;
+        overlapCount += pair.count;
       }
     }
 
-    const semanticDedup = Math.round(rawToolCount * 0.12);
-    const totalReduction = overlapReduction + semanticDedup;
-
-    const compiledToolCount = Math.max(rawToolCount - totalReduction, 1);
+    const compiledToolCount = rawToolCount;
     const compressionRatio = 0.35;
     const compiledSchemaTokens = Math.round(compiledToolCount * 180 * compressionRatio);
     const compiledTokens = compiledSchemaTokens + BASELINE_TOKENS;
@@ -139,10 +138,8 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
       compiledTokens,
       compiledContextPercent,
       compiledCost,
-      overlapReduction,
-      semanticDedup,
+      overlapCount,
       tokenSavings: Math.round(((rawTokens - compiledTokens) / rawTokens) * 100),
-      toolsRemoved: totalReduction,
     };
   }, [selected]);
 
@@ -290,13 +287,13 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
                       {activeTools}
                     </motion.div>
                   </AnimatePresence>
-                  {compiled && stats.toolsRemoved > 0 && (
+                  {compiled && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className="text-[10px] text-green-400 mt-0.5"
                     >
-                      {stats.toolsRemoved} deduplicated
+                      none merged
                     </motion.div>
                   )}
                 </div>
@@ -410,29 +407,27 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
                 >
                   <div className="text-xs font-medium text-muted-foreground">What the compiler did</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {stats.overlapReduction > 0 && (
+                    {stats.overlapCount > 0 && (
                       <div className="flex items-start gap-2 text-xs">
                         <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1.5 shrink-0" />
                         <div>
-                          <span className="text-yellow-400 font-medium">{stats.overlapReduction} cross-provider overlaps</span>
-                          <span className="text-muted-foreground"> merged (e.g., "search issues" in both Jira and GitHub)</span>
-                        </div>
-                      </div>
-                    )}
-                    {stats.semanticDedup > 0 && (
-                      <div className="flex items-start gap-2 text-xs">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0" />
-                        <div>
-                          <span className="text-purple-400 font-medium">{stats.semanticDedup} semantic duplicates</span>
-                          <span className="text-muted-foreground"> removed via embedding similarity</span>
+                          <span className="text-yellow-400 font-medium">{stats.overlapCount} cross-provider overlaps</span>
+                          <span className="text-muted-foreground"> flagged (e.g., "search issues" in both Jira and GitHub); both tools are kept</span>
                         </div>
                       </div>
                     )}
                     <div className="flex items-start gap-2 text-xs">
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0" />
+                      <div>
+                        <span className="text-purple-400 font-medium">Near-duplicates refused</span>
+                        <span className="text-muted-foreground"> — tools at ≥ 0.95 cosine are a compile error, unless you pass --allow-duplicates</span>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
                       <div>
-                        <span className="text-blue-400 font-medium">Schema compression</span>
-                        <span className="text-muted-foreground"> — verbose JSON schemas replaced with semantic vectors</span>
+                        <span className="text-blue-400 font-medium">Out of the context window</span>
+                        <span className="text-muted-foreground"> with intent dispatch — the model sends an intent and the runtime holds the schemas (smallchat serve lists every tool with its schema)</span>
                       </div>
                     </div>
                     <div className="flex items-start gap-2 text-xs">
@@ -447,25 +442,25 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
                     <div className="flex items-start gap-2 text-xs">
                       <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
                       <div>
-                        <span className="text-orange-400 font-medium">Auth-aware merging</span>
+                        <span className="text-orange-400 font-medium">Provider-qualified ids</span>
                         <span className="text-muted-foreground">
-                          {" "}— tools with similar semantics are <em>not</em> blindly merged when they require different auth tokens.
-                          Instead, the compiler generates an overloaded method signature with a provider parameter.
+                          {" "}— tools with similar semantics are never merged, even across providers.
+                          Each keeps its canonical id, <code className="font-mono">&lt;providerId&gt;/&lt;toolName&gt;</code>, and a caller can always run one exactly.
                         </span>
                       </div>
                     </div>
                     {selected.has("google") && selected.has("icloud") ? (
                       <div className="rounded-lg bg-black/40 border border-white/5 p-3 font-mono text-[11px] leading-relaxed text-gray-400">
                         <div className="text-muted-foreground text-[10px] font-sans mb-2 font-medium">Example: iCloud MCP + Google Drive MCP both expose <span className="text-orange-400">findFiles()</span></div>
-                        <div><span className="text-purple-400">// Before — two identical-looking tools, different accounts</span></div>
-                        <div><span className="text-blue-400">icloud</span>.findFiles(fileName: <span className="text-green-400">string</span>) {"->"} [<span className="text-green-400">URL</span>]?</div>
-                        <div><span className="text-blue-400">gdrive</span>.findFiles(fileName: <span className="text-green-400">string</span>) {"->"} [<span className="text-green-400">URL</span>]?</div>
-                        <div className="mt-2"><span className="text-purple-400">// After — compiler creates a unified overloaded signature</span></div>
-                        <div><span className="text-orange-400">findFiles</span>(fileName: <span className="text-green-400">string</span>, withProvider: <span className="text-blue-400">CloudStorageProvider</span>?) {"->"} [<span className="text-green-400">URL</span>]?</div>
+                        <div><span className="text-purple-400">// Two providers, one tool name: both stay</span></div>
+                        <div><span className="text-blue-400">icloud</span>/findFiles(fileName: <span className="text-green-400">string</span>)</div>
+                        <div><span className="text-blue-400">gdrive</span>/findFiles(fileName: <span className="text-green-400">string</span>)</div>
+                        <div className="mt-2"><span className="text-purple-400">// The caller can always name one exactly</span></div>
+                        <div>runtime.<span className="text-orange-400">dispatchById</span>(<span className="text-green-400">"gdrive/findFiles"</span>, {"{"} fileName {"}"})</div>
                       </div>
                     ) : (
                       <div className="text-[11px] text-muted-foreground/60 italic">
-                        Try selecting both iCloud and Google Drive to see an example of auth-aware method signature generation.
+                        Try selecting both iCloud and Google Drive to see how two providers with the same tool name stay apart.
                       </div>
                     )}
                   </div>

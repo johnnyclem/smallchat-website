@@ -3,41 +3,59 @@ title: Function Overloading
 sidebar_label: Function Overloading
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Function Overloading
 
 A single `ToolSelector` can map to multiple implementations with different parameter signatures. The `OverloadTable` resolves which implementation to call based on argument types and arity — analogous to method overloading in statically-typed languages, but resolved at runtime.
 
 ## Multiple signatures per selector
 
-When multiple tools from different providers share a selector (e.g. both `github.search_code` and `gitlab.search_code` resolve to the "search code" selector), the `OverloadTable` holds both implementations:
+A `ToolClass` can register several implementations under one of its selectors, each with its own parameter signature (`addOverload`); the class keeps them in an `OverloadTable` for that selector. The compiler never shares a selector between distinct tools, so overloads are registered programmatically, never formed from two providers whose tools happen to embed alike:
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
-import { OverloadTable } from '@smallchat/core';
+import { ToolClass, SCType, createSignature, param } from '@smallchat/core';
 
-const table = new OverloadTable();
+// `selector` is the class's "search code" selector; the two IMPs run the searches.
+const codeSearch = new ToolClass('code-search');
 
-table.register(selector, {
-  signature: {
-    parameters: [
-      { name: 'query', type: SCType.String },
-      { name: 'repo', type: SCType.String },
-    ],
-    returnType: SCType.Array,
-  },
-  implementation: githubSearchImpl,
-});
+codeSearch.addOverload(selector, createSignature([
+  param('query', 0, SCType.string()),
+  param('repo', 1, SCType.string()),
+]), githubSearchImp, { originalToolName: 'search_in_repo' });
 
-table.register(selector, {
-  signature: {
-    parameters: [
-      { name: 'query', type: SCType.String },
-      { name: 'projectId', type: SCType.Number },
-    ],
-    returnType: SCType.Array,
-  },
-  implementation: gitlabSearchImpl,
-});
+codeSearch.addOverload(selector, createSignature([
+  param('query', 0, SCType.string()),
+  param('projectId', 1, SCType.number()),
+]), gitlabSearchImp, { originalToolName: 'search_in_project' });
 ```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+import SmallChat
+
+// `selector` is the class's "search code" selector; the two IMPs run the searches.
+let codeSearch = ToolClass(name: "code-search")
+
+try codeSearch.addOverload(selector, signature: createSignature([
+    param("query", 0, SCType.string()),
+    param("repo", 1, SCType.string()),
+]), imp: githubSearchImp, originalToolName: "search_in_repo")
+
+try codeSearch.addOverload(selector, signature: createSignature([
+    param("query", 0, SCType.string()),
+    param("projectId", 1, SCType.number()),
+]), imp: gitlabSearchImp, originalToolName: "search_in_project")
+```
+
+</TabItem>
+</Tabs>
 
 ## Resolution priority
 
@@ -50,6 +68,9 @@ When multiple signatures match, resolution applies these priorities in order:
 
 Within the same priority tier, arity (number of arguments) acts as a tiebreaker — more specific (higher arity) signatures win.
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```typescript
 // Given two signatures:
 // A: (query: string, repo: string)
@@ -59,41 +80,99 @@ Within the same priority tier, arity (number of arguments) acts as a tiebreaker 
 // → A wins: exact match with 2 args vs 1 arg
 ```
 
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+// Given two signatures:
+// A: (query: String, repo: String)
+// B: (query: String)
+
+// Call with (query: "foo", repo: "bar/baz")
+// → A wins: exact match with 2 args vs 1 arg
+```
+
+</TabItem>
+</Tabs>
+
 ## `OverloadAmbiguityError`
 
-If two signatures score identically and neither is more specific, an `OverloadAmbiguityError` is thrown:
+If two signatures score identically and neither wins the tie-break (higher arity, then an overload you registered over a compiler-generated one), resolving the overload throws `OverloadAmbiguityError`. `OverloadTable.resolve()` and `ToolClass.resolveSelectorWithNamedArgs()` throw it when you call them. Dispatch does not: an ambiguous overload is left out of the candidates (the proof records an `overload` step saying so), so the intent resolves to another candidate or comes back `needs-disambiguation` or `unresolved`.
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
 import { OverloadAmbiguityError } from '@smallchat/core';
 
 try {
-  await runtime.dispatch('search for code', args);
+  codeSearch.resolveSelectorWithNamedArgs(selector, { query: 'parser' });
 } catch (e) {
   if (e instanceof OverloadAmbiguityError) {
-    // e.candidates — the ambiguous implementations
-    console.error('Ambiguous overload:', e.candidates);
+    // e.candidates — the overload entries that matched equally
+    console.error('Ambiguous overload:', e.candidates.map((c) => c.signature.signatureKey));
   }
 }
 ```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+import SmallChat
+
+do {
+    _ = try codeSearch.resolveSelectorWithNamedArgs(selector, namedArgs: ["query": "parser"])
+} catch let error as OverloadAmbiguityError {
+    // error.candidates — the tied overloads (tool name, else signature key)
+    print("Ambiguous overload:", error.candidates)
+}
+```
+
+</TabItem>
+</Tabs>
 
 Resolve ambiguity by making signatures more specific, or by adding a discriminating parameter.
 
 ## Semantic overloads (compiler-generated)
 
-The compiler can automatically generate semantic overload groups. When two tools have description similarity above `overloadThreshold`, the compiler groups them under one selector and creates overload entries for each:
+With `generateSemanticOverloads`, the compiler also reports groups of similar tools with different argument signatures (similarity at or above `semanticOverloadThreshold`, default 0.82). In 1.0 these groups are a report: they are listed in `CompilationResult.semanticOverloads` and exempt from duplicate detection, but every tool keeps its own selector, and 1.0 artifacts carry no overload tables, so dispatch does not use them.
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
 import { ToolCompiler } from '@smallchat/core';
 
-const compiler = new ToolCompiler(embedder, vectorIndex);
-const result = await compiler.compile(manifests, {
-  overloadThreshold: 0.88,  // group tools with similarity >= 0.88
+const compiler = new ToolCompiler(embedder, vectorIndex, {
+  generateSemanticOverloads: true,
+  semanticOverloadThreshold: 0.82,
 });
+const result = await compiler.compile(manifests);
 
-// result.overloadGroups lists all auto-generated groups
+for (const group of result.semanticOverloads) console.log(group);
 ```
 
-This is "Phase 2.5" of the compile pipeline — optional but useful for large provider sets where tools naturally cluster by semantic domain.
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+import SmallChat
+
+let compiler = ToolCompiler(
+    embedder: embedder,
+    vectorIndex: vectorIndex,
+    options: CompilerOptions(generateSemanticOverloads: true, semanticOverloadThreshold: 0.82)
+)
+let result = try await compiler.compile(manifests)
+
+for group in result.semanticOverloads { print(group) }
+```
+
+</TabItem>
+</Tabs>
+
+This is "Phase 2.5" of the compile pipeline. It is optional, and useful for reviewing large provider sets where tools cluster by semantic domain.
 
 ## Arity tiebreaker
 
@@ -101,6 +180,9 @@ When type scores are equal, arity comparison prefers:
 
 - **Higher arity** wins over lower arity (more specific)
 - **Required-only arity** is compared first; optional parameters are counted separately
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
 // A: (query: string, language: string, repo: string)  — arity 3
@@ -112,19 +194,61 @@ When type scores are equal, arity comparison prefers:
 // Only query → C wins
 ```
 
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+// A: (query: String, language: String, repo: String)  — arity 3
+// B: (query: String, language: String)                — arity 2
+// C: (query: String)                                  — arity 1
+
+// All arguments provided → A wins
+// Only query + language → B wins
+// Only query → C wins
+```
+
+</TabItem>
+</Tabs>
+
 ## `OverloadEntry` and `OverloadResolutionResult`
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```typescript
 export interface OverloadEntry {
-  selector: ToolSelector;
   signature: SCMethodSignature;
-  implementation: ToolIMP;
-  priority?: number;  // explicit priority override
+  imp: ToolIMP;
+  originalToolName?: string;
+  isSemanticOverload: boolean;  // compiler-generated (semantic group)
 }
 
 export interface OverloadResolutionResult {
-  entry: OverloadEntry;
+  imp: ToolIMP;
+  signature: SCMethodSignature;
   matchQuality: MatchQuality;  // 'exact' | 'superclass' | 'union' | 'any'
-  score: number;               // 0–1
+  entry: OverloadEntry;
 }
 ```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+public struct OverloadEntry {
+    public let signature: SCMethodSignature
+    public let imp: any ToolIMP
+    public let originalToolName: String?
+    public let isSemanticOverload: Bool  // compiler-generated (semantic group)
+}
+
+public struct OverloadResolutionResult {
+    public let imp: any ToolIMP
+    public let signature: SCMethodSignature
+    public let matchQuality: MatchQuality  // .exact, .superclass, .union, .any (.none: no match)
+    public let entry: OverloadEntry
+}
+```
+
+</TabItem>
+</Tabs>

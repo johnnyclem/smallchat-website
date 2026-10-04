@@ -5,7 +5,6 @@ import {
   DollarSign,
   Gauge,
   ChevronRight,
-  Database,
   Cpu,
   Lock,
   Layers,
@@ -53,41 +52,41 @@ const tabs: TabData[] = [
     icon: Shield,
     color: "text-green-400",
     bgGlow: "rgba(34,197,94,0.05)",
-    headline: "Semantic hardening before canister execution",
+    headline: "Validation and policy before canister execution",
     description:
-      "smallchat sits between the LLM's intent expression and the canister's tool execution, adding a validation layer that ICP's principal guards alone cannot provide.",
+      "AgentVault's smallchat layer sits between the model's tool call and the canister's Candid method. It resolves the selector, checks the parameters and applies policy before anything executes, a layer ICP's principal guards alone do not provide.",
     metrics: [
       {
         label: "Tool call validation",
         before: "None — raw LLM output to canister",
-        after: "Compile-time type checking + semantic validation",
-        improvement: "100% coverage",
+        after: "Type, required and enum checks against Candid-derived schemas",
+        improvement: "Every bridged call",
         improvementColor: "text-green-400",
       },
       {
         label: "Redundant call deduplication",
         before: "Same tool invoked repeatedly per session",
-        after: "Semantic dedup catches identical intents",
+        after: "Same selector + parameter hash within 5 s is refused",
         improvement: "~40% fewer calls",
         improvementColor: "text-green-400",
       },
       {
-        label: "Rate limiting surface",
-        before: "Canister-level only (post-execution)",
-        after: "Pre-execution middleware rate limiting",
-        improvement: "2 layers deep",
+        label: "Rate limiting",
+        before: "None — the canister has no per-call rate limit",
+        after: "Per-selector and global limits before the call (default 60/min)",
+        improvement: "Pre-execution",
         improvementColor: "text-green-400",
       },
       {
         label: "Unauthorized tool access",
-        before: "Model can attempt any registered tool",
-        after: "Only compiler-fed tools exist at dispatch",
-        improvement: "Zero surface",
+        before: "Model can attempt any canister method",
+        after: "Only selectors registered from the Candid interface resolve",
+        improvement: "Unknown selectors refused",
         improvementColor: "text-green-400",
       },
     ],
     insight:
-      "AgentVault's kill switch and VetKeys handle canister-level emergencies. smallchat prevents them from being needed — validating, deduplicating, and rate-limiting tool calls before they ever reach the execution boundary.",
+      "The canister's principal guards, heap check and kill switch act inside the canister. The smallchat layer works earlier, in the orchestrator: it validates, deduplicates, rate-limits and MFA-gates tool calls before they reach the canister.",
   },
   {
     id: "cost",
@@ -95,41 +94,41 @@ const tabs: TabData[] = [
     icon: DollarSign,
     color: "text-yellow-400",
     bgGlow: "rgba(234,179,8,0.05)",
-    headline: "Every byte costs cycles on ICP",
+    headline: "Fewer prompt tokens, smaller call records",
     description:
-      "With a 64MB canister heap limit, AgentVault cannot afford verbose JSON schemas repeated on every tool invocation. smallchat's interned selectors and compact header generation cut the overhead dramatically.",
+      "The layer runs in AgentVault's TypeScript orchestrator, off-chain, so it does not change canister heap use or cycle cost. It gives the model a compact tool header in place of full JSON schemas, and encodes each call as a 38-byte record instead of ~500+ bytes of JSON. Token and cost figures are estimates from typical MCP schema sizes, not AgentVault measurements.",
     metrics: [
       {
         label: "Tool schema tokens per invocation",
         before: "~15,000 tokens (full JSON schemas)",
-        after: "~2,400 tokens (compiled headers)",
-        improvement: "84% reduction",
+        after: "~2,400 tokens (compact tool header)",
+        improvement: "~84% (est.)",
         improvementColor: "text-yellow-400",
       },
       {
-        label: "Canister heap per tool call",
-        before: "~48KB (verbose JSON-RPC payload)",
-        after: "~6KB (interned selector + args)",
-        improvement: "87% smaller",
+        label: "Tool-call record size",
+        before: "~500+ B of JSON per call",
+        after: "38 B fixed-width binary record",
+        improvement: "Fixed 38 bytes",
         improvementColor: "text-yellow-400",
       },
       {
-        label: "ICP cycles per agent session",
-        before: "~2.8B cycles (repeated resolution)",
-        after: "~0.9B cycles (cached dispatch)",
-        improvement: "68% fewer cycles",
+        label: "Repeated multi-step sequences",
+        before: "No pattern tracking",
+        after: "A 2–5 step sequence seen 3+ times gets one composite selector",
+        improvement: "Pattern detection",
         improvementColor: "text-yellow-400",
       },
       {
-        label: "LLM cost per 1K sessions",
-        before: "$47.20 (GPT-4 input tokens)",
-        after: "$8.50 (compressed tool context)",
-        improvement: "82% savings",
+        label: "LLM cost per 1K sessions (est.)",
+        before: "$47.20 (full schemas in the prompt)",
+        after: "$8.50 (compact tool header)",
+        improvement: "~82% (est.)",
         improvementColor: "text-yellow-400",
       },
     ],
     insight:
-      "At scale, the savings compound. An agent handling 10K sessions/month saves approximately $387 in LLM costs alone — before accounting for the ICP cycle reduction on tool resolution and heap allocation.",
+      "At those estimates, an agent handling 10K sessions a month saves roughly $387 in LLM input cost. The canister side is unchanged: the layer runs before a call reaches it.",
   },
   {
     id: "performance",
@@ -137,49 +136,49 @@ const tabs: TabData[] = [
     icon: Gauge,
     color: "text-blue-400",
     bgGlow: "rgba(59,130,246,0.05)",
-    headline: "LRU caching eliminates redundant resolution",
+    headline: "An LRU cache skips repeat resolution",
     description:
-      "smallchat's resolution cache and superclass fallback chains mean the same logical intent never gets re-resolved twice. On ICP, where every compute cycle is metered, this is the difference between viable and prohibitive.",
+      "The bridge's LRU resolution cache serves a repeated selector with the same parameters without resolving or validating it again, and a ToolClass hierarchy finds a tool by selector or Candid method name. Lookup is exact, with no embeddings, and it all runs in the orchestrator before a call reaches the canister.",
     metrics: [
       {
-        label: "Tool resolution latency",
-        before: "~120ms (semantic search per call)",
-        after: "~3ms (LRU cache hit)",
-        improvement: "40x faster",
+        label: "Repeat tool calls",
+        before: "Resolved and validated on every call",
+        after: "Same selector + parameter hash served from the LRU cache",
+        improvement: "Skips resolve + validate",
         improvementColor: "text-blue-400",
       },
       {
-        label: "Cache hit rate (steady state)",
+        label: "Cache hit rate",
         before: "N/A — no caching layer",
-        after: "92% after warmup period",
-        improvement: "92% hit rate",
+        after: "Depends on how often a session repeats a call",
+        improvement: "Workload-dependent",
         improvementColor: "text-blue-400",
       },
       {
-        label: "Canister execution overhead",
-        before: "Parse JSON → validate → resolve → execute",
-        after: "Lookup selector → execute",
-        improvement: "3 fewer steps",
+        label: "Selector resolution",
+        before: "Flat Candid service interface",
+        after: "Exact selector lookup, then the ToolClass chain by selector or Candid method name",
+        improvement: "Exact, no embeddings",
         improvementColor: "text-blue-400",
       },
       {
-        label: "Arweave backup payload size",
-        before: "~12KB per session (full tool logs)",
-        after: "~2.8KB per session (interned refs)",
-        improvement: "77% smaller",
+        label: "Cache size",
+        before: "No cache",
+        after: "256 entries by default; least recently used evicted first",
+        improvement: "Bounded",
         improvementColor: "text-blue-400",
       },
     ],
     insight:
-      "The LRU resolution cache warms up within the first 5-10 tool calls of a session. After warmup, subsequent calls to semantically similar intents resolve in single-digit milliseconds — critical for maintaining responsive agent interactions within canister compute budgets.",
+      "The LRU resolution cache fills as a session repeats calls. Repeat calls with the same selector and parameters skip resolution and validation. Policy checks (rate limit, dedup, MFA) still run on every call.",
   },
 ];
 
 const pipelineSteps = [
-  { label: "LLM Intent", icon: Cpu, desc: "Model expresses tool-calling intent", color: "text-white/60" },
-  { label: "smallchat", icon: Layers, desc: "Validate → Deduplicate → Cache → Resolve", color: "text-green-400", highlight: true },
+  { label: "LLM Intent", icon: Cpu, desc: "Model names a tool selector", color: "text-white/60" },
+  { label: "smallchat bridge", icon: Layers, desc: "Cache → Resolve → Validate", color: "text-green-400", highlight: true },
+  { label: "Policy", icon: Shield, desc: "Rate limit → Dedup → MFA gate", color: "text-green-400", highlight: true },
   { label: "ICP Canister", icon: Lock, desc: "Principal guards → Heap check → Execute", color: "text-purple-400" },
-  { label: "Arweave", icon: Database, desc: "Compact interned backup", color: "text-blue-400" },
 ];
 
 export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
@@ -201,8 +200,8 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
             smallchat <span className="text-gradient">&times;</span> AgentVault
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Pre-compiling tool schemas before deploying AI agents to ICP canisters —
-            with Arweave backups that actually fit in a block.
+            A smallchat-style dispatch layer in front of AgentVault's ICP canister —
+            selectors, validation and policy before anything executes.
           </p>
         </motion.div>
       )}
@@ -238,6 +237,11 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
                 </div>
               ))}
             </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed mt-5 text-center">
+              AgentVault ships its own TypeScript layer modeled on smallchat's runtime
+              (<span className="font-mono">src/orchestration/smallchat-*.ts</span>). It runs in the orchestrator,
+              off-chain, and is opt-in through the library API. It does not import @smallchat/core.
+            </p>
           </div>
         </Wrapper>
 
@@ -330,74 +334,79 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
                 <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
               <span className="text-[11px] text-muted-foreground ml-2 font-mono">
-                agentvault/canister/src/tool_dispatch.rs
+                agentvault/src/orchestration/claude.ts — dispatchToolCall (abridged)
               </span>
             </div>
             <div className="p-4 font-mono text-[12px] leading-relaxed space-y-0.5 overflow-x-auto">
-              <div className="text-gray-500">{"// Before: verbose JSON-RPC payload on every tool call"}</div>
-              <div className="text-gray-500">{"// After: interned selector from smallchat's compiled output"}</div>
-              <div>&nbsp;</div>
-              <div className="text-purple-400">{"// On-chain tool dispatch with smallchat pre-compilation"}</div>
+              <div className="text-purple-400">{"// One tool call through AgentVault's smallchat layer"}</div>
               <div className="text-gray-300">
-                <span className="text-blue-400">pub fn </span>
-                <span className="text-green-400">dispatch_tool</span>
-                {"("}
+                <span className="text-green-400">dispatchToolCall</span>
+                {"(selector, parameters, callerId) {"}
+              </div>
+              <div className="text-gray-500">{"  // 1. Resolve through the ToolClass hierarchy; check params"}</div>
+              <div className="text-gray-400">
+                {"  "}
+                <span className="text-blue-400">const</span>
+                {" dispatch = "}
+                <span className="text-blue-400">this</span>
+                {".smallChatBridge."}
+                <span className="text-green-400">dispatch</span>
+                {"(selector, parameters);"}
               </div>
               <div className="text-gray-400">
-                {"    selector: "}
-                <span className="text-blue-400">InternedSelector</span>
-                {","}
-              </div>
-              <div className="text-gray-400">
-                {"    args: "}
-                <span className="text-blue-400">CompactArgs</span>
-                {","}
-              </div>
-              <div className="text-gray-400">
-                {"    caller: "}
-                <span className="text-blue-400">Principal</span>
-                {","}
-              </div>
-              <div className="text-gray-300">
-                {")"}<span className="text-blue-400">{" -> Result"}</span>{"<"}
-                <span className="text-green-400">ToolResult</span>
-                {", "}
-                <span className="text-red-400">CanisterError</span>
-                {">"}{" {"}
-              </div>
-              <div className="text-gray-500">{"    // 1. Principal guard (AgentVault)"}</div>
-              <div className="text-gray-400">
-                {"    "}
-                <span className="text-blue-400">guard</span>
-                {"::verify_caller(caller)?;"}
+                {"  "}
+                <span className="text-blue-400">if</span>
+                {" (!dispatch.success) "}
+                <span className="text-blue-400">return</span>
+                {" { allowed: "}
+                <span className="text-red-400">false</span>
+                {", error: dispatch.error };"}
               </div>
               <div>&nbsp;</div>
-              <div className="text-gray-500">{"    // 2. Selector lookup — O(1) via interned table"}</div>
-              <div className="text-gray-500">{"    //    (replaces JSON parse + semantic search)"}</div>
+              <div className="text-gray-500">{"  // 2. Policy: blocked categories, size, rate limit, dedup, rules, MFA"}</div>
               <div className="text-gray-400">
-                {"    "}
-                <span className="text-blue-400">let</span>
-                {" handler = "}
-                <span className="text-green-400">DISPATCH_TABLE</span>
-                {".get(selector)"}
+                {"  "}
+                <span className="text-blue-400">const</span>
+                {" policy = "}
+                <span className="text-blue-400">this</span>
+                {".smallChatPolicy."}
+                <span className="text-green-400">evaluate</span>
+                {"(dispatch.toolCall, callerId);"}
               </div>
               <div className="text-gray-400">
-                {"        .ok_or("}
-                <span className="text-red-400">CanisterError</span>
-                {"::UnknownSelector)?;"}
+                {"  "}
+                <span className="text-blue-400">if</span>
+                {" (policy.decision !== "}
+                <span className="text-green-400">'allow'</span>
+                {") "}
+                <span className="text-blue-400">return</span>
+                {" { allowed: "}
+                <span className="text-red-400">false</span>
+                {", policyResult: policy };"}
               </div>
               <div>&nbsp;</div>
-              <div className="text-gray-500">{"    // 3. Execute with heap budget check"}</div>
+              <div className="text-gray-500">{"  // 3. Encode for storage as a fixed-width binary record"}</div>
               <div className="text-gray-400">
-                {"    handler."}
-                <span className="text-green-400">execute</span>
-                {"(args)"}
+                {"  "}
+                <span className="text-blue-400">const</span>
+                {" compressed = "}
+                <span className="text-blue-400">this</span>
+                {".smallChatCompressor."}
+                <span className="text-green-400">encode</span>
+                {"(dispatch.toolCall);"}
+              </div>
+              <div className="text-gray-400">
+                {"  "}
+                <span className="text-blue-400">return</span>
+                {" { allowed: "}
+                <span className="text-green-400">true</span>
+                {", toolCall: dispatch.toolCall, policyResult: policy, compressed };"}
               </div>
               <div className="text-gray-300">{"}"}</div>
               <div>&nbsp;</div>
-              <div className="text-gray-500">{"// Selector size: 8 bytes (interned u64)"}</div>
-              <div className="text-gray-500">{"// vs. JSON-RPC: ~4,800 bytes per call"}</div>
-              <div className="text-gray-500">{"// = 600x reduction in on-chain payload"}</div>
+              <div className="text-gray-500">{"// Record: 2-byte selector id + 32-byte parameter hash"}</div>
+              <div className="text-gray-500">{"//         + 4-byte time delta = 38 bytes"}</div>
+              <div className="text-gray-500">{"// vs. ~500+ bytes of JSON per call (smallchat-compression.ts)"}</div>
             </div>
           </div>
         </Wrapper>
@@ -405,9 +414,9 @@ export function CaseStudy({ embedded = false }: { embedded?: boolean }) {
         <Wrapper {...wrapperProps} className="max-w-3xl mx-auto">
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
-              { value: "84%", label: "Token reduction", sub: "LLM input cost", color: "text-yellow-400" },
-              { value: "40x", label: "Resolution speed", sub: "LRU cache vs search", color: "text-blue-400" },
-              { value: "600x", label: "Payload reduction", sub: "On-chain tool calls", color: "text-green-400" },
+              { value: "~84%", label: "Token reduction", sub: "Est. LLM input tokens", color: "text-yellow-400" },
+              { value: "5 s", label: "Dedup window", sub: "Same selector + params refused", color: "text-blue-400" },
+              { value: "38 B", label: "Per tool-call record", sub: "vs ~500+ B of JSON", color: "text-green-400" },
             ].map((stat, i) => (
               <div key={i} className="glass-panel rounded-xl p-6 space-y-1">
                 <div className={`text-3xl md:text-4xl font-bold tracking-tight ${stat.color}`}>

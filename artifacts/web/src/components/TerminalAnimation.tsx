@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const commands = [
-  { cmd: "npx @smallchat/core compile --source ./examples", out: "Compiling tools... ✓ 3 tools embedded.\nArtifact saved to tools.smallchat.json" },
-  { cmd: "npx @smallchat/core inspect tools.smallchat.json", out: "Selectors:\n- search:code [github.search_code]\n- create:issue [github.create_issue]" },
-  { cmd: "npx @smallchat/core resolve tools.smallchat.json \"search for code\"", out: "Resolving intent...\nMatched: github.search_code (score: 0.98)\nReady for dispatch." }
+  { cmd: "npx -y @smallchat/core@^1 compile --source ~/.mcp.json", out: "Embedding 3 tools...\nOutput: tools.toolkit.json\n  - format 1.0, content hash 9c41e07a2b6d13f0…" },
+  { cmd: "npx -y @smallchat/core@^1 inspect tools.toolkit.json --selectors", out: "Selectors:\n  github.search_code → github/search_code\n  github.create_issue → github/create_issue" },
+  { cmd: "npx -y @smallchat/core@^1 resolve tools.toolkit.json \"search for code\"", out: "Outcome: resolved (tier HIGH, decision ranked)\nChosen: github/search_code  (serve name: github__search_code)\nProof digest: 5e0c9a…" }
 ];
 
 export function TerminalAnimation() {

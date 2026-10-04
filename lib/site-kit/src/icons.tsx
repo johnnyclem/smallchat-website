@@ -66,6 +66,7 @@ export function StickyNoteIcon({ className }: IconProps) {
 
 export type FamilyId = "smallchat" | "stenographer" | "polytician" | "short-hand";
 
+/** FAMILY[0] must stay smallchat: SiteNav links to it. */
 export const FAMILY: { id: FamilyId; name: string; url: string; color: string; Icon: ComponentType<IconProps> }[] = [
   { id: "smallchat", name: "smallchat", url: "https://www.smallchat.dev", color: "#3b9bff", Icon: MessageSquare },
   { id: "stenographer", name: "stenographer", url: "https://stenographer.smallchat.dev", color: "#f8a828", Icon: TypewriterIcon },

@@ -12,6 +12,7 @@ const MODES: {
   ring: string;
   tagline: string;
   flag: string;
+  env?: string;
   traits: { label: string; on: boolean }[];
 }[] = [
   {
@@ -24,7 +25,7 @@ const MODES: {
     flag: "--objections off",
     traits: [
       { label: "Records objections", on: false },
-      { label: "Pushed to channels & webhooks", on: false },
+      { label: "Pushed to receivers, served on GET /flags", on: false },
       { label: "Reaches the agent mid-task", on: false },
     ],
   },
@@ -38,7 +39,7 @@ const MODES: {
     flag: "--objections shadow",
     traits: [
       { label: "Records objections", on: true },
-      { label: "Pushed to channels & webhooks", on: false },
+      { label: "Pushed to receivers, served on GET /flags", on: false },
       { label: "Reaches the agent mid-task", on: false },
     ],
   },
@@ -48,15 +49,18 @@ const MODES: {
     position: "In the room",
     color: "text-red-400",
     ring: "border-red-400",
-    tagline: "Objections reach the agent while it's still working.",
-    flag: "--objections deliver --objection-channel http://127.0.0.1:7337",
+    tagline: "Objections reach the agent while it's still working, after the write.",
+    flag: "--objections deliver --objection-channel http://127.0.0.1:7337 --rest-port 8787",
+    env: "SMALLCHAT_CHANNEL_SECRET=… ",
     traits: [
       { label: "Records objections", on: true },
-      { label: "Pushed to channels & webhooks", on: true },
+      { label: "Pushed to receivers, served on GET /flags", on: true },
       { label: "Reaches the agent mid-task", on: true },
     ],
   },
 ];
+
+const RUN = "npx -y @stenographer/core@^1 start ./session.jsonl";
 
 /** smallchat's safety spectrum, applied to objection rollout. */
 export function RolloutSpectrum() {
@@ -114,10 +118,19 @@ export function RolloutSpectrum() {
             ))}
           </div>
           <code className="mt-5 block overflow-x-auto whitespace-nowrap rounded-lg bg-black/40 px-4 py-3 font-mono text-xs sm:text-sm text-white/80">
-            stenographer start ./session.jsonl {active.flag}
+            {active.env}
+            {RUN} {active.flag}
           </code>
         </motion.div>
       </AnimatePresence>
+
+      <p className="max-w-3xl mx-auto text-center text-sm text-muted-foreground leading-relaxed">
+        Objections arrive after the write. To stop the write itself, the{" "}
+        <code className="font-mono text-white/80">stenographer gate</code> PreToolUse hook rolls out the same way: run{" "}
+        <code className="font-mono text-white/80">--mode shadow</code> and have a person rule on what it would have denied,
+        then switch to <code className="font-mono text-white/80">--mode enforce</code> once the sustain rate is where you
+        want it.
+      </p>
     </div>
   );
 }

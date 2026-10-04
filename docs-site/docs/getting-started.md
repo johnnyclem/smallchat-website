@@ -3,17 +3,50 @@ title: Getting Started
 sidebar_label: Getting Started
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Getting Started
 
 Get from zero to a running dispatch in under five minutes.
 
 ## 1. Install
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```bash
-npm install @smallchat/core
+npm install @smallchat/core@^1
 ```
 
-Node.js 18 or later is required.
+Node.js 22 or later is required.
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+Add to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/johnnyclem/smallchat-swift", from: "1.0.0"),
+]
+```
+
+Then add the dependency to your target:
+
+```swift
+.target(
+    name: "YourApp",
+    dependencies: [
+        .product(name: "SmallChat", package: "smallchat-swift"),
+    ]
+),
+```
+
+Requires Swift 6.1+. Builds on macOS 14+ (Sonoma), iOS 17+ (libraries) and Linux.
+
+</TabItem>
+</Tabs>
 
 ## 2. Create a tool manifest
 
@@ -59,98 +92,161 @@ A manifest is a JSON file that describes a provider and its tools. Create a `too
 }
 ```
 
-The manifest format is documented in full at [Manifest Format](./manifests/format).
+The manifest format is documented in full at [Manifest Format](./manifests/format.md).
 
 ## 3. Compile
 
 The `compile` command reads your manifests, generates semantic embeddings for each tool description, groups tools into dispatch classes, and emits a compiled artifact:
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```bash
-npx @smallchat/core compile --source ./tools --output tools.json
+npx -y @smallchat/core@^1 compile --source ./tools --output tools.json
 ```
 
-Output:
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```bash
+swift run smallchat compile --source ./tools
+```
+
+</TabItem>
+</Tabs>
+
+The TypeScript CLI's output ends like this:
 
 ```
-Compiling tools... ✓ 2 tools from 1 provider embedded.
+Embedding 2 tools...
+  Embedder: onnx all-MiniLM-L6-v2 (…)
+  Tools: 2 (2 selectors, none shared)
+
+Linking...
+  Dispatch tables: 1
+
+Output: /path/to/tools.json
+  - format 1.0, content hash …
+  - 2 selectors
+  - 2 tools
+  - 1 providers
+Header file: /path/to/tools.header.txt (… tokens approx)
 ```
 
-The compiled artifact (`tools.json`) contains embedded vectors and the full dispatch table. Commit it alongside your code — it does not need to be rebuilt unless your tool definitions change.
+The compiled artifact (`tools.json`, format 1.0) holds each tool's schema, its selector vectors and the fingerprint of the embedder that produced them, under a SHA-256 content hash. Loaders refuse an artifact whose hash does not match, or a different embedder. Commit it alongside your code — it does not need to be rebuilt unless your tool definitions change.
 
 ## 4. Test dispatch resolution
 
 Before integrating into your application, verify that intents resolve to the tools you expect:
 
-```bash
-npx @smallchat/core resolve tools.json "search for code"
-```
-
-Output:
-
-```
-Matched: github.search_code (confidence: 0.98)
-```
-
-Try variations to check robustness:
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```bash
-npx @smallchat/core resolve tools.json "find code in a repo"
-# Matched: github.search_code (confidence: 0.91)
-
-npx @smallchat/core resolve tools.json "open a bug report"
-# Matched: github.create_issue (confidence: 0.87)
+npx -y @smallchat/core@^1 resolve tools.json "search for code"
 ```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```bash
+swift run smallchat resolve tools.toolkit.json "search for code"
+```
+
+</TabItem>
+</Tabs>
+
+Both CLIs print the outcome, the chosen tool id when there is one (`github/search_code`), the candidate table and the proof digest. Nothing runs. See [`resolve`](./cli/resolve.md) for the full output.
+
+Try variations, and check that each one chooses the tool you expect:
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
+```bash
+npx -y @smallchat/core@^1 resolve tools.json "find code in a repo"
+
+npx -y @smallchat/core@^1 resolve tools.json "open a bug report"
+```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```bash
+swift run smallchat resolve tools.toolkit.json "find code in a repo"
+
+swift run smallchat resolve tools.toolkit.json "open a bug report"
+```
+
+</TabItem>
+</Tabs>
 
 ## 5. Start the MCP server
 
-smallchat includes a built-in MCP 2025-11-25 compliant server. Point any MCP client at it:
+smallchat serves a compiled toolkit as one MCP server (built on the official MCP SDK). Every tool is listed as `<provider>__<tool>`, and each call is forwarded by exact name to the upstream server that owns it. Point any MCP client at it:
+
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
 
 ```bash
-npx @smallchat/core serve --source ./tools --port 3001
+# stdio, what MCP hosts launch
+npx -y @smallchat/core@^1 serve --source tools.json
+
+# or Streamable HTTP at http://127.0.0.1:3001/mcp (bearer token in ~/.smallchat/serve-token)
+npx -y @smallchat/core@^1 serve --source tools.json --http
 ```
 
-Output:
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```bash
+swift run smallchat serve --source ./tools --port 3001
+```
+
+</TabItem>
+</Tabs>
+
+With `--http` the output ends with:
 
 ```
-smallchat server running on http://localhost:3001 ✓
-MCP discovery: http://localhost:3001/.well-known/mcp.json
+smallchat MCP server (Streamable HTTP) at http://127.0.0.1:3001/mcp
+  generated bearer token in /home/you/.smallchat/serve-token; send "Authorization: Bearer <token>"
 ```
 
-## 6. Use the TypeScript API
+## 6. Use the API
 
 For programmatic use in your application:
 
+<Tabs groupId="language">
+<TabItem value="typescript" label="TypeScript">
+
 ```typescript
-import {
-  ToolRuntime,
-  ToolCompiler,
-  LocalEmbedder,
-  MemoryVectorIndex,
-} from '@smallchat/core';
-import type { RuntimeOptions } from '@smallchat/core';
+import { loadRuntime } from '@smallchat/core';
 
-// Configure the runtime
-const options: RuntimeOptions = {
-  selectorThreshold: 0.95,  // deduplication threshold for similar selectors
-  cacheSize: 1024,           // LRU cache entries
-  minConfidence: 0.85,       // minimum match confidence
-};
+// Load a compiled artifact. It records the embedder its vectors came from;
+// loadRuntime builds that embedder (or refuses a different one).
+const { runtime, upstreams } = await loadRuntime('./tools.toolkit.json');
 
-const embedder = new LocalEmbedder();
-const vectorIndex = new MemoryVectorIndex();
-const runtime = new ToolRuntime({ ...options, embedder, vectorIndex });
+// Propose one tool for an intent; nothing runs.
+const resolution = await runtime.resolve('search for code');
+console.log(resolution.outcome, resolution.chosen, resolution.tier);
 
-// Load a compiled artifact
-await runtime.load('./tools.json');
+// Run exactly that tool. Arguments are validated against its inputSchema.
+if (resolution.outcome === 'resolved') {
+  const result = await runtime.dispatchById(resolution.chosen!, {
+    query: 'typescript generics',
+    language: 'typescript',
+  });
+  console.log(result.content);
+}
 
-// Single-shot dispatch
-const result = await runtime.dispatch('search for code', {
-  query: 'typescript generics',
-  language: 'typescript',
-});
-console.log(result.output);
+// Or resolve and run in one call. A match the dispatch policy does not
+// allow (below HIGH without an LLM verifier, a destructive tool below
+// EXACT, ...) runs nothing and returns isError with metadata.outcome.
+const result = await runtime.dispatch('search for code', { query: 'typescript generics' });
+if (result.isError) console.log(result.metadata?.outcome, result.content);
 
-// Streaming dispatch — tokens arrive as they are generated
+// Streaming dispatch
 for await (const event of runtime.dispatchStream('file that new issue', {
   title: 'Add dark mode',
   repo: 'myorg/myapp',
@@ -160,21 +256,63 @@ for await (const event of runtime.dispatchStream('file that new issue', {
       console.log(`Resolving: ${event.intent}`);
       break;
     case 'tool-start':
-      console.log(`Calling: ${event.tool}`);
+      console.log(`Calling: ${event.toolId}`);
       break;
     case 'chunk':
-      process.stdout.write(event.content);
+      console.log(event.content);
       break;
     case 'done':
-      console.log('\nComplete.');
+      console.log(event.result.isError ? `Nothing ran: ${event.result.metadata?.outcome}` : 'Complete.');
       break;
   }
 }
+
+await upstreams.close(); // stops stdio upstream MCP servers
 ```
+
+</TabItem>
+<TabItem value="swift" label="Swift">
+
+```swift
+import SmallChat
+
+// Load a toolkit (a compiled artifact or a manifest directory)
+let toolkit = try await MCPToolkit.load(source: "./tools.toolkit.json")
+let runtime = toolkit.runtime
+
+// Single-shot dispatch
+let result = try await runtime.dispatch("search for code", args: [
+    "query": "typescript generics",
+    "language": "typescript",
+])
+print(result.content)
+
+// Streaming dispatch — tokens arrive as they are generated
+for try await event in runtime.dispatchStream("file that new issue", args: [
+    "title": "Add dark mode",
+    "repo": "myorg/myapp",
+]) {
+    switch event {
+    case .resolving(let intent):
+        print("Resolving: \(intent)")
+    case .toolStart(let toolName, _, _, _):
+        print("Calling: \(toolName)")
+    case .chunk(let content, _):
+        print(content, terminator: "")
+    case .done:
+        print("\nComplete.")
+    default:
+        break
+    }
+}
+```
+
+</TabItem>
+</Tabs>
 
 ## Next steps
 
-- [What it does](./what-it-does) — understand the full dispatch pipeline
-- [CLI Reference](./cli/) — all command options
-- [Manifest Format](./manifests/format) — provider manifest schema
-- [API Reference](./api/runtime) — full TypeScript API
+- [What it does](./what-it-does.md) — understand the full dispatch pipeline
+- [CLI Reference](./cli/index.md) — all command options
+- [Manifest Format](./manifests/format.md) — provider manifest schema
+- [API Reference](./api/runtime.md) — full API docs

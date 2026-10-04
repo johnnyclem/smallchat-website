@@ -75,6 +75,11 @@ const config: Config = {
           position: 'left',
         },
         {
+          to: '/integrations',
+          label: 'Integrations',
+          position: 'left',
+        },
+        {
           to: '/getting-started',
           label: 'Get Started',
           position: 'right',
@@ -110,6 +115,13 @@ const config: Config = {
           ],
         },
         {
+          title: 'Integrations',
+          items: [
+            { label: 'Overview', to: '/integrations' },
+            { label: 'LoomMCP', to: '/integrations/loom-mcp' },
+          ],
+        },
+        {
           title: 'Community',
           items: [
             {
@@ -129,7 +141,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.oneDark,
       darkTheme: prismThemes.oneDark,
-      additionalLanguages: ['bash', 'json', 'typescript'],
+      additionalLanguages: ['bash', 'json', 'typescript', 'swift'],
     },
   } satisfies Preset.ThemeConfig,
 };

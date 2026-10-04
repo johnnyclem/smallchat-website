@@ -5,148 +5,163 @@ sidebar_label: Dispatch API
 
 # Dispatch API
 
-The low-level dispatch API. These are the functions that `ToolRuntime` calls internally. You can use them directly if you want to manage `DispatchContext` yourself.
+The low-level dispatch functions behind `ToolRuntime`'s methods. Each takes
+the runtime's `DispatchContext` (`runtime.context`) as its first argument.
+This page documents `@smallchat/core` 1.0 (TypeScript); the concepts are in
+[Dispatch](../concepts/dispatch.md).
 
-## `toolkit_dispatch(context, intent, args?)`
+## `resolveIntent(context, intent, options?)`
 
-The hot-path dispatch function:
+Choose at most one tool for an intent. Never executes. Same as
+`runtime.resolve()`.
 
 ```typescript
-import { toolkit_dispatch, DispatchContext } from '@smallchat/core';
+import { resolveIntent } from '@smallchat/core';
 
-const result = await toolkit_dispatch(context, 'search for code', {
-  query: 'typescript generics',
+const r = await resolveIntent(runtime.context, 'search for code', { args: { query: 'generics' } });
+```
+
+Options: `args` (overload choice and verification), `principal` (rate
+limiting and feedback scope), `learn` (default `false`: cache nothing).
+
+Returns a `Resolution`:
+
+```typescript
+interface Resolution {
+  outcome: 'resolved' | 'needs-disambiguation' | 'unresolved' | 'throttled';
+  intent: string;
+  tier: 'exact' | 'high' | 'medium' | 'low' | 'none';
+  chosen?: string;               // canonical tool id, when resolved
+  confidence?: number;
+  candidates: ResolutionCandidate[]; // eligible candidates, best first
+  proof: ResolutionProof;        // full decision record, with proofDigest
+  reason?: string;               // why no tool was chosen
+  refinement?: ToolRefinementNeeded; // options, each with a toolId
+  retryAfterMs?: number;         // throttled
+}
+```
+
+## `dispatchById(context, toolId, args, options?)`
+
+Run exactly the tool with canonical id `<providerId>/<toolName>`. No
+embedding, no ranking; the arguments are validated against the tool's
+`inputSchema` before it runs. Same as `runtime.dispatchById()`.
+
+```typescript
+import { dispatchById } from '@smallchat/core';
+
+const result = await dispatchById(runtime.context, 'github/search_code', { query: 'generics' }, {
+  resolutionDigest: r.proof.proofDigest, // optional: link to the resolution acted on
 });
 ```
 
-Parameters:
+Options: `resolutionDigest`, `signal`, `principal`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `context` | `DispatchContext` | Runtime state: selector table, cache, overloads, forwarding chain |
-| `intent` | `string` | Natural-language intent string |
-| `args` | `Record<string, unknown> \| SCDictionary` | Optional arguments |
+## `toolkit_dispatch(context, intent, args?, options?)`
 
-Returns `ToolResult`:
+Resolve and run in one call, applying the dispatch policy; decomposes
+LOW-tier intents when the `LLMClient` supports it. Same as
+`runtime.dispatch(intent, args)`.
+
+```typescript
+import { toolkit_dispatch } from '@smallchat/core';
+
+const result = await toolkit_dispatch(runtime.context, 'search for code', { query: 'generics' });
+```
+
+Options: `signal`, `principal`.
+
+## `ToolResult`
 
 ```typescript
 interface ToolResult {
-  output: unknown;
-  metadata?: Record<string, unknown>;
+  content: unknown;
+  isError?: boolean;
+  metadata?: Record<string, unknown>; // outcome, toolId, tier, proof, callDigest, …
+  refinement?: ToolRefinementNeeded;
 }
 ```
 
-## `smallchat_dispatchStream(context, intent, args?)`
-
-The streaming dispatch generator:
+A result that ran nothing is `isError: true`; `metadata.outcome` is a
+`DispatchOutcome`:
 
 ```typescript
-import { smallchat_dispatchStream } from '@smallchat/core';
-
-for await (const event of smallchat_dispatchStream(context, 'summarize document', args)) {
-  // handle DispatchEvent
-}
+type DispatchOutcome =
+  | 'resolved'              // a tool ran (its own failure is isError with this outcome)
+  | 'needs-disambiguation'  // candidates exist; choose one by id
+  | 'unresolved'            // nothing matched, or an unknown tool id
+  | 'throttled'             // the opt-in rate limiter refused; see metadata.retryAfterMs
+  | 'invalid-arguments'     // the arguments failed the inputSchema
+  | 'aborted'               // the signal fired before the tool started
+  | 'not-dispatched';       // a decomposition sub-intent past maxSubDispatches
 ```
 
-Returns `AsyncGenerator<DispatchEvent>`.
+`metadata.proof.ran` names the tool that executed (or `null`) and
+`metadata.proof.callDigest` the canonical call digest
+(`spec/call-digest/`).
 
-## `DispatchContext`
+## `DispatchError`
 
-```typescript
-interface DispatchContext {
-  selectorTable: SelectorTable;
-  resolutionCache: ResolutionCache;
-  overloadTables: Map<string, OverloadTable>;
-  forwardingChain: ForwardingHandler[];
-  embedder: Embedder;
-  selectorThreshold: number;    // cosine similarity threshold for deduplication
-  minConfidence: number;        // minimum match confidence for a successful dispatch
-  modelVersion?: string;        // for cache versioning
-}
-```
-
-`DispatchContext` is created by `ToolRuntime` for each call. Construct it manually for custom dispatch pipelines:
+Thrown by `DispatchBuilder.execContent()` for an `isError` result:
 
 ```typescript
-import {
-  DispatchContext,
-  SelectorTable,
-  ResolutionCache,
-  LocalEmbedder,
-  MemoryVectorIndex,
-} from '@smallchat/core';
-
-const context: DispatchContext = {
-  selectorTable: new SelectorTable(new LocalEmbedder(), new MemoryVectorIndex()),
-  resolutionCache: new ResolutionCache({ maxSize: 512 }),
-  overloadTables: new Map(),
-  forwardingChain: [],
-  embedder: new LocalEmbedder(),
-  selectorThreshold: 0.95,
-  minConfidence: 0.85,
-};
-```
-
-## `UnrecognizedIntent`
-
-Thrown when dispatch fails to find a match above `minConfidence`:
-
-```typescript
-import { UnrecognizedIntent } from '@smallchat/core';
+import { DispatchError } from '@smallchat/core';
 
 try {
-  await toolkit_dispatch(context, 'completely unrelated intent');
+  const content = await runtime.intent('search for code').withArgs(args).execContent<Hits>();
 } catch (e) {
-  if (e instanceof UnrecognizedIntent) {
-    console.error('No match for:', e.intent);
-    console.error('Best candidates:', e.candidates);
+  if (e instanceof DispatchError) {
+    console.log(e.outcome, e.candidates, e.result);
   }
 }
 ```
 
-Properties:
+## `smallchat_dispatchStream(context, intent, args?, options?)` / `smallchat_dispatchStreamById(context, toolId, args?, options?)`
+
+Streaming variants. Return `AsyncGenerator<DispatchEvent>`:
 
 ```typescript
-class UnrecognizedIntent extends Error {
-  intent: string;                         // the original intent string
-  candidates: SelectorMatch[];            // below-threshold candidates
-  fallbackResult: FallbackChainResult;    // what the fallback chain tried
-}
-```
-
-## `DispatchEvent` types
-
-All events yielded by `smallchat_dispatchStream`:
-
-```typescript
-// Dispatch has received the intent and started resolving
 { type: 'resolving'; intent: string }
-
-// The resolved tool is known, execution begins
-{ type: 'tool-start'; tool: string; provider: string }
-
-// A result chunk from the tool
-{ type: 'chunk'; content: string }
-
-// A token-level delta from LLM inference
-{ type: 'inference-delta'; token: string }
-
-// Execution complete
-{ type: 'done'; result?: ToolResult }
-
-// An error occurred — no further events
-{ type: 'error'; message: string; cause?: unknown }
+{ type: 'tool-start'; toolId: string; toolName: string; providerId: string; confidence: number; selector: string }
+{ type: 'chunk'; content: unknown; index: number }
+{ type: 'inference-delta'; delta: InferenceDelta; tokenIndex: number }   // delta.text is the token
+{ type: 'done'; result: ToolResult }
+{ type: 'error'; error: string; metadata?: Record<string, unknown> }
+// plus ui-available / ui-ready / ui-update / ui-interaction for MCP Apps
 ```
 
-## `SelectorMatch`
+An intent that runs nothing yields `resolving`, then `done` with an
+`isError` result.
 
-Returned in `UnrecognizedIntent.candidates` and fallback diagnostics:
+## `DispatchContext`
+
+Created by `ToolRuntime` (one per runtime, `runtime.context`). Construct it
+directly only for custom pipelines:
 
 ```typescript
-interface SelectorMatch {
-  selector: ToolSelector;
-  toolClass: string;
-  tool: string;
-  confidence: number;   // cosine similarity, 0–1
-}
+import { DispatchContext, SelectorTable, ResolutionCache, MemoryVectorIndex, HashEmbedder } from '@smallchat/core';
+
+const index = new MemoryVectorIndex();
+const embedder = new HashEmbedder();
+const context = new DispatchContext(
+  new SelectorTable(index, embedder),
+  new ResolutionCache(),
+  index,
+  embedder,
+  undefined,              // SelectorNamespace
+  undefined,              // IntentPinRegistry
+  { requireLLMForSubHighDispatch: true }, // DispatchConfig
+);
 ```
+
+Useful members: `registerClass()`, `unregisterClass()`, `getTool(toolId)`,
+`toolIds()`, `getClasses()`, `reindex()`, `intentPins`, `semanticMap`,
+`observer`, `policyOptions`.
+
+## `UnrecognizedIntent` (deprecated)
+
+1.0 never throws `UnrecognizedIntent`: an intent that matches nothing is a
+result with `metadata.outcome: 'unresolved'`. The class is still exported
+for code that checks `instanceof` and will be removed in a later major
+version. The 0.x fallback chain (`DispatchContext.forward()`,
+`FallbackStep`, `FallbackChainResult`) is removed.

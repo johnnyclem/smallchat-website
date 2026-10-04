@@ -18,6 +18,9 @@ import {
   Rocket,
   ChevronDown,
   ScrollText,
+  ListChecks,
+  History,
+  Fingerprint,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -45,6 +48,14 @@ type HeroPlatform = "npm" | "swift";
 
 const DOCS_BASE = "";
 const GITHUB_URL = "https://github.com/johnnyclem/smallchat";
+const SWIFT_URL = "https://github.com/johnnyclem/smallchat-swift";
+const STENOGRAPHER_URL = "https://stenographer.smallchat.dev";
+
+const FAMILY_LINKS = [
+  { label: "stenographer", href: STENOGRAPHER_URL },
+  { label: "polytician", href: "https://polytician.smallchat.dev" },
+  { label: "short-hand", href: "https://short-hand.smallchat.dev" },
+];
 
 function TabBar<T extends string>({ tabs, active, onChange }: { tabs: { id: T; label: string; icon?: React.ReactNode }[]; active: T; onChange: (id: T) => void }) {
   return (
@@ -109,8 +120,8 @@ export default function Home() {
   const [deepTab, setDeepTab] = useState<DeepDiveTab>("architecture");
 
   const installCommands: Record<HeroPlatform, { display: string; copy: string }> = {
-    npm: { display: "npm install @smallchat/core", copy: "npm install @smallchat/core" },
-    swift: { display: ".package(url: \"smallchat.git\")", copy: `.package(url: "${GITHUB_URL}.git", from: "0.1.0")` },
+    npm: { display: "npm install @smallchat/core@^1", copy: "npm install @smallchat/core@^1" },
+    swift: { display: ".package(url: \"…/smallchat-swift\")", copy: `.package(url: "${SWIFT_URL}", from: "1.0.0")` },
   };
 
   const handleCopy = () => {
@@ -165,7 +176,7 @@ export default function Home() {
           >
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm text-muted-foreground">
               <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-              Open Source &middot; TypeScript &middot; Swift 6 &middot; MIT License
+              1.0 &middot; Open Source &middot; TypeScript &middot; Swift 6.1+ &middot; MIT License
             </motion.div>
             
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tighter text-gradient leading-tight">
@@ -214,7 +225,6 @@ export default function Home() {
                   className={`px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1 ${heroPlatform === "swift" ? "bg-white/10 text-white" : "hover:text-white/70"}`}
                 >
                   Swift Package Manager
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-medium">soon</span>
                 </button>
               </div>
             </motion.div>
@@ -256,7 +266,7 @@ export default function Home() {
                   { id: "compiler" as WhatTab, label: "The Compiler", icon: <Zap className="w-3.5 h-3.5" /> },
                   { id: "features" as WhatTab, label: "Features", icon: <Search className="w-3.5 h-3.5" /> },
                   { id: "pipeline" as WhatTab, label: "How it works", icon: <ArrowRight className="w-3.5 h-3.5" /> },
-                  { id: "swift" as WhatTab, label: "Swift 6", icon: <Box className="w-3.5 h-3.5" /> },
+                  { id: "swift" as WhatTab, label: "Swift", icon: <Box className="w-3.5 h-3.5" /> },
                 ]}
                 active={whatTab}
                 onChange={setWhatTab}
@@ -317,19 +327,23 @@ export default function Home() {
                       Built for the way you already think
                     </h3>
                     <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                      It is the difference between waiting for an answer and watching the answer arrive.
+                      Dispatch is exact by construction, and each guarantee says where it stops:
+                      the same artifact, embedder and runtime state give the same choice and the same proof digest.
                     </p>
                   </div>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {[
-                      { icon: Search, title: "Semantic dispatch", desc: "Finds the right tool before the first token leaves the model. No guessing, no rigid function names." },
+                      { icon: Search, title: "Semantic dispatch", desc: "Resolves an intent to at most one tool, by meaning. When nothing matches cleanly, it asks instead of guessing." },
+                      { icon: Shield, title: "Resolve, then execute", desc: "resolve() proposes a tool and runs nothing. dispatchById() runs exactly the tool you name, by its <providerId>/<toolName> id." },
+                      { icon: ListChecks, title: "Checked arguments", desc: "Arguments are validated against each tool's JSON Schema before anything runs. A bad call returns invalid-arguments, one message per problem." },
+                      { icon: History, title: "Explain and replay", desc: "smallchat explain shows the candidates, tiers and policy verdicts. An opt-in, hash-chained decision log records each decision, and smallchat replay checks it against your artifact." },
+                      { icon: Fingerprint, title: "Pinned artifacts, call digests", desc: "Artifacts are content-hashed and pinned to the embedder that made their vectors. Every call gets a canonical call digest. smallchat-swift runs the same test vectors." },
                       { icon: Zap, title: "Async streaming", desc: "Async generators hand you chunks in real time. Watch answers arrive, not wait for them." },
-                      { icon: Shield, title: "Fallbacks that never throw", desc: "Graceful degradation built in. When tools fail, the system recovers instead of crashing." },
-                      { icon: RefreshCw, title: "Cache that stays fresh", desc: "Resolution cache works across providers. Repeat intents resolve instantly." },
-                      { icon: Code2, title: "TypeScript + Swift 6", desc: "TypeScript today, Swift 6 coming soon. Zero bloat. No framework lock-in, no magic decorators." },
-                      { icon: Plug, title: "Any source, one runtime", desc: "MCP servers, OpenAPI specs, or JSON schemas. They all compile into a single, unified dispatch table." },
-                    ].map((feature, i) => (
-                      <div key={i} className="glass-panel-hover glass-panel p-5 sm:p-6 rounded-2xl group">
+                      { icon: RefreshCw, title: "Cache that stays fresh", desc: "Keyed by the intent's full text. Registering, swizzling or feedback flushes it, so a change applies on the next dispatch. Cache hits never embed." },
+                      { icon: Code2, title: "TypeScript + Swift", desc: "@smallchat/core 1.0 on Node 22+. smallchat-swift 1.0 on Swift 6.1+ for macOS 14+ and Linux, libraries on iOS 17+. No framework lock-in." },
+                      { icon: Plug, title: "Any source, one MCP server", desc: "MCP servers, OpenAPI specs and JSON schemas compile into one artifact. smallchat serve forwards each call by exact name; --provider keeps upstream names, so OpenAPPA batteries apply unchanged." },
+                    ].map((feature, i, arr) => (
+                      <div key={i} className={`glass-panel-hover glass-panel p-5 sm:p-6 rounded-2xl group ${i === arr.length - 1 ? "sm:col-span-2 lg:col-span-1" : ""}`}>
                         <feature.icon className="w-7 h-7 sm:w-8 sm:h-8 text-primary mb-3 group-hover:scale-110 transition-transform duration-300" />
                         <h4 className="text-base sm:text-lg font-semibold text-white mb-2">{feature.title}</h4>
                         <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
@@ -347,18 +361,23 @@ export default function Home() {
                           <h4 className="text-lg sm:text-xl font-semibold text-white">Memory that knows what it knows</h4>
                         </div>
                         <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-                          The vendored Short-Hand compactor now reads an asserted truth ledger — Stenographer's TB/UV format —
-                          so long-running agents keep facts with authorship, evidence, and dispute state intact.
-                          Signed tombstones compact as ground truth. Unverified assertions stay visibly flagged.
-                          Overridden facts are displaced, never silently kept. In TypeScript and Swift.
+                          smallchat's compaction comes from @shorthand/core 1.0, which reads Stenographer's truth format v2:
+                          a hash-chained JSONL ledger where status is a fold over TRANSITION lines and anything unknown fails closed.
+                          Agents settle claims only together: a tombstone an agent signs counts as truth only with a quorum of two or more
+                          agent sessions agreeing from different angles within 15 minutes, while a person may still sign alone.
+                          smallchat-swift's SmallChatTruth reads the same format.
                         </p>
+                        <a href={STENOGRAPHER_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors font-medium">
+                          Stenographer <ArrowRight className="w-3.5 h-3.5" />
+                        </a>
                       </div>
                       <div className="space-y-2 font-mono text-[11px] sm:text-xs">
                         {[
-                          { marker: "[TB]", color: "text-green-400", text: "Signed + evidence-backed — compaction relies on it" },
-                          { marker: "[TB ⚠ CONTESTED]", color: "text-yellow-400", text: "Still authoritative — carries its dispute through every level" },
-                          { marker: "[UV — UNVERIFIED]", color: "text-orange-400", text: "Flagged, never blocking — never reads as proven" },
-                          { marker: "overridden / refuted", color: "text-muted-foreground", text: "History — excluded and displaced on the next sync" },
+                          { marker: "[TB]", color: "text-green-400", text: "Active tombstone — ground truth" },
+                          { marker: "[TB ⚠ CONTESTED]", color: "text-yellow-400", text: "Ground truth with an asterisk — the open UV is shown beside it" },
+                          { marker: "[UV — UNVERIFIED]", color: "text-orange-400", text: "A heads-up, never a demand — never reads as proven" },
+                          { marker: "agent TB, no quorum", color: "text-red-400/80", text: "Not truth — one agent alone settles nothing" },
+                          { marker: "overridden / struck / refuted", color: "text-muted-foreground", text: "History — never cited as support" },
                         ].map((rule, i) => (
                           <div key={i} className="flex items-start gap-2 py-1.5 border-b border-white/5">
                             <span className={`${rule.color} font-bold shrink-0`}>{rule.marker}</span>
@@ -385,15 +404,15 @@ export default function Home() {
                       Four steps from definition to dispatch
                     </h3>
                     <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                      The compiler transforms raw tool definitions into an optimized artifact the runtime can use instantly.
+                      The compiler turns raw tool definitions into one artifact, and the runtime loads it only with the embedder that produced it.
                     </p>
                   </div>
                   <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
                     {[
                       { step: "PARSE", emoji: "📄", desc: "Read tool definitions from any format — MCP, OpenAPI, or JSON." },
-                      { step: "EMBED", emoji: "🧠", desc: "Convert tool descriptions into semantic vectors for meaning-based lookup." },
-                      { step: "LINK", emoji: "🔗", desc: "Detect similar tools, resolve overloads, and build the dispatch tables." },
-                      { step: "OUTPUT", emoji: "📦", desc: "Produce a compiled artifact ready for the runtime to use." },
+                      { step: "EMBED", emoji: "🧠", desc: "Convert tool descriptions into semantic vectors, recording the embedder's fingerprint." },
+                      { step: "LINK", emoji: "🔗", desc: "Refuse near-duplicate tools, flag collisions, and build the dispatch tables." },
+                      { step: "OUTPUT", emoji: "📦", desc: "Write a format 1.0 artifact: every tool by its canonical id, content-hashed." },
                     ].map((phase, i) => (
                       <div key={i} className="flex flex-col md:flex-row items-center">
                         <div className="glass-panel rounded-2xl p-5 sm:p-6 w-52 sm:w-56 text-center group hover:border-primary/30 transition-all duration-300">
@@ -423,26 +442,26 @@ export default function Home() {
                 >
                   <div className="text-center max-w-3xl mx-auto space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-sm font-medium text-orange-400">
-                      <span className="flex h-2 w-2 rounded-full bg-orange-400 animate-pulse"></span>
-                      Coming soon
+                      <span className="flex h-2 w-2 rounded-full bg-orange-400"></span>
+                      smallchat-swift 1.0
                     </div>
                     <h3 className="text-2xl md:text-4xl font-bold tracking-tight">
-                      Pure Swift 6. Zero compromises.
+                      Native Swift. The same dispatch rules.
                     </h3>
                     <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                      Actors for thread safety. Structured concurrency for streaming. Sendable everywhere. 
-                      The same message-passing architecture, native on Apple platforms.
+                      smallchat-swift 1.0 follows @smallchat/core 1.0's dispatch rules and artifact format, and runs its conformance vectors.
+                      Swift 6.1+, on macOS 14+ and Linux, with the libraries on iOS 17+.
                     </p>
                   </div>
 
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {[
-                      { title: "Actor isolation", desc: "ChatClient is an actor — all mutable state is automatically protected from data races. No locks, no @unchecked Sendable hacks.", color: "text-orange-400" },
-                      { title: "AsyncStream native", desc: "Real-time message and state streams use Swift's built-in AsyncStream. Subscribe, iterate, done.", color: "text-blue-400" },
-                      { title: "Sendable throughout", desc: "Every model — User, Room, Message, ConnectionState — conforms to Sendable. The compiler proves your code is safe.", color: "text-green-400" },
-                      { title: "Protocol-driven transport", desc: "ChatTransport and ChatAPI are protocols. Swap WebSocket for QUIC, or mock everything in tests — zero code changes.", color: "text-purple-400" },
-                      { title: "Optimistic updates", desc: "Messages appear instantly in the UI. The actor appends locally, then confirms with the server. Duplicates are deduplicated automatically.", color: "text-yellow-400" },
-                      { title: "Structured concurrency", desc: "Task groups for parallel room bootstrapping. Cooperative cancellation. No callback pyramids, no Combine chains.", color: "text-cyan-400" },
+                      { title: "Resolve, then run", desc: "resolve proposes at most one tool and runs nothing. dispatchById runs exactly the named tool. Intent dispatch runs a match only when the dispatch policy allows it.", color: "text-orange-400" },
+                      { title: "Shared test vectors", desc: "swift test runs @smallchat/core's spec/ vectors: call digests, tool ids, ranking, resolve outcomes and artifacts.", color: "text-blue-400" },
+                      { title: "Checked arguments", desc: "Every call is validated against the tool's JSON Schema first. A schema the validator can't evaluate makes the tool uncallable, not unchecked.", color: "text-green-400" },
+                      { title: "An exact MCP server", desc: "smallchat serve speaks Streamable HTTP on /mcp, lists tools as <provider>__<tool>, and runs exactly the tool you call.", color: "text-purple-400" },
+                      { title: "Truth format v2", desc: "SmallChatTruth reads Stenographer's hash-chained ledger, fails closed on anything unknown, and refuses a line whose agent quorum breaks the rules.", color: "text-yellow-400" },
+                      { title: "Swift 6 language mode", desc: "ToolRuntime is an actor. The compiler checks actor isolation and Sendable; shared state outside actors sits behind locks.", color: "text-cyan-400" },
                     ].map((item, i) => (
                       <div key={i} className="glass-panel-hover glass-panel p-5 sm:p-6 rounded-2xl group">
                         <h4 className={`text-base sm:text-lg font-semibold ${item.color} mb-2`}>{item.title}</h4>
@@ -453,54 +472,39 @@ export default function Home() {
 
                   <div className="grid lg:grid-cols-2 gap-6 items-start">
                     <CodeBlock
-                      filename="Sources/SmallChat/ChatClient.swift"
+                      filename="Package.swift"
                       code={
                         <>
-<span className="token-keyword">public actor</span> <span className="token-type">ChatClient</span> {'{\n'}
-{"  "}<span className="token-keyword">private let</span> transport: <span className="token-type">ChatTransport</span>{'\n'}
-{"  "}<span className="token-keyword">private let</span> api: <span className="token-type">ChatAPI</span>{'\n'}
-{"  "}<span className="token-keyword">private(set) public var</span> connectionState: <span className="token-type">ConnectionState</span> = .disconnected{'\n'}
-{'\n'}
-{"  "}<span className="token-keyword">public let</span> messageStream: <span className="token-type">AsyncStream</span>{'<'}<span className="token-type">Message</span>{'>\n'}
-{"  "}<span className="token-keyword">public let</span> stateStream: <span className="token-type">AsyncStream</span>{'<'}<span className="token-type">ConnectionState</span>{'>\n'}
-{'\n'}
-{"  "}<span className="token-keyword">public func</span> <span className="token-function">sendMessage</span>(to roomID: <span className="token-type">String</span>, content: <span className="token-type">String</span>) <span className="token-keyword">async throws</span> {'{\n'}
-{"    "}<span className="token-keyword">guard let</span> user = currentUser <span className="token-keyword">else</span> {'{\n'}
-{"      "}<span className="token-keyword">throw</span> <span className="token-type">ChatError</span>.notAuthenticated{'\n'}
-{"    }\n"}
-{"    "}<span className="token-comment">{"// Optimistic update"}</span>{'\n'}
-{"    "}<span className="token-keyword">let</span> msg = <span className="token-type">Message</span>(id: <span className="token-type">UUID</span>().uuidString, ...){'\n'}
-{"    "}messageContinuation?.<span className="token-function">yield</span>(msg){'\n'}
-{"    "}<span className="token-keyword">try await</span> transport.<span className="token-function">send</span>(data: payload){'\n'}
-{"  }\n"}
-{'}'}
+<span className="token-comment">{"// Requires Swift 6.1+"}</span>{'\n'}
+<span className="token-property">dependencies</span>: [{'\n'}
+{"  "}.<span className="token-function">package</span>(url: <span className="token-string">"https://github.com/johnnyclem/smallchat-swift"</span>,{'\n'}
+{"           "}from: <span className="token-string">"1.0.0"</span>),{'\n'}
+],{'\n'}
+<span className="token-property">targets</span>: [{'\n'}
+{"  "}.<span className="token-function">target</span>(name: <span className="token-string">"YourTarget"</span>, dependencies: [{'\n'}
+{"    "}.<span className="token-function">product</span>(name: <span className="token-string">"SmallChat"</span>, package: <span className="token-string">"smallchat-swift"</span>),{'\n'}
+{"  "}]),{'\n'}
+]
                         </>
                       }
                     />
                     <CodeBlock
-                      filename="Sources/SmallChat/Models.swift"
+                      filename="main.swift"
                       code={
                         <>
-<span className="token-keyword">public struct</span> <span className="token-type">Message</span>: <span className="token-type">Sendable</span>, <span className="token-type">Codable</span>, <span className="token-type">Identifiable</span> {'{\n'}
-{"  "}<span className="token-keyword">public let</span> id: <span className="token-type">String</span>{'\n'}
-{"  "}<span className="token-keyword">public let</span> roomID: <span className="token-type">String</span>{'\n'}
-{"  "}<span className="token-keyword">public let</span> author: <span className="token-type">User</span>{'\n'}
-{"  "}<span className="token-keyword">public let</span> content: <span className="token-type">String</span>{'\n'}
-{"  "}<span className="token-keyword">public let</span> timestamp: <span className="token-type">Date</span>{'\n'}
-{'}\n'}
+<span className="token-keyword">import</span> <span className="token-type">SmallChat</span>{'\n'}
 {'\n'}
-<span className="token-keyword">public enum</span> <span className="token-type">ConnectionState</span>: <span className="token-type">Sendable</span>, <span className="token-type">Equatable</span> {'{\n'}
-{"  "}<span className="token-keyword">case</span> disconnected{'\n'}
-{"  "}<span className="token-keyword">case</span> connecting{'\n'}
-{"  "}<span className="token-keyword">case</span> connected{'\n'}
-{"  "}<span className="token-keyword">case</span> failed(<span className="token-type">String</span>){'\n'}
-{'}\n'}
+<span className="token-comment">{"// Load a compiled toolkit (its embedder must match)"}</span>{'\n'}
+<span className="token-keyword">let</span> toolkit = <span className="token-keyword">try await</span> <span className="token-type">MCPToolkit</span>.<span className="token-function">load</span>(source: <span className="token-string">"tools.toolkit.json"</span>){'\n'}
+<span className="token-keyword">let</span> runtime = toolkit.runtime{'\n'}
 {'\n'}
-<span className="token-keyword">public protocol</span> <span className="token-type">ChatTransport</span>: <span className="token-type">Sendable</span> {'{\n'}
-{"  "}<span className="token-keyword">var</span> receivedMessages: <span className="token-type">AsyncThrowingStream</span>{'<'}<span className="token-type">Data</span>, <span className="token-keyword">any</span> <span className="token-type">Error</span>{'>'} {'{ get }\n'}
-{"  "}<span className="token-keyword">func</span> <span className="token-function">connect</span>() <span className="token-keyword">async throws</span>{'\n'}
-{"  "}<span className="token-keyword">func</span> <span className="token-function">send</span>(data: <span className="token-type">Data</span>) <span className="token-keyword">async throws</span>{'\n'}
-{'}'}
+<span className="token-comment">{"// Resolve: which tool would run? Nothing executes."}</span>{'\n'}
+<span className="token-keyword">let</span> resolution = <span className="token-keyword">try await</span> runtime.<span className="token-function">resolve</span>(<span className="token-string">"find flights"</span>){'\n'}
+<span className="token-function">print</span>(resolution.outcome, resolution.chosen ?? <span className="token-string">"-"</span>, resolution.tier){'\n'}
+{'\n'}
+<span className="token-comment">{"// Run exactly one tool by id; arguments are validated first"}</span>{'\n'}
+<span className="token-keyword">let</span> result = <span className="token-keyword">try await</span> runtime.<span className="token-function">dispatchById</span>({'\n'}
+{"  "}<span className="token-string">"flights/search_flights"</span>, args: [<span className="token-string">"to"</span>: <span className="token-string">"NYC"</span>])
                         </>
                       }
                     />
@@ -508,11 +512,11 @@ export default function Home() {
 
                   <div className="glass-panel rounded-2xl p-5 sm:p-6 max-w-3xl mx-auto text-center space-y-3">
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      The Swift 6 implementation brings full strict concurrency checking, actor-based state management, 
-                      and protocol-driven architecture. Same philosophy, native performance.
+                      Not in Swift 1.0: the decision log, replay and explain, the semantic map, observer feedback and argument coercion.
+                      The built-in embedder is a hash embedder for development and tests; for semantic matching, bring an Embedder backed by a model.
                     </p>
-                    <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors">
-                      Follow progress on GitHub <ArrowRight className="w-3.5 h-3.5" />
+                    <a href={SWIFT_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors">
+                      smallchat-swift on GitHub <ArrowRight className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </motion.div>
@@ -623,7 +627,7 @@ export default function Home() {
                 swift run SmallChatApp
               </code>
               <a
-                href="https://github.com/johnnyclem/smallchat-swift"
+                href={SWIFT_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
@@ -690,8 +694,8 @@ export default function Home() {
                         The receiver decides what to do — not the sender.
                       </p>
                       <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-                        smallchat applies this same principle to AI. The model sends a message describing its intent, 
-                        and the runtime figures out the right tool to handle it.
+                        smallchat applies this same principle to AI. The model sends a message describing its intent,
+                        and the runtime proposes the one tool that handles it, or asks when nothing matches cleanly.
                       </p>
                     </div>
 
@@ -757,7 +761,7 @@ export default function Home() {
                   <div className="text-center max-w-3xl mx-auto">
                     <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">Under the hood</h3>
                     <p className="text-muted-foreground text-base sm:text-lg">
-                      The dispatch hot path: embed the intent, check the cache, resolve the tool, execute. 
+                      The dispatch hot path: resolve proposes, the policy decides, and exactly one tool runs with checked arguments.
                     </p>
                   </div>
 
@@ -780,7 +784,7 @@ export default function Home() {
                       }
                     />
                     <CodeBlock 
-                      filename="src/runtime/dispatch.ts — Hot Path"
+                      filename="src/runtime/dispatch.ts — Hot Path (simplified)"
                       code={
                         <>
 <span className="token-keyword">async function</span> <span className="token-function">toolkit_dispatch</span>({'\n'}
@@ -788,18 +792,20 @@ export default function Home() {
 {"  "}intent: <span className="token-type">string</span>,{'\n'}
 {"  "}args?: <span className="token-type">Record</span>&lt;<span className="token-type">string</span>, <span className="token-type">unknown</span>&gt;{'\n'}
 {")"}: <span className="token-type">Promise</span>&lt;<span className="token-type">ToolResult</span>&gt; {'{\n'}
-{"  "}<span className="token-comment">{"// 1. Embed intent → Selector"}</span>{'\n'}
-{"  "}<span className="token-keyword">const</span> vector = <span className="token-keyword">await</span> embedder.<span className="token-function">embed</span>(intent);{'\n'}
-{"  "}<span className="token-keyword">const</span> sel = selectorTable.<span className="token-function">lookup</span>(vector);{'\n'}
+{"  "}<span className="token-comment">{"// 1. Resolve: embed, rank, tier, apply the policy"}</span>{'\n'}
+{"  "}<span className="token-keyword">const</span> {'{'} resolution, imp {'}'} = <span className="token-keyword">await</span> <span className="token-function">resolveInternal</span>(context, intent, {'{'} args {'}'});{'\n'}
 {'\n'}
-{"  "}<span className="token-comment">{"// 2. Cache hit? Return immediately"}</span>{'\n'}
-{"  "}<span className="token-keyword">const</span> cached = cache.<span className="token-function">lookup</span>(sel);{'\n'}
-{"  "}<span className="token-keyword">if</span> (cached) <span className="token-keyword">return</span> cached.imp.<span className="token-function">execute</span>(args);{'\n'}
+{"  "}<span className="token-comment">{"// 2. Not exactly one tool? Nothing runs."}</span>{'\n'}
+{"  "}<span className="token-keyword">if</span> (resolution.outcome !== <span className="token-string">'resolved'</span>){'\n'}
+{"    "}<span className="token-keyword">return</span> <span className="token-function">notExecutedResult</span>(resolution);{'\n'}
 {'\n'}
-{"  "}<span className="token-comment">{"// 3. Resolve, cache, execute"}</span>{'\n'}
-{"  "}<span className="token-keyword">const</span> imp = <span className="token-function">resolve</span>(sel);{'\n'}
-{"  "}cache.<span className="token-function">store</span>(sel, imp);{'\n'}
-{"  "}<span className="token-keyword">return</span> imp.<span className="token-function">execute</span>(args);{'\n'}
+{"  "}<span className="token-comment">{"// 3. JSON Schema check + canonical call digest"}</span>{'\n'}
+{"  "}<span className="token-keyword">const</span> call = <span className="token-keyword">await</span> <span className="token-function">prepareCall</span>(context, imp, resolution.chosen, args);{'\n'}
+{"  "}<span className="token-keyword">if</span> (!call.ok) <span className="token-keyword">return</span> <span className="token-function">invalidArgumentsResult</span>(call);{'\n'}
+{'\n'}
+{"  "}<span className="token-comment">{"// 4. Log the decision, then run exactly that tool"}</span>{'\n'}
+{"  "}context.<span className="token-function">logDecision</span>(<span className="token-string">'dispatch'</span>, resolution.proof, <span className="token-string">'ran'</span>);{'\n'}
+{"  "}<span className="token-keyword">return</span> <span className="token-function">execute</span>(imp, call.args);{'\n'}
 {'}'}
                         </>
                       }
@@ -839,8 +845,8 @@ export default function Home() {
                           This enables function overloading and runtime introspection.
                         </p>
                         <p className="text-muted-foreground text-sm leading-relaxed">
-                          The compiler can also detect semantically similar tools and automatically generate overloaded 
-                          versions — so the right tool is chosen based on context, not just naming conventions.
+                          The compiler also reports semantically similar tools as overload groups. In 1.0 those groups are
+                          reported at compile time only: dispatch never merges distinct tools.
                         </p>
                       </div>
                     </div>
@@ -877,7 +883,7 @@ export default function Home() {
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
                 Drop it in with one command.
                 Watch it stream in your own UI.
-                Or spin up the built-in server in seconds.
+                Or serve every tool through one MCP server.
               </p>
             </motion.div>
 
@@ -893,23 +899,28 @@ export default function Home() {
                 </div>
                 <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
                   <div>
-                    <span className="text-muted-foreground select-none"># Install</span>
-                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install @smallchat/core</div>
+                    <span className="text-muted-foreground select-none"># Install (Node 22+)</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npm install @smallchat/core@^1</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground select-none"># Compile tool definitions</span>
-                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core compile --source ./tools --output tools.json</div>
-                    <div className="text-green-400/70 text-xs mt-1 select-none">Compiling tools... ✓ 3 tools from 2 providers embedded.</div>
+                    <span className="text-muted-foreground select-none"># Compile the tools in your MCP config</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx -y @smallchat/core@^1 compile --source ~/.mcp.json</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">Output: tools.toolkit.json (format 1.0, content-hashed)</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground select-none"># Test a natural-language dispatch</span>
-                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core resolve tools.json "search for code"</div>
-                    <div className="text-green-400/70 text-xs mt-1 select-none">Matched: github.search_code (confidence: 0.98)</div>
+                    <span className="text-muted-foreground select-none"># See which tool an intent resolves to (nothing runs)</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx -y @smallchat/core@^1 resolve tools.toolkit.json "search for code"</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">Outcome: resolved (tier HIGH, decision ranked) · Chosen: github/search_code</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground select-none"># Spin up the built-in server</span>
-                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx @smallchat/core serve tools.json --port 3000</div>
-                    <div className="text-green-400/70 text-xs mt-1 select-none">smallchat server running on http://localhost:3000 ✓</div>
+                    <span className="text-muted-foreground select-none"># Pin the decisions that matter: exit 1 if one changes</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx -y @smallchat/core@^1 replay tools.toolkit.json traces/</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">✓ "search for code" → resolved github/search_code (high)</div>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground select-none"># Serve every tool through one MCP server (stdio; --http for Streamable HTTP)</span>
+                    <div className="text-gray-300"><span className="text-primary select-none">❯ </span>npx -y @smallchat/core@^1 serve --source tools.toolkit.json</div>
+                    <div className="text-green-400/70 text-xs mt-1 select-none">smallchat MCP server on stdio</div>
                   </div>
                 </div>
               </div>
@@ -922,25 +933,25 @@ export default function Home() {
                     <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
                   </div>
                   <div className="mx-auto flex items-center gap-2 text-xs text-muted-foreground font-mono">
-                    Swift 6
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-medium font-sans">coming soon</span>
+                    Swift 6.1+
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-medium font-sans">macOS 14+ · Linux · iOS 17+ libraries</span>
                   </div>
                 </div>
                 <div className="p-4 sm:p-6 bg-black/50 font-mono text-xs sm:text-sm space-y-4 sm:space-y-5">
                   <div>
                     <span className="text-muted-foreground select-none"># Add to Package.swift</span>
-                    <div className="text-gray-300"><span className="text-orange-400 select-none">// </span>{`.package(url: "${GITHUB_URL}.git", from: "0.1.0")`}</div>
+                    <div className="text-gray-300 break-all">{`.package(url: "${SWIFT_URL}", from: "1.0.0")`}</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground select-none"># Create a client</span>
-                    <div className="text-gray-300"><span className="text-orange-400 select-none">let </span>client = ChatClient(transport: ws, api: api, configuration: config)</div>
+                    <span className="text-muted-foreground select-none"># Compile your tools</span>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">❯ </span>swift run smallchat compile --source ~/.mcp.json</div>
                   </div>
                   <div>
-                    <span className="text-muted-foreground select-none"># Connect and stream</span>
-                    <div className="text-gray-300"><span className="text-orange-400 select-none">await </span>client.login(user: currentUser)</div>
-                    <div className="text-gray-300"><span className="text-orange-400 select-none">for await </span>message <span className="text-orange-400">in</span> client.messageStream {'{'}</div>
-                    <div className="text-gray-300">{"    "}print(message.content)</div>
-                    <div className="text-gray-300">{'}'}</div>
+                    <span className="text-muted-foreground select-none"># Resolve, then run exactly one tool</span>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">let </span>toolkit = try await MCPToolkit.load(source: "tools.toolkit.json")</div>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">let </span>resolution = try await toolkit.runtime.resolve("find flights")</div>
+                    <div className="text-gray-300">print(resolution.outcome, resolution.chosen ?? "-")</div>
+                    <div className="text-gray-300"><span className="text-orange-400 select-none">let </span>result = try await toolkit.runtime.dispatchById("flights/search_flights", args: ["to": "NYC"])</div>
                   </div>
                 </div>
               </div>
@@ -979,9 +990,23 @@ export default function Home() {
                   <Github className="w-4 h-4 mr-2" /> Source Code
                 </a>
                 <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-xs">
-                  v0.0.1
+                  v1.0.0
                 </span>
               </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              <span className="text-white/40">The smallchat suite</span>
+              {FAMILY_LINKS.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
             </div>
           </div>
         </footer>

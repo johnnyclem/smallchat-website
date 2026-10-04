@@ -23,7 +23,7 @@ This section documents the internals of smallchat for engineers who want to unde
 │  protocols · categories · superclass   │
 ├─────────────────────────────────────────┤
 │     SelectorTable · VectorIndex        │
-│  semantic interning · cosine lookup    │
+│  tool selectors · cosine lookup        │
 └─────────────────────────────────────────┘
 ```
 
@@ -32,23 +32,24 @@ Each layer has a focused responsibility:
 | Layer | Responsibility |
 |---|---|
 | `ToolRuntime` | Public API, configuration, lifecycle |
-| `DispatchContext` | Per-dispatch state: selector table, cache, overloads, fallback chain |
+| `DispatchContext` | Per-dispatch state: selector table, cache, overloads, dispatch policy |
 | `ToolClass` | Provider grouping, dispatch table, protocol conformance |
-| `SelectorTable` | Semantic interning of intent strings |
+| `SelectorTable` | Compiled tool selectors and vector search (intents are never added) |
 | `VectorIndex` | Cosine similarity search |
 | `ResolutionCache` | LRU cache for resolved dispatches |
 | `OverloadTable` | Multiple signatures per selector |
 
 ## What is covered in this section
 
-- **[Selector Table](./selector-table)** — how intent strings are deduplicated and fingerprinted
-- **[Dispatch](./dispatch)** — the hot path: `toolkit_dispatch` and `smallchat_dispatchStream`
-- **[ToolClass & ToolProxy](./tool-class)** — provider grouping, superclass chains, lazy loading
-- **[Resolution Cache](./resolution-cache)** — LRU cache mechanics and version tagging
-- **[SCObject System](./sc-object)** — NSObject-inspired parameter hierarchy
-- **[Function Overloading](./overloading)** — multiple implementations per selector
-- **[Streaming](./streaming)** — three tiers, event sequence, cancellation
-- **[Method Swizzling](./swizzling)** — runtime method replacement for testing and routing
+- **[Selector Table](./selector-table.md)** — how tool selectors are embedded and searched, and how intents are identified
+- **[Dispatch](./dispatch.md)** — the hot path: `toolkit_dispatch` and `smallchat_dispatchStream`
+- **[ToolClass & ToolProxy](./tool-class.md)** — provider grouping, superclass chains, lazy loading
+- **[Resolution Cache](./resolution-cache.md)** — LRU cache mechanics and version tagging
+- **[SCObject System](./sc-object.md)** — NSObject-inspired parameter hierarchy
+- **[Function Overloading](./overloading.md)** — multiple implementations per selector
+- **[Streaming](./streaming.md)** — three tiers, event sequence, cancellation
+- **[Method Swizzling](./swizzling.md)** — runtime method replacement for testing and routing
+- **[Truth Ledger](./truth-ledger.md)** — reading Stenographer's truth format v2 as ground truth, and how agents settle claims only together
 
 ## Key source files
 
