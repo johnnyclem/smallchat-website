@@ -2,11 +2,11 @@ import { readFileSync } from "node:fs";
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { describe, expect, it } from "vitest";
-import { verifyChain } from "../chain";
-import { act, applyResult, type Action, type LedgerState } from "../engine";
-import { fold } from "../fold";
-import { readModel } from "../read";
-import { Refusal, type Actor, type Evidence } from "../types";
+import { verifyChain } from "../chain.js";
+import { act, applyResult, type Action, type LedgerState } from "../engine.js";
+import { fold } from "../fold.js";
+import { readModel } from "../read.js";
+import { Refusal, type Actor, type Evidence } from "../types.js";
 
 const schema = JSON.parse(readFileSync(new URL("./fixtures/wiki-line.v2.schema.json", import.meta.url), "utf8"));
 const ajv = new Ajv2020({ strict: false, allErrors: true });

@@ -3,11 +3,11 @@
  * the fold and the approvals waiting beside it, never stored.
  */
 
-import { type Entry, fold } from "./fold";
-import { type Freshness, freshnessOf } from "./freshness";
-import type { ApprovalSummary, LedgerState } from "./engine";
-import { summarizeApprovals } from "./engine";
-import type { Line, PendingApproval } from "./types";
+import { type Entry, fold } from "./fold.js";
+import { type Freshness, freshnessOf } from "./freshness.js";
+import type { ApprovalSummary, LedgerState } from "./engine.js";
+import { summarizeApprovals } from "./engine.js";
+import type { Line, PendingApproval } from "./types.js";
 
 export interface EntryView extends Omit<Entry, "line"> {
   line: Line;

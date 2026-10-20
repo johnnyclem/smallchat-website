@@ -7,8 +7,8 @@
  * (supabase/steno_public_ledger.sql).
  */
 
-import type { ActResult, LedgerState } from "../lib/truth/engine";
-import type { Line, PendingApproval } from "../lib/truth/types";
+import type { ActResult, LedgerState } from "../lib/truth/engine.js";
+import type { Line, PendingApproval } from "../lib/truth/types.js";
 
 export interface StoreConfig {
   url: string;

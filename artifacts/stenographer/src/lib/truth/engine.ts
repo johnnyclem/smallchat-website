@@ -19,10 +19,10 @@
  * README of the stenographer repo.
  */
 
-import { chainBodies } from "./chain";
-import { fold, type Entry, type Fold } from "./fold";
-import { identityKey, isAgentIdentity, requireIdentity, sameIdentity } from "./identity";
-import { sha256Hex } from "./jcs";
+import { chainBodies } from "./chain.js";
+import { fold, type Entry, type Fold } from "./fold.js";
+import { identityKey, isAgentIdentity, requireIdentity, sameIdentity } from "./identity.js";
+import { sha256Hex } from "./jcs.js";
 import {
   EVIDENCE_KINDS,
   Refusal,
@@ -38,8 +38,8 @@ import {
   type PendingApproval,
   type QuorumMember,
   type VerifyBy,
-} from "./types";
-import { ulid } from "./ulid";
+} from "./types.js";
+import { ulid } from "./ulid.js";
 
 export const ORIGIN = "stenographer.smallchat.dev";
 export const NOMINATION_MIN_MEMBERS = 3;

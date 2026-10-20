@@ -8,10 +8,10 @@
  *   GET  /api/ledger/export   the stream as truth-format JSONL, for `stenographer import`
  */
 
-import { act, type Action } from "../lib/truth/engine";
-import { readModel } from "../lib/truth/read";
-import { Refusal } from "../lib/truth/types";
-import { appendResult, configFromEnv, loadState, StoreError, type StoreConfig } from "./store";
+import { act, type Action } from "../lib/truth/engine.js";
+import { readModel } from "../lib/truth/read.js";
+import { Refusal } from "../lib/truth/types.js";
+import { appendResult, configFromEnv, loadState, StoreError, type StoreConfig } from "./store.js";
 
 const MAX_BODY_BYTES = 32 * 1024;
 

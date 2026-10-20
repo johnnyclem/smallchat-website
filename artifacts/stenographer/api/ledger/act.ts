@@ -1,4 +1,4 @@
-import { actOnLedger } from "../../src/server/handlers";
+import { actOnLedger } from "../../src/server/handlers.js";
 
 export function POST(request: Request): Promise<Response> {
   return actOnLedger(request);

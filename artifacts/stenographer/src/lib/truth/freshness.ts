@@ -5,10 +5,10 @@
  * still a flag, still promotable. A TB never goes stale.
  */
 
-import type { Entry } from "./fold";
-import { horizonOf } from "./fold";
+import type { Entry } from "./fold.js";
+import { horizonOf } from "./fold.js";
 
-export { DEFAULT_UV_HORIZON_SECONDS } from "./types";
+export { DEFAULT_UV_HORIZON_SECONDS } from "./types.js";
 
 export interface Freshness {
   state: "fresh" | "stale";

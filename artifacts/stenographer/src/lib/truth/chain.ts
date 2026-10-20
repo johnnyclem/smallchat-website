@@ -8,9 +8,9 @@
  * the API's self-check run.
  */
 
-import { identityIssue } from "./identity";
-import { canonicalize, sha256Hex } from "./jcs";
-import { CAUSE_KINDS, HEX64, ID_PATTERN, TB_STATUSES, UV_STATUSES, isRfc3339DateTime, type Line, type LineBody } from "./types";
+import { identityIssue } from "./identity.js";
+import { canonicalize, sha256Hex } from "./jcs.js";
+import { CAUSE_KINDS, HEX64, ID_PATTERN, TB_STATUSES, UV_STATUSES, isRfc3339DateTime, type Line, type LineBody } from "./types.js";
 
 export interface ChainProblem {
   seq: number | null;

@@ -7,8 +7,8 @@
  * UV, and which TB superseded it.
  */
 
-import { DEFAULT_UV_HORIZON_SECONDS } from "./types";
-import type { Line, Link } from "./types";
+import { DEFAULT_UV_HORIZON_SECONDS } from "./types.js";
+import type { Line, Link } from "./types.js";
 
 export interface Entry {
   id: string;

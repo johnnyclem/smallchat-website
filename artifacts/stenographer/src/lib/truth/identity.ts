@@ -7,7 +7,7 @@
  * prefix is the rule, as it is for a stenographer without one).
  */
 
-import { Refusal } from "./types";
+import { Refusal } from "./types.js";
 
 const ANONYMOUS = new Set(["", "system", "assistant", "agent", "ai", "bot", "anonymous", "unknown", "user", "human", "admin", "null", "none", "me"]);
 export const MIGRATION_AUTHOR = "migration";

@@ -6,9 +6,9 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { lineHash, verifyChain } from "../chain";
-import { fold } from "../fold";
-import type { Line } from "../types";
+import { lineHash, verifyChain } from "../chain.js";
+import { fold } from "../fold.js";
+import type { Line } from "../types.js";
 
 const fixture = (name: string) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url), "utf8");
 const parse = (name: string): Line[] =>
