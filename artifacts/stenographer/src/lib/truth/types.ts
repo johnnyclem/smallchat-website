@@ -117,12 +117,16 @@ export type RefusalCode =
   | "duplicate"
   | "conflict";
 
+/** What the ledger suggests instead of a refused act, or after one: withdraw your own claim, or file it again corrected. */
+export type Suggestion = { kind: "withdraw"; id: string } | { kind: "claim-again"; id: string };
+
 /** The ledger declined a write. `rule` names the section of the truth format or the README the rule comes from. */
 export class Refusal extends Error {
   constructor(
     public readonly code: RefusalCode,
     message: string,
-    public readonly rule: string
+    public readonly rule: string,
+    public readonly suggest?: Suggestion
   ) {
     super(message);
     this.name = "Refusal";

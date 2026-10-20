@@ -6,11 +6,11 @@
 
 import { act, applyResult, type Action, type LedgerState, type Outcome } from "./truth/engine";
 import { readModel, type ReadModel } from "./truth/read";
-import { Refusal, type Actor, type Line } from "./truth/types";
+import { Refusal, type Actor, type Line, type Suggestion } from "./truth/types";
 
 export type ActResponse =
   | { ok: true; outcome: Outcome; message: string; lines: Line[] }
-  | { ok: false; refused: true; code: string; rule: string; message: string }
+  | { ok: false; refused: true; code: string; rule: string; message: string; suggest?: Suggestion }
   | { ok: false; refused?: false; message: string };
 
 export interface LedgerRunner {
@@ -30,7 +30,7 @@ export const publicLedger: LedgerRunner = {
       const res = await fetch("/api/ledger/act", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action) });
       const body = (await res.json()) as Record<string, unknown>;
       if (body.ok) return { ok: true, outcome: body.outcome as Outcome, message: body.message as string, lines: body.lines as Line[] };
-      if (body.refused) return { ok: false, refused: true, code: body.code as string, rule: body.rule as string, message: body.message as string };
+      if (body.refused) return { ok: false, refused: true, code: body.code as string, rule: body.rule as string, message: body.message as string, suggest: body.suggest as Suggestion | undefined };
       return { ok: false, message: (body.error as string) ?? `the ledger answered ${res.status}` };
     } catch (err) {
       return { ok: false, message: err instanceof Error ? err.message : String(err) };
@@ -55,7 +55,7 @@ export class SandboxLedger implements LedgerRunner {
       this.state = applyResult(this.state, result);
       return { ok: true, outcome: result.outcome, message: result.message, lines: result.lines };
     } catch (err) {
-      if (err instanceof Refusal) return { ok: false, refused: true, code: err.code, rule: err.rule, message: err.message };
+      if (err instanceof Refusal) return { ok: false, refused: true, code: err.code, rule: err.rule, message: err.message, suggest: err.suggest };
       return { ok: false, message: err instanceof Error ? err.message : String(err) };
     }
   }

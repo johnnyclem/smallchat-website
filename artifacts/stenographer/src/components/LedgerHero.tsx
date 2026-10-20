@@ -62,7 +62,8 @@ export function LedgerHero() {
     panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
-  const onAct = (act: EntryAct, entry: EntryView) => openComposer(act === "challenge" ? { kind: "claim", contests: entry.id } : { kind: act, targetId: entry.id });
+  const onAct = (act: EntryAct, entry: EntryView) =>
+    openComposer(act === "challenge" ? { kind: "claim", contests: entry.id } : act === "withdraw" ? { kind: "strike", targetId: entry.id } : { kind: act, targetId: entry.id });
 
   const onDone = async (r: ActResponse) => {
     if (!r.ok) return;
@@ -146,7 +147,7 @@ export function LedgerHero() {
             {model && view === "graph" && <TruthGraph model={model} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />}
             {model && view === "list" && (
               <div className="p-3 sm:p-4">
-                <LedgerBoard model={model} highlight={highlight} onAct={onAct} emptyText="The ledger is empty. Make the first claim." />
+                <LedgerBoard model={model} highlight={highlight} onAct={onAct} actorName={identity.by} emptyText="The ledger is empty. Make the first claim." />
               </div>
             )}
             {!model && !error && <div className="h-[440px] flex items-center justify-center text-sm text-muted-foreground">loading the stream…</div>}
@@ -164,7 +165,7 @@ export function LedgerHero() {
                   <button onClick={() => setSelected(null)} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-white cursor-pointer">
                     <ArrowLeft className="w-3.5 h-3.5" /> back to the composer
                   </button>
-                  <EntryCard entry={selectedEntry} byId={byId} highlight={highlight.has(selectedEntry.id)} onAct={onAct} />
+                  <EntryCard entry={selectedEntry} byId={byId} highlight={highlight.has(selectedEntry.id)} onAct={onAct} actorName={identity.by} />
                   <p className="text-[11px] text-muted-foreground">Click another node to read it. Approve, refute, challenge or strike opens the composer with this entry filled in.</p>
                 </motion.div>
               ) : selectedWho ? (

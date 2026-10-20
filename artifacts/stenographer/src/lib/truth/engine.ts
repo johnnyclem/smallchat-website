@@ -63,7 +63,7 @@ export type Outcome =
   | { kind: "nominated"; id: string; members: number }
   | { kind: "promoted"; id: string; tb: string; overrode: string | null }
   | { kind: "refuted"; id: string; upheld: string | null }
-  | { kind: "struck"; id: string; released: string | null };
+  | { kind: "struck"; id: string; released: string | null; withdrawn: boolean };
 
 export type Missing = "a person's approval" | "a second approver" | "evidence";
 
@@ -330,6 +330,14 @@ export function summarizeApprovals(uv: Entry, approvals: PendingApproval[]): App
 
 async function approve(state: LedgerState, f: Fold, actor: Actor, input: Extract<Action, { type: "approve" }>, ts: string, now: number) {
   const uv = requireOpenUv(f, input.id);
+  if (sameIdentity(actor.by, uv.line.author)) {
+    throw new Refusal(
+      "contempt",
+      `'${actor.by}' wrote UV ${uv.id}. A claim is corroborated by someone else: approving your own would be one opinion wearing two hats. If you've changed your mind about it, withdraw it instead`,
+      "Contempt of corpus",
+      { kind: "withdraw", id: uv.id }
+    );
+  }
   assertIndependent(actor, uv, "approve");
   const evidence = parseEvidence(input.evidence);
   const note = input.note === undefined || input.note === null || input.note === "" ? null : text(input.note, "note", 1000);
@@ -482,6 +490,14 @@ async function refute(f: Fold, actor: Actor, input: Extract<Action, { type: "ref
     throw new Refusal("role", "an agent's refuted verdict settles nothing: on this ledger a person refutes, with evidence. Approve it instead if you have settling evidence for it", "Approvals and promotion");
   }
   const uv = requireOpenUv(f, input.id);
+  if (sameIdentity(actor.by, uv.line.author)) {
+    throw new Refusal(
+      "contempt",
+      `'${actor.by}' wrote UV ${uv.id}. A refutation is someone else's evidence against a claim, so it can't come from its author. Realised you were wrong? Withdraw it: strike it with a note saying why. The claim stays on the record, marked struck, and you can file a corrected one`,
+      "Contempt of corpus",
+      { kind: "withdraw", id: uv.id }
+    );
+  }
   assertIndependent(actor, uv, "refute");
   const evidence = parseEvidence(input.evidence);
   if (evidence.length === 0) throw new Refusal("evidence", "a refutation cites at least one piece of evidence", "ADDENDUM and RULING");
@@ -528,10 +544,13 @@ async function strike(f: Fold, actor: Actor, input: Extract<Action, { type: "str
       released = release.target as string;
     }
   }
-  const message = released
-    ? `Struck by ${actor.by}, with an opinion on the record. TB ${released} is active again.`
-    : `Struck by ${actor.by}, with an opinion on the record. ${entry.type} ${entry.id} is inadmissible, never deleted.`;
-  return { outcome: { kind: "struck" as const, id: entry.id, released }, message, bodies, newApprovals: [], consumed: null };
+  const withdrawn = sameIdentity(actor.by, entry.line.author);
+  const message = withdrawn
+    ? `Withdrawn by ${actor.by}, with the reason on the record. ${entry.type} ${entry.id} stays in the chain, marked struck${released ? `, and TB ${released} is active again` : ""}. File a corrected claim if there is one.`
+    : released
+      ? `Struck by ${actor.by}, with an opinion on the record. TB ${released} is active again.`
+      : `Struck by ${actor.by}, with an opinion on the record. ${entry.type} ${entry.id} is inadmissible, never deleted.`;
+  return { outcome: { kind: "struck" as const, id: entry.id, released, withdrawn }, message, bodies, newApprovals: [], consumed: null };
 }
 
 /** Apply a result to a state: the next state, as the server stores it. */

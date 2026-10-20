@@ -29,12 +29,12 @@ function Rules() {
     {
       icon: Users,
       title: "Promotion, not fiat",
-      text: "A UV becomes a TB when a person approves it and one other approver agrees, with evidence among them. Three agent sessions from different angles nominate; no number of agents mints a TB. Nobody approves what they drafted.",
+      text: "A UV becomes a TB when a person approves it and one other approver agrees, with evidence among them. Three agent sessions from different angles nominate; no number of agents mints a TB. Nobody corroborates what they drafted: approving or refuting is someone else's act.",
     },
     {
       icon: Gavel,
       title: "Resolve, never edit",
-      text: "A person refutes a UV with evidence or strikes an entry with a written opinion. Approving a contest overrides the old TB and mints its successor. Every change is an appended line on a hash-chained stream.",
+      text: "A person refutes a UV with evidence or strikes an entry with a written opinion. Wrong about your own claim? Withdraw it: strike it with the reason, then file it again corrected. Approving a contest overrides the old TB and mints its successor. Every change is an appended line on a hash-chained stream.",
     },
   ];
   return (

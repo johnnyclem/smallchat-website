@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import type { ActResponse } from "@/lib/ledger-client";
 import type { Action } from "@/lib/truth/engine";
 import type { EntryView } from "@/lib/truth/read";
-import { EVIDENCE_KINDS, SETTLING_EVIDENCE_KINDS, VERIFY_BY_KINDS, type Actor, type Evidence } from "@/lib/truth/types";
+import { sameIdentity } from "@/lib/truth/identity";
+import { EVIDENCE_KINDS, SETTLING_EVIDENCE_KINDS, VERIFY_BY_KINDS, type Actor, type Evidence, type Suggestion } from "@/lib/truth/types";
 import { Badge, ResultBanner, short } from "./pieces";
 
 export type ComposerKind = "claim" | "approve" | "refute" | "strike";
@@ -96,6 +97,25 @@ export function ActionComposer({
   }, [preset]);
 
   const openUvs = entries.filter((e) => e.type === "UV" && e.status === "open");
+  const target = entries.find((e) => e.id === targetId) ?? null;
+  /** Striking your own entry is a withdrawal: the same ruling, named for what it is. */
+  const withdrawing = kind === "strike" && !!target && sameIdentity(target.line.author, identity.by);
+  const onSuggest = (s: Suggestion) => {
+    const entry = entries.find((e) => e.id === s.id);
+    setResult(null);
+    if (s.kind === "withdraw") {
+      setKind("strike");
+      setTargetId(s.id);
+      setOpinion(note.trim() ? note.trim() : "I was wrong about this.");
+    } else {
+      setKind("claim");
+      setAssertion(entry ? String(entry.line.assertion ?? entry.line.claim ?? "") : "");
+      setBasis(entry && typeof entry.line.basis === "string" ? entry.line.basis : "");
+      const vb = entry?.line.verifyBy as { kind?: string; value?: string } | undefined;
+      if (vb?.kind) setVerifyKind(vb.kind);
+      if (vb?.value) setVerifyValue(vb.value);
+    }
+  };
   const liveTbs = entries.filter((e) => e.type === "TB" && (e.status === "active" || e.status === "contested"));
   const strikable = entries.filter((e) => e.status !== "struck");
   const actor: Actor = identity.role === "agent" ? { by: identity.by, role: "agent", agentSessionId: identity.session } : { by: identity.by, role: "human" };
@@ -138,7 +158,7 @@ export function ActionComposer({
     { id: "claim", label: "Make a claim" },
     { id: "approve", label: "Approve" },
     { id: "refute", label: "Refute" },
-    { id: "strike", label: "Strike" },
+    { id: "strike", label: "Strike · Withdraw" },
   ];
   const Option = ({ e }: { e: EntryView }) => (
     <option value={e.id}>
@@ -264,8 +284,13 @@ export function ActionComposer({
             </select>
           </div>
           <div>
-            <span className={label}>Opinion · the written reasoning, on the record for good</span>
-            <textarea value={opinion} onChange={(e) => setOpinion(e.target.value)} rows={2} placeholder="the cited commit is on an abandoned branch" className={field} />
+            <span className={label}>{withdrawing ? "Why you're withdrawing it · on the record for good" : "Opinion · the written reasoning, on the record for good"}</span>
+            <textarea value={opinion} onChange={(e) => setOpinion(e.target.value)} rows={2} placeholder={withdrawing ? "typo: I meant Donald, and I'll file it again" : "the cited commit is on an abandoned branch"} className={field} />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {withdrawing
+                ? "Your own claim: this withdraws it. It stays in the chain, marked struck, with your reason beside it."
+                : "A person's ruling. Struck is sticky: inadmissible, never deleted. Striking your own entry withdraws it."}
+            </p>
           </div>
         </div>
       )}
@@ -273,10 +298,10 @@ export function ActionComposer({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <p className="text-[11px] text-muted-foreground">No login. Your name is your word; the chain shows that a line changed, not who wrote it. Key signing lands in 1.x.</p>
         <button onClick={submit} disabled={busy || !identity.by.trim()} className="btn btn-primary h-10 px-5 text-sm disabled:opacity-40 disabled:hover:translate-y-0">
-          {busy ? "writing…" : kind === "claim" ? (contests ? "File the challenge" : "File the claim") : kind === "approve" ? "Approve" : kind === "refute" ? "Refute" : "Strike"}
+          {busy ? "writing…" : kind === "claim" ? (contests ? "File the challenge" : "File the claim") : kind === "approve" ? "Approve" : kind === "refute" ? "Refute" : withdrawing ? "Withdraw" : "Strike"}
         </button>
       </div>
-      <ResultBanner result={result} />
+      <ResultBanner result={result} onSuggest={onSuggest} />
     </div>
   );
 }
