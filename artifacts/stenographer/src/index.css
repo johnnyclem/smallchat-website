@@ -19,3 +19,21 @@
 #top .btn-glass > span {
   min-width: 0;
 }
+
+/* The truth graph: a new node pops in, a TB under appeal wears a slowly turning ring. */
+@keyframes truth-pop {
+  0% { transform: scale(0.2); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.truth-pop > * {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: truth-pop 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes truth-spin {
+  to { stroke-dashoffset: -14; }
+}
+.truth-spin {
+  animation: truth-spin 1.2s linear infinite;
+}

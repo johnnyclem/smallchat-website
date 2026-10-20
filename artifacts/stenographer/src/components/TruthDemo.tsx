@@ -6,8 +6,9 @@ import type { Action } from "@/lib/truth/engine";
 import type { ReadModel } from "@/lib/truth/read";
 import type { Actor } from "@/lib/truth/types";
 import { ActionComposer, type ComposerIdentity } from "./truth/ActionComposer";
-import { LedgerBoard } from "./truth/LedgerBoard";
-import { ResultBanner } from "./truth/pieces";
+import { ChainStrip, ResultBanner } from "./truth/pieces";
+import { EntryCard } from "./truth/EntryCard";
+import { TruthGraph } from "./truth/TruthGraph";
 
 /** The cast. One person at the keyboard, and agent sessions that found things. */
 const YOU = "ada";
@@ -147,12 +148,20 @@ export function TruthDemo() {
   const [busy, setBusy] = useState(false);
   const [freePlay, setFreePlay] = useState(false);
   const [identity, setIdentity] = useState<ComposerIdentity>({ by: YOU, role: "human", session: "sess-you" });
+  const [selected, setSelected] = useState<string | null>(null);
   const refs = useRef<Refs>({});
   const you: Actor = useMemo(() => ({ by: YOU, role: "human" }), []);
   const next = played.length;
   const step = STEPS[next];
   const last = played[played.length - 1] ?? null;
-  const highlight = useMemo(() => new Set(last?.result.ok ? last.result.lines.map((l) => l.id) : []), [last]);
+  const highlight = useMemo(() => {
+    if (!last?.result.ok) return new Set<string>();
+    const ids = new Set(last.result.lines.map((l) => l.id));
+    if (last.result.outcome.kind === "promoted") ids.add(last.result.outcome.tb);
+    return ids;
+  }, [last]);
+  const byId = useMemo(() => new Map((model?.entries ?? []).map((e) => [e.id, e])), [model]);
+  const selectedEntry = selected ? byId.get(selected) ?? null : null;
 
   const refresh = async () => setModel(await ledger.current.read());
   useEffect(() => {
@@ -177,6 +186,7 @@ export function TruthDemo() {
     refs.current = {};
     setPlayed([]);
     setFreePlay(false);
+    setSelected(null);
     await refresh();
   };
 
@@ -238,9 +248,15 @@ export function TruthDemo() {
           </button>
         )}
       </div>
-      <div className="glass-panel rounded-2xl p-4 sm:p-5">
-        <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase mb-3">The sandbox ledger · in your browser, nothing saved</p>
-        {model && <LedgerBoard model={model} highlight={highlight} emptyText="Empty. Run the first step." />}
+      <div className="glass-panel rounded-2xl overflow-hidden">
+        <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase px-4 sm:px-5 py-3 border-b border-white/5">The sandbox ledger · in your browser, nothing saved</p>
+        {model && <TruthGraph model={model} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={380} />}
+        {model && (
+          <div className="px-4 sm:px-5 py-3 border-t border-white/5 space-y-3">
+            {selectedEntry && <EntryCard entry={selectedEntry} byId={byId} highlight={highlight.has(selectedEntry.id)} />}
+            <ChainStrip lines={model.lines} highlight={highlight} />
+          </div>
+        )}
       </div>
     </div>
   );
