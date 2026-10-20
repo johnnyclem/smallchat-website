@@ -78,8 +78,9 @@ Smallchat showcase/landing page website. Frontend-only React + Vite app with no 
 
 The stenographer site (stenographer.smallchat.dev). Besides the landing page it carries two interactive pieces built on one rule engine, `src/lib/truth/` (a subset of stenographer's truth format v2: JCS + SHA-256 chain, the status fold, identities, contempt of corpus, approvals → promotion / nomination, contest, refute, strike):
 
-- **Settle a claim** (`src/components/TruthDemo.tsx`): a scripted walkthrough on an in-memory ledger (`SandboxLedger`), plus free play through `ActionComposer`.
-- **The public truth ledger** (`src/components/PublicLedger.tsx`): one permanent hash-chained stream in Supabase. Vercel functions in `api/ledger/` (`GET /api/ledger`, `POST /api/ledger/act`, `GET /api/ledger/export`) run the same engine through `src/server/handlers.ts`; `src/server/store.ts` talks to PostgREST with fetch. Schema and the secret-guarded append RPC: `supabase/steno_public_ledger.sql`. Env: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `STENO_LEDGER_SECRET` (the same value as `steno_ledger_config.write_secret`).
+- **The hero is the public truth ledger** (`src/components/LedgerHero.tsx`): a live force-layout web (`src/components/truth/TruthGraph.tsx`, d3-force) of claims and the people and agent sessions behind them, a composer beside it, a list view and the chain strip. One permanent hash-chained stream in Supabase.
+- **The walkthrough** (`src/components/TruthDemo.tsx`): thirteen scripted moves on an in-memory ledger (`SandboxLedger`) drawn with the same graph, plus free play through `ActionComposer`.
+- The storage behind the hero: Vercel functions in `api/ledger/` (`GET /api/ledger`, `POST /api/ledger/act`, `GET /api/ledger/export`) run the same engine through `src/server/handlers.ts`; `src/server/store.ts` talks to PostgREST with fetch. Schema and the secret-guarded append RPC: `supabase/steno_public_ledger.sql`. Env: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `STENO_LEDGER_SECRET` (the same value as `steno_ledger_config.write_secret`).
 - `pnpm --filter @workspace/stenographer run dev` serves the API too (a vite plugin mounts the handlers); `run test` runs vitest against the engine and the truth format's golden fixtures (`src/lib/truth/__tests__/fixtures`, vendored from the stenographer repo).
 
 ### `artifacts/api-server` (`@workspace/api-server`)
