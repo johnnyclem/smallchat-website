@@ -81,6 +81,19 @@ function buildGraph(model: ReadModel, labelLength: number): { nodes: GraphNode[]
 
 const RADIUS: Record<GraphNode["kind"], number> = { TB: 15, UV: 11, human: 7, agent: 6 };
 
+/** How many approvals stand behind an entry: pending ones on a UV, the ones written into a TB. */
+function approvalsOf(e: EntryView): number {
+  if (e.type === "UV") return e.approvals?.approvers ?? 0;
+  return ((e.line.approvals as unknown[] | undefined)?.length ?? 0) + e.contestedBy.length;
+}
+
+/** A node's radius: its kind's base, grown by what backs it, so a well-approved claim reads as the heavier one. */
+function nodeRadius(n: GraphNode): number {
+  const base = RADIUS[n.kind];
+  if (n.entry) return base + Math.min(14, approvalsOf(n.entry) * 3.5);
+  return base + Math.min(5, ((n.weight ?? 1) - 1) * 0.8);
+}
+
 function entryLook(e: EntryView): { fill: string; stroke: string; dead: boolean; ring?: string } {
   if (e.type === "TB") {
     if (e.status === "active") return { fill: "#f8a828", stroke: "#ffd48a", dead: false };
@@ -123,7 +136,7 @@ export function TruthGraph({
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = Math.max(320, entry.contentRect.width);
-      setSize({ w, h: Math.max(minHeight, Math.min(720, w * 0.62)) });
+      setSize({ w, h: w < 560 ? Math.max(300, minHeight - 100) : Math.max(minHeight, Math.min(720, w * 0.62)) });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -153,7 +166,7 @@ export function TruthGraph({
     if (!sim) {
       sim = forceSimulation<GraphNode, GraphLink>()
         .force("charge", forceManyBody<GraphNode>().strength((d) => (d.kind === "TB" ? -520 : d.kind === "UV" ? -380 : -140)))
-        .force("collide", forceCollide<GraphNode>().radius((d) => RADIUS[d.kind] + (d.entry ? 26 : 14)).strength(0.9))
+        .force("collide", forceCollide<GraphNode>().radius((d) => nodeRadius(d) + (d.entry ? 26 : 14)).strength(0.9))
         .velocityDecay(0.4)
         .on("tick", () => {
           // Keep every node, label included, inside the canvas
@@ -268,7 +281,7 @@ export function TruthGraph({
                 stroke={st.stroke}
                 strokeWidth={st.width}
                 strokeDasharray={st.dash}
-                opacity={dim ? 0.12 : 1}
+                opacity={dim ? 0.2 : 1}
                 style={{ transition: "opacity 200ms" }}
               />
             );
@@ -276,7 +289,7 @@ export function TruthGraph({
         </g>
         <g>
           {nodes.map((n) => {
-            const r = RADIUS[n.kind];
+            const r = nodeRadius(n);
             const dim = neighbours ? !neighbours.has(n.id) : false;
             const isSel = selected === n.id;
             const fresh = highlight?.has(n.id);
@@ -299,13 +312,13 @@ export function TruthGraph({
                 </>
               );
             } else {
-              shape = <circle r={r + Math.min(4, (n.weight ?? 1) - 1)} fill={n.kind === "agent" ? "#0b1220" : "#f5f5f5"} stroke={n.kind === "agent" ? "#7dd3fc" : "#fff"} strokeWidth={isSel ? 3 : 1.5} />;
+              shape = <circle r={r} fill={n.kind === "agent" ? "#0b1220" : "#f5f5f5"} stroke={n.kind === "agent" ? "#7dd3fc" : "#fff"} strokeWidth={isSel ? 3 : 1.5} />;
             }
             return (
               <g
                 key={n.id}
                 transform={`translate(${x},${y})`}
-                opacity={dim ? 0.2 : 1}
+                opacity={dim ? 0.35 : 1}
                 style={{ transition: "opacity 200ms", cursor: "pointer" }}
                 filter={fresh || isSel ? "url(#glow)" : undefined}
                 className={fresh ? "truth-pop" : undefined}

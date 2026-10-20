@@ -1,11 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Download, List, RefreshCw, Rocket, Share2, Waypoints } from "lucide-react";
+import { ArrowLeft, Download, List, PlayCircle, RefreshCw, Share2, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CopyButton, fadeUp, stagger } from "@workspace/site-kit";
 import { browserSession, loadIdentity, publicLedger, saveIdentity, type ActResponse } from "@/lib/ledger-client";
 import type { EntryView, ReadModel } from "@/lib/truth/read";
 import { ActionComposer, type ComposerIdentity, type ComposerPreset } from "./truth/ActionComposer";
 import { EntryCard, type EntryAct } from "./truth/EntryCard";
+import { GuidedPanel } from "./truth/GuidedPanel";
 import { LedgerBoard } from "./truth/LedgerBoard";
 import { ChainStrip, Who } from "./truth/pieces";
 import { TruthGraph } from "./truth/TruthGraph";
@@ -27,7 +28,10 @@ export function LedgerHero() {
   const [identity, setIdentity] = useState<ComposerIdentity>(() => ({ ...loadIdentity(), session: browserSession() }));
   const [preset, setPreset] = useState<ComposerPreset | null>(null);
   const [highlight, setHighlight] = useState<Set<string>>(new Set());
+  const [guided, setGuided] = useState(false);
+  const [sandboxModel, setSandboxModel] = useState<ReadModel | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -47,7 +51,9 @@ export function LedgerHero() {
     return () => clearInterval(t);
   }, [refresh]);
 
-  const byId = useMemo(() => new Map((model?.entries ?? []).map((e) => [e.id, e])), [model]);
+  /** What the graph shows: the live ledger, or the sandbox while the guided walk runs. */
+  const shown = guided ? sandboxModel : model;
+  const byId = useMemo(() => new Map((shown?.entries ?? []).map((e) => [e.id, e])), [shown]);
   const selectedEntry = selected ? byId.get(selected) ?? null : null;
   const selectedWho = selected && !selectedEntry && selected.startsWith("who:") ? selected.slice(4) : null;
 
@@ -60,6 +66,20 @@ export function LedgerHero() {
     setPreset(p);
     setSelected(null);
     panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  const startGuided = () => {
+    setGuided(true);
+    setSelected(null);
+    setHighlight(new Set());
+    setView("graph");
+    graphRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const exitGuided = () => {
+    setGuided(false);
+    setSelected(null);
+    setHighlight(new Set());
+    void refresh();
   };
 
   const onAct = (act: EntryAct, entry: EntryView) =>
@@ -78,14 +98,14 @@ export function LedgerHero() {
   };
 
   const whoEntries = useMemo(() => {
-    if (!selectedWho || !model) return [];
-    return model.entries.filter((e) => {
+    if (!selectedWho || !shown) return [];
+    return shown.entries.filter((e) => {
       const names = [e.line.author, e.line.signedBy, ...((e.line.approvals as Array<{ by: string }> | undefined) ?? []).map((a) => a.by), ...(e.approvals?.records ?? []).map((a) => a.by)];
       return names.some((n) => typeof n === "string" && n.normalize("NFKC").trim().toLowerCase() === selectedWho);
     });
-  }, [selectedWho, model]);
+  }, [selectedWho, shown]);
 
-  const counts = model?.counts;
+  const counts = shown?.counts;
 
   return (
     <section id="top" className="pt-24 sm:pt-28 pb-10 px-4 sm:px-6">
@@ -108,17 +128,18 @@ export function LedgerHero() {
             </motion.p>
           </div>
           <motion.div variants={fadeUp} className="flex items-center gap-2 flex-wrap">
-            <a href="#walkthrough" className="btn btn-glass h-10 px-4 text-sm">
-              <Rocket className="w-4 h-4" /> Watch the walkthrough
-            </a>
+            <button onClick={startGuided} className="btn btn-primary h-10 px-4 text-sm">
+              <PlayCircle className="w-4 h-4" /> Watch it happen
+            </button>
             <CopyButton text={INSTALL} className="btn btn-glass h-10 px-4 font-mono text-xs" label={<span className="truncate">{INSTALL}</span>} />
           </motion.div>
         </div>
 
         <motion.div variants={fadeUp} className="grid lg:grid-cols-[1fr_380px] gap-4 items-start">
-          <div className="glass-panel rounded-2xl overflow-hidden">
+          <div ref={graphRef} className="glass-panel rounded-2xl overflow-hidden scroll-mt-20">
             <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-b border-white/5 text-xs">
               <div className="flex items-center gap-3 text-muted-foreground font-mono">
+                {guided && <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-semibold">SANDBOX</span>}
                 <span>
                   <span className="text-primary font-semibold">{counts ? counts.tb : "–"}</span> TB
                 </span>
@@ -128,12 +149,14 @@ export function LedgerHero() {
                 <span className="hidden sm:inline">
                   <span className="text-white/80 font-semibold">{counts ? counts.lines : "–"}</span> lines
                 </span>
-                {model?.head && <span className="hidden md:inline text-white/40">head {model.head.hash.slice(0, 10)}…</span>}
+                {shown?.head && <span className="hidden md:inline text-white/40">head {shown.head.hash.slice(0, 10)}…</span>}
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={() => void refresh()} className="p-1.5 rounded-md text-muted-foreground hover:text-white cursor-pointer" title="refresh" disabled={loading}>
-                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-                </button>
+                {!guided && (
+                  <button onClick={() => void refresh()} className="p-1.5 rounded-md text-muted-foreground hover:text-white cursor-pointer" title="refresh" disabled={loading}>
+                    <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                  </button>
+                )}
                 <div className="flex rounded-md border border-white/10 overflow-hidden">
                   {(["graph", "list"] as const).map((v) => (
                     <button key={v} onClick={() => setView(v)} className={`inline-flex items-center gap-1 px-2 py-1 cursor-pointer ${view === v ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white/80"}`}>
@@ -143,22 +166,29 @@ export function LedgerHero() {
                 </div>
               </div>
             </div>
-            {error && <p className="px-4 py-3 text-sm text-red-400">Couldn't reach the ledger: {error}</p>}
-            {model && view === "graph" && <TruthGraph model={model} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />}
-            {model && view === "list" && (
+            {error && !guided && <p className="px-4 py-3 text-sm text-red-400">Couldn't reach the ledger: {error}</p>}
+            {shown && view === "graph" && <TruthGraph key={guided ? "sandbox" : "live"} model={shown} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />}
+            {shown && view === "list" && (
               <div className="p-3 sm:p-4">
-                <LedgerBoard model={model} highlight={highlight} onAct={onAct} actorName={identity.by} emptyText="The ledger is empty. Make the first claim." />
+                <LedgerBoard model={shown} highlight={highlight} onAct={guided ? undefined : onAct} actorName={identity.by} emptyText={guided ? "Empty. Press Start." : "The ledger is empty. Make the first claim."} />
               </div>
             )}
-            {!model && !error && <div className="h-[440px] flex items-center justify-center text-sm text-muted-foreground">loading the stream…</div>}
-            {model && view === "graph" && (
+            {!shown && !error && <div className="h-[440px] flex items-center justify-center text-sm text-muted-foreground">{guided ? "setting up the sandbox…" : "loading the stream…"}</div>}
+            {shown && view === "graph" && (
               <div className="px-3 sm:px-4 py-2 border-t border-white/5">
-                <ChainStrip lines={model.lines} highlight={highlight} />
+                <ChainStrip lines={shown.lines} highlight={highlight} />
               </div>
             )}
           </div>
 
           <div ref={panelRef} className="scroll-mt-24 space-y-3">
+            {guided && (
+              <>
+                <GuidedPanel onModel={setSandboxModel} onHighlight={setHighlight} onSelect={setSelected} onExit={exitGuided} />
+                {selectedEntry && <EntryCard entry={selectedEntry} byId={byId} highlight={highlight.has(selectedEntry.id)} />}
+              </>
+            )}
+            {!guided && (
             <AnimatePresence mode="wait">
               {selectedEntry ? (
                 <motion.div key={selectedEntry.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ duration: 0.2 }} className="space-y-2">
@@ -192,6 +222,7 @@ export function LedgerHero() {
                 </motion.div>
               )}
             </AnimatePresence>
+            )}
             <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
               <a href="/api/ledger/export" className="inline-flex items-center gap-1 text-white/80 hover:text-white">
                 <Download className="w-3.5 h-3.5" /> /api/ledger/export
