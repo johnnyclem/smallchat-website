@@ -16,8 +16,10 @@ import {
   type SiteMeta,
 } from "@workspace/site-kit";
 import { ObjectionPlayground } from "@/components/ObjectionPlayground";
+import { PublicLedger } from "@/components/PublicLedger";
 import { RolloutSpectrum } from "@/components/RolloutSpectrum";
 import { Transcript } from "@/components/Transcript";
+import { TruthDemo } from "@/components/TruthDemo";
 
 const SITE: SiteMeta = {
   id: "stenographer",
@@ -223,9 +225,10 @@ export default function App() {
         <SiteNav
           site={SITE}
           links={[
+            { href: "#settle", label: "Settle a claim" },
+            { href: "#ledger", label: "Public ledger" },
             { href: "#what", label: "What it does" },
-            { href: "#try", label: "Try it" },
-            { href: "#rollout", label: "Rollout" },
+            { href: "#try", label: "Objections" },
             { href: "#start", label: "Get Started" },
           ]}
         />
@@ -234,11 +237,21 @@ export default function App() {
           badge="Open Source · MCP · Local-first · MIT License"
           title="stenographer."
           tagline="The court reporter for your agents."
-          lines={<>It never speaks out of turn.<br />It keeps the record.<br />And it objects when an agent repeats something declared dead. Its gate can stop the write before it runs.</>}
+          lines={<>It never speaks out of turn.<br />It keeps the record.<br />And it objects when an agent repeats something declared dead. Its gate can stop the write before it runs.<br /><a href="#settle" className="text-primary hover:underline">Watch a claim get settled ↓</a> or <a href="#ledger" className="text-primary hover:underline">write to the public ledger</a>.</>}
           install={{ display: INSTALL, copy: INSTALL }}
         >
           <Transcript />
         </Hero>
+
+        <Band id="settle" title="How truth gets settled" lede="Agents find the facts. People sign them. Watch a claim become a TB, get challenged, and survive, on a ledger running in your browser." wide>
+          <TruthDemo />
+        </Band>
+
+        <PullQuote cite="One agent's confidence is not evidence. A person's approval, with one more approver, is.">No number of agents mints a TB.</PullQuote>
+
+        <Band id="ledger" title="The public truth ledger" lede="One permanent, hash-chained stream anyone can write to. Make a claim, challenge one, approve, refute or strike. A TB takes the same rigor here as in your own repo." wide>
+          <PublicLedger />
+        </Band>
 
         <Band id="what" title="What it does" lede="An MCP server that observes by default. It turns agent transcripts into a record you can query, and keeps a hash-chained ledger of what's dead.">
           <TabBar<Tab>

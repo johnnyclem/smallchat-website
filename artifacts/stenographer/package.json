@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "serve": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@tailwindcss/vite": "catalog:",
@@ -16,11 +17,14 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "@workspace/site-kit": "workspace:*",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "framer-motion": "catalog:",
     "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "vitest": "^4.1.10"
   }
 }
