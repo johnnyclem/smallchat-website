@@ -13,11 +13,13 @@ export function LedgerBoard({
   canAct,
   emptyText = "Nothing on the record yet.",
   defaultFilter = "all",
+  actorName,
 }: {
   model: ReadModel;
   highlight?: Set<string>;
   onAct?: (act: EntryAct, entry: EntryView) => void;
   canAct?: (act: EntryAct, entry: EntryView) => boolean;
+  actorName?: string;
   emptyText?: string;
   defaultFilter?: Filter;
 }) {
@@ -60,7 +62,7 @@ export function LedgerBoard({
       <div className="space-y-2.5 max-h-[34rem] overflow-y-auto pr-1">
         {shown.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">{filter === "all" ? emptyText : "Nothing here."}</p>}
         {shown.map((e) => (
-          <EntryCard key={e.id} entry={e} byId={byId} highlight={highlight?.has(e.id)} onAct={onAct} canAct={canAct} />
+          <EntryCard key={e.id} entry={e} byId={byId} highlight={highlight?.has(e.id)} onAct={onAct} canAct={canAct} actorName={actorName} />
         ))}
       </div>
       <ChainStrip lines={model.lines} highlight={highlight} />

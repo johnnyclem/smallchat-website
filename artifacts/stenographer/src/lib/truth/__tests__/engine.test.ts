@@ -247,12 +247,35 @@ describe("challenge, contest, resolve", () => {
     await l.refused({ type: "strike", actor: a1, id: uv, opinion: "x" }, "role");
     await l.refused({ type: "strike", actor: kim, id: uv, opinion: "   " }, "input");
     const r = await l.run({ type: "strike", actor: kim, id: uv, opinion: "no evidence at all" });
-    expect(r.outcome).toEqual({ kind: "struck", id: uv, released: tb });
+    expect(r.outcome).toEqual({ kind: "struck", id: uv, released: tb, withdrawn: false });
     expect(r.lines[0]).toMatchObject({ type: "RULING", kind: "strike", answerableBy: "kim" });
     expect(l.entry(uv).status).toBe("struck");
     expect(l.entry(tb).status).toBe("active");
     await l.refused({ type: "strike", actor: kim, id: uv, opinion: "again" }, "status");
     await l.refused({ type: "approve", actor: kim, id: uv }, "status");
+  });
+});
+
+describe("withdrawing your own claim", () => {
+  it("the author can't refute or approve their own UV, and is pointed at withdrawing it", async () => {
+    const l = new Ledger();
+    const id = await claim(l, { by: "johnny", role: "human" }, "Donal Trump is the president");
+    const r = await l.refused({ type: "refute", actor: { by: "Johnny", role: "human" }, id, evidence: file }, "contempt", /Withdraw it/);
+    expect(r.suggest).toEqual({ kind: "withdraw", id });
+    const a = await l.refused({ type: "approve", actor: { by: "johnny", role: "human" }, id }, "contempt", /withdraw it/);
+    expect(a.suggest).toEqual({ kind: "withdraw", id });
+  });
+
+  it("striking your own UV withdraws it, with the reason on the record, and releases a contest", async () => {
+    const l = new Ledger();
+    const id = await claim(l, { by: "johnny", role: "human" }, "Donal Trump is the president");
+    const r = await l.run({ type: "strike", actor: { by: "johnny", role: "human" }, id, opinion: "typo: I meant Donald" });
+    expect(r.outcome).toEqual({ kind: "struck", id, released: null, withdrawn: true });
+    expect(r.message).toMatch(/^Withdrawn by johnny/);
+    expect(r.lines[0]).toMatchObject({ type: "RULING", kind: "strike", author: "johnny", opinion: "typo: I meant Donald", target: id });
+    expect(l.entry(id).status).toBe("struck");
+    const again = await claim(l, { by: "johnny", role: "human" }, "Donald Trump is the president");
+    expect(l.entry(again).status).toBe("open");
   });
 });
 

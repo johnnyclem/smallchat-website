@@ -34,7 +34,7 @@ export function json(body: unknown, status = 200, headers: Record<string, string
 }
 
 function failure(err: unknown): Response {
-  if (err instanceof Refusal) return json({ refused: true, code: err.code, rule: err.rule, message: err.message }, 422);
+  if (err instanceof Refusal) return json({ refused: true, code: err.code, rule: err.rule, message: err.message, ...(err.suggest ? { suggest: err.suggest } : {}) }, 422);
   if (err instanceof StoreError) {
     if (err.code === "P0009") return json({ error: err.message }, 429);
     if (err.code === "P0007") return json({ error: "The ledger moved while this was written. Try again." }, 409);

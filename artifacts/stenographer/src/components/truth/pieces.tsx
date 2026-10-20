@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, Check, Gavel, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Check, Gavel, ShieldCheck, Undo2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { ActResponse } from "@/lib/ledger-client";
 import { verifyChain, type ChainProblem } from "@/lib/truth/chain";
 import type { EntryView } from "@/lib/truth/read";
-import type { Evidence, Line } from "@/lib/truth/types";
+import type { Evidence, Line, Suggestion } from "@/lib/truth/types";
 
 export const short = (id: string) => (id.length > 10 ? `${id.slice(0, 6)}…${id.slice(-4)}` : id);
 
@@ -60,7 +60,16 @@ export function Who({ name, role }: { name: string; role?: "human" | "agent" | "
 }
 
 /** The engine's answer to an action: what happened, or why it was refused. */
-export function ResultBanner({ result }: { result: ActResponse | null }) {
+export function ResultBanner({ result, onSuggest }: { result: ActResponse | null; onSuggest?: (s: Suggestion) => void }) {
+  const suggestion: Suggestion | null = !result
+    ? null
+    : result.ok
+      ? result.outcome.kind === "struck" && result.outcome.withdrawn
+        ? { kind: "claim-again", id: result.outcome.id }
+        : null
+      : result.refused && result.suggest
+        ? result.suggest
+        : null;
   return (
     <AnimatePresence mode="wait">
       {result && (
@@ -84,6 +93,11 @@ export function ResultBanner({ result }: { result: ActResponse | null }) {
             </p>
           )}
           {result.ok && result.lines.length === 0 && <p className="mt-2 font-mono text-[11px] text-white/50">no line written: an approval waits beside the ledger until a promotion writes it into a TB</p>}
+          {suggestion && onSuggest && (
+            <button onClick={() => onSuggest(suggestion)} className="mt-3 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-white/15 bg-white/[0.06] text-white hover:bg-white/10 cursor-pointer">
+              <Undo2 className="w-3.5 h-3.5" /> {suggestion.kind === "withdraw" ? "Withdraw it instead" : "File a corrected claim"}
+            </button>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

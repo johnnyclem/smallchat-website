@@ -1,10 +1,11 @@
-import { ArrowDown, ArrowUpRight, Gavel, Hand, ShieldCheck, Swords } from "lucide-react";
+import { ArrowDown, ArrowUpRight, Gavel, Hand, ShieldCheck, Swords, Undo2 } from "lucide-react";
+import { sameIdentity } from "@/lib/truth/identity";
 import type { ReactNode } from "react";
 import type { EntryView } from "@/lib/truth/read";
 import type { ApprovalRecord, Evidence } from "@/lib/truth/types";
 import { Badge, EvidenceChips, Who, short, statusLook } from "./pieces";
 
-export type EntryAct = "approve" | "refute" | "strike" | "challenge";
+export type EntryAct = "approve" | "refute" | "strike" | "challenge" | "withdraw";
 
 export function EntryCard({
   entry,
@@ -12,10 +13,13 @@ export function EntryCard({
   highlight,
   onAct,
   canAct,
+  actorName,
 }: {
   entry: EntryView;
   byId: Map<string, EntryView>;
   highlight?: boolean;
+  /** Who is reading: their own open claim offers Withdraw instead of Approve and Refute. */
+  actorName?: string;
   /** Offer actions on this entry; the composer decides who may do them. */
   onAct?: (act: EntryAct, entry: EntryView) => void;
   canAct?: (act: EntryAct, entry: EntryView) => boolean;
@@ -29,13 +33,17 @@ export function EntryCard({
   const contestsTarget = entry.contests ? byId.get(entry.contests) : null;
   const literals = line.literals as Array<{ dead: string; subject?: string; current?: string }> | undefined;
   const acts: Array<{ act: EntryAct; label: string; icon: ReactNode }> = [];
+  const own = !!actorName && sameIdentity(actorName, line.author);
   if (onAct) {
     if (entry.type === "UV" && entry.status === "open") {
-      acts.push({ act: "approve", label: "Approve", icon: <ShieldCheck className="w-3.5 h-3.5" /> });
-      acts.push({ act: "refute", label: "Refute", icon: <Hand className="w-3.5 h-3.5" /> });
+      if (own) acts.push({ act: "withdraw", label: "Withdraw", icon: <Undo2 className="w-3.5 h-3.5" /> });
+      else {
+        acts.push({ act: "approve", label: "Approve", icon: <ShieldCheck className="w-3.5 h-3.5" /> });
+        acts.push({ act: "refute", label: "Refute", icon: <Hand className="w-3.5 h-3.5" /> });
+      }
     }
     if (isTb && (entry.status === "active" || entry.status === "contested")) acts.push({ act: "challenge", label: "Challenge", icon: <Swords className="w-3.5 h-3.5" /> });
-    if (entry.status !== "struck") acts.push({ act: "strike", label: "Strike", icon: <Gavel className="w-3.5 h-3.5" /> });
+    if (entry.status !== "struck" && !(own && entry.type === "UV" && entry.status === "open")) acts.push({ act: "strike", label: "Strike", icon: <Gavel className="w-3.5 h-3.5" /> });
   }
 
   return (
