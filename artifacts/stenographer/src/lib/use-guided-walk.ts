@@ -1,35 +1,35 @@
 /**
- * The guided walk as state the hero shares between the graph overlay (tap
- * to run the next move) and the side panel (the narration and the engine's
- * answer). A sandbox ledger in the browser; nothing is saved.
+ * The explainer's state, shared between the graph overlay (pick a move) and
+ * the side panel (the narration and the engine's answer). A sandbox ledger
+ * in the browser; nothing is saved.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SCENES, START_SCENE, choicesFor, type Choice, type Refs, type Scene } from "./adventure";
 import { SandboxLedger, type ActResponse } from "./ledger-client";
 import type { Action } from "./truth/engine";
 import type { ReadModel } from "./truth/read";
-import type { Actor } from "./truth/types";
-import { STEPS, YOU, type Refs, type Step } from "./walkthrough";
 
 export interface Played {
-  step: number;
-  actor: Actor;
-  result: ActResponse;
+  scene: string;
+  choice: Choice;
+  /** The engine's answers, one per move the choice ran; empty on a dead end. */
+  results: ActResponse[];
 }
 
 /** How long the overlay stays out of the way after a move, so the graph's animation is seen. */
-const SETTLE_MS = 1700;
+const SETTLE_MS = 1900;
 
 export function useGuidedWalk(opts: { onHighlight: (ids: Set<string>) => void; onSelect: (id: string | null) => void }) {
   const ledger = useRef(new SandboxLedger());
   const refs = useRef<Refs>({});
   const [model, setModel] = useState<ReadModel | null>(null);
+  const [sceneId, setSceneId] = useState(START_SCENE);
   const [played, setPlayed] = useState<Played[]>([]);
   const [busy, setBusy] = useState(false);
-  /** `ready`: waiting for the next tap. `settling`: a move just ran; let the graph move before asking again. */
+  /** `ready`: waiting for a pick. `settling`: moves just ran; let the graph move before asking again. */
   const [phase, setPhase] = useState<"ready" | "settling">("ready");
   const [freePlay, setFreePlay] = useState(false);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const you: Actor = useMemo(() => ({ by: YOU, role: "human" }), []);
   const { onHighlight, onSelect } = opts;
 
   const publish = useCallback(async () => {
@@ -45,40 +45,71 @@ export function useGuidedWalk(opts: { onHighlight: (ids: Set<string>) => void; o
     };
   }, [publish]);
 
-  const next = played.length;
-  const step: Step | undefined = STEPS[next];
+  const scene: Scene = SCENES[sceneId];
+  const choices = useMemo(() => choicesFor(scene, refs.current), [scene, played.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = played[played.length - 1] ?? null;
-  const done = next >= STEPS.length;
+  const done = !!scene.terminal;
 
-  const focusOf = (r: ActResponse, action: Action): string | null => {
-    if (r.ok) {
-      if (r.outcome.kind === "promoted") return r.outcome.tb;
-      return "id" in r.outcome ? r.outcome.id : null;
-    }
-    return "id" in action ? action.id : null;
+  const idOf = (r: ActResponse): string | null => {
+    if (!r.ok) return null;
+    if (r.outcome.kind === "promoted") return r.outcome.tb;
+    return "id" in r.outcome ? r.outcome.id : null;
   };
 
-  const play = useCallback(async () => {
-    const current = STEPS[played.length];
-    if (!current || busy) return;
-    setBusy(true);
-    try {
-      const action = current.action(refs.current, you);
-      const result = await ledger.current.run(action);
-      current.remember?.(result, refs.current);
-      setPlayed((p) => [...p, { step: p.length, actor: current.who(you), result }]);
-      await publish();
-      const ids = new Set(result.ok ? result.lines.map((l) => l.id) : []);
-      if (result.ok && result.outcome.kind === "promoted") ids.add(result.outcome.tb);
-      onHighlight(ids);
-      onSelect(focusOf(result, action));
-      setPhase("settling");
-      if (settleTimer.current) clearTimeout(settleTimer.current);
-      settleTimer.current = setTimeout(() => setPhase("ready"), SETTLE_MS);
-    } finally {
-      setBusy(false);
-    }
-  }, [played.length, busy, you, publish, onHighlight, onSelect]);
+  const settle = () => {
+    setPhase("settling");
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => setPhase("ready"), SETTLE_MS);
+  };
+
+  const choose = useCallback(
+    async (choice: Choice) => {
+      if (busy) return;
+      setBusy(true);
+      try {
+        const results: ActResponse[] = [];
+        let refused = false;
+        const ids = new Set<string>();
+        let focus: string | null = null;
+        if (choice.run) {
+          const actions: Action[] = choice.run(refs.current);
+          for (const action of actions) {
+            const r = await ledger.current.run(action);
+            results.push(r);
+            if (!r.ok) {
+              refused = true;
+              focus = "id" in action ? action.id : null;
+              break;
+            }
+            for (const l of r.lines) ids.add(l.id);
+            if (r.outcome.kind === "promoted") ids.add(r.outcome.tb);
+            focus = idOf(r);
+          }
+          if (!refused) choice.remember?.(refs.current, results.map(idOf));
+        }
+        setPlayed((p) => [...p, { scene: sceneId, choice, results }]);
+        await publish();
+        onHighlight(ids);
+        onSelect(focus);
+        const target = refused ? choice.nextIfRefused : choice.next;
+        if (target === "restart") {
+          ledger.current.reset();
+          refs.current = {};
+          setPlayed([]);
+          onHighlight(new Set());
+          onSelect(null);
+          await publish();
+          setSceneId(START_SCENE);
+        } else if (target) {
+          setSceneId(target);
+        }
+        if (choice.run) settle();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, sceneId, publish, onHighlight, onSelect]
+  );
 
   const runFree = useCallback(
     async (action: Action) => {
@@ -86,7 +117,7 @@ export function useGuidedWalk(opts: { onHighlight: (ids: Set<string>) => void; o
       await publish();
       if (r.ok) {
         onHighlight(new Set(r.lines.map((l) => l.id)));
-        onSelect(focusOf(r, action));
+        onSelect(idOf(r));
       }
       return r;
     },
@@ -97,6 +128,7 @@ export function useGuidedWalk(opts: { onHighlight: (ids: Set<string>) => void; o
     ledger.current.reset();
     refs.current = {};
     setPlayed([]);
+    setSceneId(START_SCENE);
     setFreePlay(false);
     setPhase("ready");
     onHighlight(new Set());
@@ -104,7 +136,8 @@ export function useGuidedWalk(opts: { onHighlight: (ids: Set<string>) => void; o
     await publish();
   }, [publish, onHighlight, onSelect]);
 
-  return { model, played, step, next, last, done, busy, phase, freePlay, setFreePlay, play, runFree, reset, you, total: STEPS.length };
+  const moves = played.reduce((n, p) => n + p.results.length, 0);
+  return { model, scene, choices, played, last, done, busy, phase, freePlay, setFreePlay, choose, runFree, reset, moves };
 }
 
 export type GuidedWalk = ReturnType<typeof useGuidedWalk>;
