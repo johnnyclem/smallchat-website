@@ -40,7 +40,7 @@ function EvidenceEditor({ value, onChange, hint }: { value: Evidence[]; onChange
                 </option>
               ))}
             </select>
-            <input value={e.ref} onChange={(ev) => update(i, { ref: ev.target.value })} placeholder={e.kind === "commit" ? "9f2c1ab" : e.kind === "file" ? "src/config.ts:12" : "what it names"} className={`${field} font-mono text-xs`} />
+            <input value={e.ref} onChange={(ev) => update(i, { ref: ev.target.value })} placeholder={e.kind === "commit" ? "grocery-list@c0ffee1" : e.kind === "file" ? "fridge-cam/tue-07.12.jpg" : "what it names"} className={`${field} font-mono text-xs`} />
             <button onClick={() => onChange(value.filter((_, j) => j !== i))} className="px-2 rounded-lg border border-white/10 text-muted-foreground hover:text-white cursor-pointer" aria-label="remove">
               <X className="w-3.5 h-3.5" />
             </button>
@@ -211,12 +211,12 @@ export function ActionComposer({
         <div className="space-y-3">
           <div>
             <span className={label}>Assertion · what you believe is true</span>
-            <textarea value={assertion} onChange={(e) => setAssertion(e.target.value)} rows={2} placeholder="The retry cap is read once, at start-up." className={field} />
+            <textarea value={assertion} onChange={(e) => setAssertion(e.target.value)} rows={2} placeholder="We're out of eggs. Saturday's dozen is gone." className={field} />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <span className={label}>Basis · why you believe it</span>
-              <input value={basis} onChange={(e) => setBasis(e.target.value)} placeholder="config.ts loads it before the loop" className={field} />
+              <input value={basis} onChange={(e) => setBasis(e.target.value)} placeholder="the carton on the door shelf is empty" className={field} />
             </div>
             <div>
               <span className={label}>Verify by · how someone could check</span>
@@ -226,7 +226,7 @@ export function ActionComposer({
                     <option key={k}>{k}</option>
                   ))}
                 </select>
-                <input value={verifyValue} onChange={(e) => setVerifyValue(e.target.value)} placeholder="src/config.ts" className={`${field} font-mono text-xs`} />
+                <input value={verifyValue} onChange={(e) => setVerifyValue(e.target.value)} placeholder="the door shelf of the kitchen fridge" className={`${field} font-mono text-xs`} />
               </div>
             </div>
           </div>
@@ -267,7 +267,7 @@ export function ActionComposer({
           />
           <div>
             <span className={label}>Note · optional</span>
-            <input value={note} onChange={(e) => setNote(e.target.value)} className={field} placeholder={kind === "approve" ? "the test pins it" : "config.ts still says 100"} />
+            <input value={note} onChange={(e) => setNote(e.target.value)} className={field} placeholder={kind === "approve" ? "the scale agrees: carton's empty" : "six eggs in the crisper"} />
           </div>
         </div>
       )}
@@ -285,7 +285,7 @@ export function ActionComposer({
           </div>
           <div>
             <span className={label}>{withdrawing ? "Why you're withdrawing it · on the record for good" : "Opinion · the written reasoning, on the record for good"}</span>
-            <textarea value={opinion} onChange={(e) => setOpinion(e.target.value)} rows={2} placeholder={withdrawing ? "typo: I meant Donald, and I'll file it again" : "the cited commit is on an abandoned branch"} className={field} />
+            <textarea value={opinion} onChange={(e) => setOpinion(e.target.value)} rows={2} placeholder={withdrawing ? "I was wrong: the eggs were in the crisper. Filing it again." : "duplicate: eggs went on the list Monday night"} className={field} />
             <p className="mt-1 text-[11px] text-muted-foreground">
               {withdrawing
                 ? "Your own claim: this withdraws it. It stays in the chain, marked struck, with your reason beside it."
