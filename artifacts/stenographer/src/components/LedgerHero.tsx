@@ -133,7 +133,7 @@ export function LedgerHero() {
           </div>
           <motion.div variants={fadeUp} className="flex items-center gap-2 flex-wrap">
             <button onClick={startGuided} className="btn btn-primary h-10 px-4 text-sm">
-              <PlayCircle className="w-4 h-4" /> Watch it happen
+              <PlayCircle className="w-4 h-4" /> Choose your path
             </button>
             <CopyButton text={INSTALL} className="btn btn-glass h-10 px-4 font-mono text-xs" label={<span className="truncate">{INSTALL}</span>} />
           </motion.div>
@@ -173,7 +173,7 @@ export function LedgerHero() {
             {error && !guided && <p className="px-4 py-3 text-sm text-red-400">Couldn't reach the ledger: {error}</p>}
             {shown && view === "graph" && (
               <div className="relative">
-                <TruthGraph key={guided ? "sandbox" : "live"} model={shown} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />
+                <TruthGraph key={guided ? "sandbox" : "live"} model={shown} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={guided ? 520 : 440} />
                 {guided && <GuidedOverlay walk={walk} onExit={exitGuided} />}
               </div>
             )}
