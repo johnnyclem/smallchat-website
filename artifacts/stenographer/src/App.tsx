@@ -1,7 +1,6 @@
 import { Check, Gavel, ScrollText, Swords, Users } from "lucide-react";
 import { Band, CommandBlock, GetStarted, Glow, PullQuote, SiteFooter, SiteNav, TypewriterIcon, type SiteMeta } from "@workspace/site-kit";
 import { LedgerHero } from "@/components/LedgerHero";
-import { TruthDemo } from "@/components/TruthDemo";
 
 const SITE: SiteMeta = {
   id: "stenographer",
@@ -59,7 +58,6 @@ export default function App() {
           site={SITE}
           links={[
             { href: "#top", label: "Ledger" },
-            { href: "#walkthrough", label: "Walkthrough" },
             { href: "#rules", label: "Rules" },
             { href: "#start", label: "Install" },
           ]}
@@ -69,11 +67,7 @@ export default function App() {
 
         <PullQuote cite="One agent's confidence is not evidence. A person's approval, with one more approver, is.">No number of agents mints a TB.</PullQuote>
 
-        <Band id="walkthrough" title="How a claim becomes truth" lede="Thirteen moves on a sandbox ledger in your browser: a claim, the refusals, a nomination, a promotion, a challenge, and what survives." wide>
-          <TruthDemo />
-        </Band>
-
-        <Band id="rules" title="The rules" lede="The same engine runs the walkthrough, the public ledger above, and the MCP server you install.">
+        <Band id="rules" title="The rules" lede="The same engine runs the guided walk, the public ledger above, and the MCP server you install.">
           <Rules />
           <p className="text-xs text-muted-foreground text-center max-w-3xl mx-auto leading-relaxed flex items-center justify-center gap-1.5 flex-wrap">
             <Check className="w-3.5 h-3.5 text-green-400" /> Stenographer itself does more: it indexes your agents' transcripts, objects when one repeats a dead value, and its PreToolUse gate can stop the write.
