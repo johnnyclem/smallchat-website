@@ -6,7 +6,9 @@ import { browserSession, loadIdentity, publicLedger, saveIdentity, type ActRespo
 import type { EntryView, ReadModel } from "@/lib/truth/read";
 import { ActionComposer, type ComposerIdentity, type ComposerPreset } from "./truth/ActionComposer";
 import { EntryCard, type EntryAct } from "./truth/EntryCard";
+import { GuidedOverlay } from "./truth/GuidedOverlay";
 import { GuidedPanel } from "./truth/GuidedPanel";
+import { useGuidedWalk } from "@/lib/use-guided-walk";
 import { LedgerBoard } from "./truth/LedgerBoard";
 import { ChainStrip, Who } from "./truth/pieces";
 import { TruthGraph } from "./truth/TruthGraph";
@@ -29,7 +31,8 @@ export function LedgerHero() {
   const [preset, setPreset] = useState<ComposerPreset | null>(null);
   const [highlight, setHighlight] = useState<Set<string>>(new Set());
   const [guided, setGuided] = useState(false);
-  const [sandboxModel, setSandboxModel] = useState<ReadModel | null>(null);
+  const walk = useGuidedWalk({ onHighlight: setHighlight, onSelect: setSelected });
+  const sandboxModel = walk.model;
   const panelRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +82,7 @@ export function LedgerHero() {
     setGuided(false);
     setSelected(null);
     setHighlight(new Set());
+    void walk.reset();
     void refresh();
   };
 
@@ -167,7 +171,12 @@ export function LedgerHero() {
               </div>
             </div>
             {error && !guided && <p className="px-4 py-3 text-sm text-red-400">Couldn't reach the ledger: {error}</p>}
-            {shown && view === "graph" && <TruthGraph key={guided ? "sandbox" : "live"} model={shown} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />}
+            {shown && view === "graph" && (
+              <div className="relative">
+                <TruthGraph key={guided ? "sandbox" : "live"} model={shown} selected={selected} onSelect={setSelected} highlight={highlight} minHeight={440} />
+                {guided && <GuidedOverlay walk={walk} onExit={exitGuided} />}
+              </div>
+            )}
             {shown && view === "list" && (
               <div className="p-3 sm:p-4">
                 <LedgerBoard model={shown} highlight={highlight} onAct={guided ? undefined : onAct} actorName={identity.by} emptyText={guided ? "Empty. Press Start." : "The ledger is empty. Make the first claim."} />
@@ -184,7 +193,7 @@ export function LedgerHero() {
           <div ref={panelRef} className="scroll-mt-24 space-y-3">
             {guided && (
               <>
-                <GuidedPanel onModel={setSandboxModel} onHighlight={setHighlight} onSelect={setSelected} onExit={exitGuided} />
+                <GuidedPanel walk={walk} onExit={exitGuided} />
                 {selectedEntry && <EntryCard entry={selectedEntry} byId={byId} highlight={highlight.has(selectedEntry.id)} />}
               </>
             )}
