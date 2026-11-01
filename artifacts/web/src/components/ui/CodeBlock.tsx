@@ -6,26 +6,23 @@ interface CodeBlockProps {
   language?: string;
   className?: string;
   filename?: string;
+  wrap?: boolean;
 }
 
-export function CodeBlock({ code, className, filename }: CodeBlockProps) {
+/** A listing: a quiet file name above, the code on the deepest surface. Long lines scroll, they never break mid-token. */
+export function CodeBlock({ code, className, filename, wrap = false }: CodeBlockProps) {
   return (
-    <div className={cn("rounded-xl overflow-hidden glass-panel border-white/10", className)}>
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black/40">
-        <div className="flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500/80" />
-          <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-          <div className="w-3 h-3 rounded-full bg-green-500/80" />
-        </div>
-        {filename && (
-          <div className="text-xs text-muted-foreground font-mono">{filename}</div>
-        )}
-      </div>
-      <div className="p-4 overflow-x-auto bg-black/50">
-        <pre className="font-mono text-sm leading-relaxed text-gray-300">
+    <figure className={cn("overflow-hidden rounded-xl border bg-deep", className)}>
+      {filename && (
+        <figcaption className="flex h-10 items-center border-b bg-card px-4 font-mono text-xs text-muted-foreground">
+          {filename}
+        </figcaption>
+      )}
+      <div className="overflow-x-auto p-4" tabIndex={0}>
+        <pre className={cn("font-mono text-[13px] leading-6 text-subtle", wrap && "whitespace-pre-wrap break-words")}>
           <code>{code}</code>
         </pre>
       </div>
-    </div>
+    </figure>
   );
 }

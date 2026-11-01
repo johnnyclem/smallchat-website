@@ -43,4 +43,9 @@ const rawTokens = messages.reduce((n, m) => n + estimateTokens(m.content), 0);
 const budgets = Array.from({ length: 12 }, (_, i) => 40 + i * 20);
 const frames = budgets.map((b) => engine.buildContextFrame(b));
 const state = engine.getState();
-console.log(JSON.stringify({ rawTokens, messages: messages.map(({ role, content }) => ({ role, content })), tombstones: state.tombstones.length, archived: (state.archive ?? []).filter((a) => a.reason === "superseded").length, frames }));
+// Message ids whose L1 entries a correction archived as superseded (the page strikes these lines).
+const archivedMessageIds = [...new Set((state.archive ?? [])
+  .filter((a) => a.reason === "superseded" && a.kind === "l1")
+  .flatMap((a) => [a.entry.originalMessageId, ...(a.entry.foldedMessageIds ?? [])]))]
+  .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+console.log(JSON.stringify({ rawTokens, messages: messages.map(({ role, content }) => ({ role, content })), tombstones: state.tombstones.length, archived: (state.archive ?? []).filter((a) => a.reason === "superseded").length, archivedMessageIds, frames }));

@@ -1,5 +1,8 @@
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 
+// Category labels live here and are set in sentence case. Page labels come from each
+// doc's `sidebar_label` front matter, which takes precedence over anything set here, and
+// those are in sentence case too.
 const sidebars: SidebarsConfig = {
   docs: [
     'intro',
@@ -8,7 +11,7 @@ const sidebars: SidebarsConfig = {
     'why-it-matters',
     {
       type: 'category',
-      label: 'Deep Dive',
+      label: 'Deep dive',
       items: [
         'concepts/index',
         'concepts/selector-table',
@@ -24,12 +27,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'CLI Reference',
+      label: 'CLI reference',
       items: ['cli/index', 'cli/compile', 'cli/inspect', 'cli/resolve', 'cli/explain', 'cli/replay', 'cli/serve'],
     },
     {
       type: 'category',
-      label: 'API Reference',
+      label: 'API reference',
       items: ['api/runtime', 'api/dispatch', 'api/compiler', 'api/mcp-server'],
     },
     {

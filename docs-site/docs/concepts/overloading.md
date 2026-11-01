@@ -1,12 +1,12 @@
 ---
-title: Function Overloading
-sidebar_label: Function Overloading
+title: Function overloading
+sidebar_label: Function overloading
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Function Overloading
+# Function overloading
 
 A single `ToolSelector` can map to multiple implementations with different parameter signatures. The `OverloadTable` resolves which implementation to call based on argument types and arity — analogous to method overloading in statically-typed languages, but resolved at runtime.
 

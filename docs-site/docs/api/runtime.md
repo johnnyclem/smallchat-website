@@ -3,7 +3,7 @@ title: ToolRuntime
 sidebar_label: ToolRuntime
 ---
 
-# ToolRuntime API Reference
+# ToolRuntime API reference
 
 `ToolRuntime` is the top-level class of `@smallchat/core`. It owns the
 `DispatchContext` (selector table, resolution cache, registered tool classes,

@@ -2,8 +2,9 @@ import { MessageSquare } from "lucide-react";
 import type { ComponentType } from "react";
 
 /*
- * Family marks, drawn on lucide's 24px grid with the same 2px round stroke
- * as smallchat's MessageSquare so they read as one set.
+ * Family marks, drawn on lucide's 24px grid with the same 1.5px round stroke
+ * the family uses for every icon (theme.css sets svg.lucide to 1.5), so they
+ * read as one set. Colour is currentColor: set it from a text role, never a hue.
  */
 
 type IconProps = { className?: string };
@@ -14,7 +15,7 @@ function Mark({ className, children }: IconProps & { children: React.ReactNode }
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -66,10 +67,14 @@ export function StickyNoteIcon({ className }: IconProps) {
 
 export type FamilyId = "smallchat" | "stenographer" | "polytician" | "short-hand";
 
-/** FAMILY[0] must stay smallchat: SiteNav links to it. */
+/**
+ * FAMILY[0] must stay smallchat: SiteNav links to it. `color` is each product's
+ * brand colour for its own favicon and accent; the kit's chrome never paints
+ * with it.
+ */
 export const FAMILY: { id: FamilyId; name: string; url: string; color: string; Icon: ComponentType<IconProps> }[] = [
   { id: "smallchat", name: "smallchat", url: "https://www.smallchat.dev", color: "#3b9bff", Icon: MessageSquare },
   { id: "stenographer", name: "stenographer", url: "https://stenographer.smallchat.dev", color: "#f8a828", Icon: TypewriterIcon },
-  { id: "polytician", name: "polytician", url: "https://polytician.smallchat.dev", color: "#a98bfa", Icon: PodiumIcon },
+  { id: "polytician", name: "polytician", url: "https://polytician.smallchat.dev", color: "#4fd1b5", Icon: PodiumIcon },
   { id: "short-hand", name: "short-hand", url: "https://short-hand.smallchat.dev", color: "#f472b6", Icon: StickyNoteIcon },
 ];

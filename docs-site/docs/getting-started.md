@@ -1,14 +1,14 @@
 ---
-title: Getting Started
-sidebar_label: Getting Started
+title: Getting started
+sidebar_label: Getting started
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Getting Started
+# Getting started
 
-Get from zero to a running dispatch in under five minutes.
+Get from zero to a running dispatch.
 
 ## 1. Install
 
@@ -92,7 +92,7 @@ A manifest is a JSON file that describes a provider and its tools. Create a `too
 }
 ```
 
-The manifest format is documented in full at [Manifest Format](./manifests/format.md).
+The manifest format is documented in full at [Manifest format](./manifests/format.md).
 
 ## 3. Compile
 
@@ -313,6 +313,6 @@ for try await event in runtime.dispatchStream("file that new issue", args: [
 ## Next steps
 
 - [What it does](./what-it-does.md) — understand the full dispatch pipeline
-- [CLI Reference](./cli/index.md) — all command options
-- [Manifest Format](./manifests/format.md) — provider manifest schema
-- [API Reference](./api/runtime.md) — full API docs
+- [CLI reference](./cli/index.md) — all command options
+- [Manifest format](./manifests/format.md) — provider manifest schema
+- [API reference](./api/runtime.md) — full API docs

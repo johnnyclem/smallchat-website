@@ -1,73 +1,56 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Lightbulb, LogOut, RotateCcw, Wand2 } from "lucide-react";
+import { LogOut, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { tabPanel } from "@workspace/site-kit";
 import type { GuidedWalk } from "@/lib/use-guided-walk";
 import { YOU } from "@/lib/adventure";
 import { ActionComposer, type ComposerIdentity } from "./ActionComposer";
-import { ChoiceButton } from "./GuidedOverlay";
+import { ChoiceList } from "./GuidedOverlay";
 import { ResultBanner } from "./pieces";
 
 /**
- * The explainer's side panel: the scene in full, the lesson of the last
- * move and the engine's answer to it, and the same choices the graph's
- * overlay offers, for anyone who would rather click here.
+ * The explainer's side panel. The scene itself is told once, on the graph:
+ * while the graph's overlay is up the panel shows only the move count, the
+ * two exits, the lesson of the last move and the engine's answer to it. When
+ * the overlay lifts so the graph can be watched, the panel offers the same
+ * numbered choices for anyone who would rather click here.
  */
-export function GuidedPanel({ walk, onExit }: { walk: GuidedWalk; onExit: () => void }) {
+export function GuidedPanel({ walk, onExit, sceneOnGraph }: { walk: GuidedWalk; onExit: () => void; sceneOnGraph: boolean }) {
   const [identity, setIdentity] = useState<ComposerIdentity>({ by: YOU.by, role: "human", session: "sess-you" });
   const { scene, choices, last, done, moves } = walk;
   const lastResult = last?.results[last.results.length - 1] ?? null;
   return (
-    <div className="space-y-3">
-      <div className="glass-panel rounded-2xl p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
-            Choose your path · {moves} move{moves === 1 ? "" : "s"}
+    <div className="flex flex-col gap-4">
+      <div className="panel">
+        <div className={`panel-header flex-wrap ${sceneOnGraph ? "border-b-0" : ""}`}>
+          <p className="font-mono tabular-nums">
+            Walk · {moves} {moves === 1 ? "move" : "moves"}
           </p>
-          <div className="flex items-center gap-3">
-            <button onClick={() => void walk.reset()} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-white cursor-pointer">
-              <RotateCcw className="w-3.5 h-3.5" /> restart
+          <div className="flex items-center gap-1">
+            <button type="button" onClick={() => void walk.reset()} className="btn btn-ghost btn-sm px-2">
+              <RotateCcw /> Restart
             </button>
-            <button onClick={onExit} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-white cursor-pointer">
-              <LogOut className="w-3.5 h-3.5" /> live ledger
+            <button type="button" onClick={onExit} className="btn btn-ghost btn-sm px-2">
+              <LogOut /> Live ledger
             </button>
           </div>
         </div>
-        <AnimatePresence mode="wait">
-          <motion.div key={scene.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.25 }} className="mt-4">
-            <h4 className="text-lg font-semibold text-white">{scene.title}</h4>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{scene.lead}</p>
-            {!done && (
-              <div className="mt-4 grid gap-2">
-                {choices.map((c) => (
-                  <ChoiceButton key={c.label} choice={c} onPick={() => void walk.choose(c)} compact />
-                ))}
-                <p className="text-[11px] text-muted-foreground">or pick on the graph</p>
-              </div>
-            )}
-            {done && (
-              <div className="mt-4 flex gap-2 flex-wrap">
-                <button onClick={() => void walk.reset()} className="btn btn-glass h-10 px-4 text-sm">
-                  <RotateCcw className="w-4 h-4" /> Another path
-                </button>
-                {!walk.freePlay && (
-                  <button onClick={() => walk.setFreePlay(true)} className="btn btn-glass h-10 px-4 text-sm">
-                    <Wand2 className="w-4 h-4" /> Free play
-                  </button>
-                )}
-                <button onClick={onExit} className="btn btn-primary h-10 px-4 text-sm">
-                  <LogOut className="w-4 h-4" /> The live ledger
-                </button>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {!sceneOnGraph && (
+          <div className="p-4">
+            <AnimatePresence mode="wait">
+              <motion.div key={scene.id} {...tabPanel}>
+                <h2 className="text-lg font-medium leading-6">{scene.title}</h2>
+                {walk.freePlay && <p className="mt-2 text-sm leading-5 text-secondary-foreground">{scene.lead}</p>}
+                {!done && <ChoiceList choices={choices} onPick={(c) => void walk.choose(c)} compact />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
       </div>
-      {last && (last.choice.lesson || (!last.choice.run && last.choice.deadEnd)) && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 text-sm">
-          <p className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.12em] uppercase text-muted-foreground mb-1">
-            <Lightbulb className="w-3.5 h-3.5 text-primary" /> {last.choice.run ? "What that showed" : "No such move"}
-          </p>
-          <p className="text-muted-foreground leading-relaxed">{last.choice.run ? last.choice.lesson : last.choice.deadEnd}</p>
+      {last && (last.choice.lesson || (!sceneOnGraph && !last.choice.run && last.choice.deadEnd)) && (
+        <div className="surface rounded-card p-4">
+          <p className="text-sm font-medium leading-5 text-foreground">{last.choice.run ? "What that showed" : "No such move"}</p>
+          <p className="mt-1 text-sm leading-5 text-secondary-foreground">{last.choice.run ? last.choice.lesson : last.choice.deadEnd}</p>
         </div>
       )}
       <ResultBanner result={lastResult} />

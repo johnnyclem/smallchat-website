@@ -32,8 +32,9 @@ export const publicLedger: LedgerRunner = {
       if (body.ok) return { ok: true, outcome: body.outcome as Outcome, message: body.message as string, lines: body.lines as Line[] };
       if (body.refused) return { ok: false, refused: true, code: body.code as string, rule: body.rule as string, message: body.message as string, suggest: body.suggest as Suggestion | undefined };
       return { ok: false, message: (body.error as string) ?? `the ledger answered ${res.status}` };
-    } catch (err) {
-      return { ok: false, message: err instanceof Error ? err.message : String(err) };
+    } catch {
+      // A network failure or an answer that isn't JSON: say so in plain words, not the parser's.
+      return { ok: false, message: "The public ledger is not answering. Nothing was written." };
     }
   },
 };

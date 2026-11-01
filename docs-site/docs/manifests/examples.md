@@ -1,9 +1,9 @@
 ---
-title: Example Manifests
-sidebar_label: Example Manifests
+title: Example manifests
+sidebar_label: Example manifests
 ---
 
-# Example Manifests
+# Example manifests
 
 The `examples/` directory in the smallchat repository contains ready-to-use manifests for common providers. Below are four representative examples.
 

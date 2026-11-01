@@ -1,75 +1,588 @@
 /*
- * Shared look for the smallchat family sites. Same tokens as smallchat
- * (artifacts/web); each site sets --primary / --primary-glow on :root.
- * Import after `@import "tailwindcss"` and add `@source` for this folder.
+ * Shared foundation for the smallchat family sites.
+ *
+ * Quiet by default: a graphite ramp, three text roles, one accent, hairlines,
+ * one easing curve. Nothing here carries a product's colour or typeface. Each
+ * site skins it ONLY by overriding the variables below in its own index.css
+ * (or by setting <html data-ramp="warm|ink">) and by adding local styles.
+ *
+ * Usage, in a site's index.css:
+ *   @import "tailwindcss";
+ *   @import "@workspace/site-kit/theme.css";
+ *   @source "../../../lib/site-kit/src";
+ *   :root { --accent: #4fd1b5; --accent-foreground: #07080d; }
+ *
+ * Every size is on the 4px grid. Colour values are full CSS colours (hex,
+ * oklch, hsl(...)), not HSL channel triplets.
  */
-@theme inline {
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
 
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-card: hsl(var(--card));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
+/* ------------------------------------------------------------------------ */
+/* Tailwind theme: names that generate utilities                             */
+/* ------------------------------------------------------------------------ */
 
-  --radius-lg: var(--radius);
+/* Emitted as variables (not inlined), so a site can override them in :root or
+   in its own @theme block. */
+@theme static {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Nested radius: inner = outer - padding, never below 4. */
+  --radius-tag: 4px; /* tags, keycaps, bar ends */
+  --radius-control: 8px; /* buttons, inputs, rows, tabs */
+  --radius-card: 12px;
+  --radius-panel: 16px; /* panels, windows, sheets */
+
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* Colours point at the plain variables in :root, so overriding the variable
+   re-skins every utility. */
+@theme inline {
+  --color-deep: var(--surface-deep);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-raised: var(--raised);
+  --color-muted: var(--raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  /* Legacy names: same as accent. Prefer accent. */
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-foreground);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Tokens (override these)                                                   */
+/* ------------------------------------------------------------------------ */
 
 :root {
-  --background: 0 0% 4%;
-  --foreground: 0 0% 93%;
-  --card: 0 0% 7%;
-  --border: 0 0% 15%;
-  --primary-foreground: 0 0% 4%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 63%;
-  --radius: 0.75rem;
+  color-scheme: dark;
+
+  /* Neutral ramp, graphite. */
+  --surface-deep: #0f0f10; /* footer, code wells */
+  --background: #141415; /* page */
+  --card: #19191b; /* cards, panels */
+  --raised: #232325; /* active row, input, selected tab */
+
+  /* Three text roles. Muted is for meta and captions only. */
+  --foreground: #ededed;
+  --secondary-foreground: #a1a1a6;
+  --muted-foreground: #85858b;
+
+  /* Hairlines are the primary text colour at 8%, so they follow the tint. */
+  --border: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --border-strong: color-mix(in srgb, var(--foreground) 16%, transparent);
+  --highlight: color-mix(in srgb, var(--foreground) 12%, transparent); /* top edge of a selected surface */
+
+  /* One accent. Default is an off-white with dark text (tokens: dark theme
+     primary). A site swaps in its own hue and a foreground with 4.5:1. */
+  --accent: #ededed;
+  --accent-foreground: #141415;
+  --ring: var(--accent);
+
+  /* Semantic colours carry meaning only. */
+  --positive: #4cc38a;
+  --negative: #e5484d;
+
+  /* Layout */
+  --nav-h: 56px;
+  --container: 72rem; /* content width of nav, sections and footer */
+  --page-x: 20px; /* page edge */
+  --section-y: 64px; /* space above and below a section */
+  --control-sm: 32px;
+  --control: 36px; /* default control height */
+  --control-lg: 44px; /* hero buttons */
+
+  /* Motion. One curve (--ease-standard) and a few durations. */
+  --dur-fast: 120ms; /* hover, press, toggles */
+  --dur-base: 160ms;
+  --dur-menu: 200ms; /* menus, popovers, tab panels */
+  --dur-enter: 400ms; /* entrances */
+  --stagger: 50ms;
+  --rise: 8px;
+  --press: 0.98;
 }
+
+@media (min-width: 768px) {
+  :root {
+    --page-x: 32px;
+    --section-y: 96px;
+  }
+}
+@media (pointer: coarse) {
+  :root {
+    --control-sm: 36px;
+    --control: 40px;
+  }
+}
+
+/* Ramp presets from the tokens table. Set on <html data-ramp="...">; or ignore
+   them and override the eight variables above yourself. */
+:root[data-ramp="warm"] {
+  --surface-deep: #12110f;
+  --background: #161513;
+  --card: #1c1a18;
+  --raised: #262421;
+  --foreground: #efe9de;
+  --secondary-foreground: #aaa398;
+  --muted-foreground: #8a847a;
+  --accent-foreground: #161513;
+}
+:root[data-ramp="ink"] {
+  --surface-deep: #07080d;
+  --background: #0b0d14;
+  --card: #11141c;
+  --raised: #1a1e28;
+  --foreground: #eef0f5;
+  --secondary-foreground: #a3a9b8;
+  --muted-foreground: #7a8296;
+  --accent-foreground: #0b0d14;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Base                                                                      */
+/* ------------------------------------------------------------------------ */
 
 @layer base {
   * {
     @apply border-border;
   }
   html {
-    scroll-behavior: smooth;
-    overflow-x: clip;
+    scroll-padding-top: calc(var(--nav-h) + 16px);
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-color: #0a0a0a;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  /* One icon stroke across the family. Beats lucide's stroke-width attribute;
+     a `stroke-2` utility still wins where a caller really wants it. */
+  svg.lucide {
+    stroke-width: 1.5;
+  }
+  /* Visible focus for every control, keyboard only. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   /* Let wide code blocks scroll inside their card instead of stretching the grid. */
   .grid > * {
     min-width: 0;
   }
   ::selection {
-    @apply bg-primary/30 text-white;
+    background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    color: var(--foreground);
   }
 }
 
-@utility text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/50;
-}
-@utility glass-panel {
-  @apply bg-card/40 backdrop-blur-xl border border-white/[0.05] shadow-2xl;
-}
-@utility glass-panel-hover {
-  @apply hover:bg-card/60 hover:border-white/[0.1] transition-all duration-300;
-}
-@utility btn {
-  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-all h-12 px-8 text-lg cursor-pointer;
-}
-@utility btn-primary {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:-translate-y-0.5;
-  box-shadow: 0 0 15px var(--primary-glow);
-  &:hover {
-    box-shadow: 0 0 25px var(--primary-glow);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
-@utility btn-glass {
-  @apply glass-panel hover:bg-white/10 text-white;
+
+/* ------------------------------------------------------------------------ */
+/* Motion                                                                    */
+/* ------------------------------------------------------------------------ */
+
+@keyframes kit-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* One fade and rise on load. Stagger with style={{ "--i": 1 }}, 2, 3 (50ms apart). */
+@utility animate-enter {
+  animation: kit-enter var(--dur-enter) var(--ease-standard) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+/* Menus and popovers: shorter, 6px. */
+@utility animate-menu {
+  --rise: 6px;
+  animation: kit-enter var(--dur-menu) var(--ease-standard) both;
+}
+/* Named transitions, never transition-all. */
+@utility transition-quiet {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+}
+/* Tiny scale-down while pressed. */
+@utility press {
+  &:active:not(:disabled) {
+    transform: scale(var(--press));
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Layout                                                                    */
+/* ------------------------------------------------------------------------ */
+
+/* The one container: nav, sections, hero and footer share its left edge. */
+@utility page-container {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--page-x));
+  margin-inline: auto;
+  padding-inline: var(--page-x);
+}
+/* Space above and below a section: 64 mobile, 96 from 768. */
+@utility section-y {
+  padding-block: var(--section-y);
+}
+/* First screen: 48 under the nav on mobile, 96 on desktop. */
+@utility section-hero {
+  padding-top: calc(var(--nav-h) + 48px);
+  padding-bottom: 48px;
+  @media (min-width: 1024px) {
+    padding-top: calc(var(--nav-h) + 96px);
+    padding-bottom: 96px;
+  }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Surfaces: plain fill + hairline. Depth from steps, not shadows.           */
+/* ------------------------------------------------------------------------ */
+
+@utility surface {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+@utility surface-raised {
+  background-color: var(--raised);
+  border: 1px solid var(--border);
+}
+/* The one panel recipe: header 12/16, body 16 mobile and 20 desktop. */
+@utility panel {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+}
+@utility panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+@utility panel-body {
+  padding: 16px;
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
+}
+/* Hover step for a clickable panel. */
+@utility panel-hover {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: var(--dur-base);
+  transition-timing-function: var(--ease-standard);
+  &:hover {
+    background-color: var(--raised);
+    border-color: var(--border-strong);
+  }
+}
+/* Active state: a raised surface step with a top hairline highlight. Pair with
+   a [aria-selected], [aria-pressed] or [data-selected] element. */
+@utility selected {
+  background-color: var(--raised);
+  box-shadow: inset 0 1px 0 var(--highlight);
+  color: var(--foreground);
+}
+/* Nested radius: set --nest-radius on the parent, --nest-pad on the child. */
+@utility radius-nested {
+  border-radius: max(var(--radius-tag), calc(var(--nest-radius, var(--radius-panel)) - var(--nest-pad, 8px)));
+}
+
+/* ------------------------------------------------------------------------ */
+/* Controls                                                                  */
+/* ------------------------------------------------------------------------ */
+
+/* Buttons are 36 tall (40 on touch); btn-lg 44 for hero actions, btn-sm 32. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--control);
+  padding-inline: 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+  & svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  &:active:not(:disabled) {
+    transform: scale(var(--press));
+  }
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+@utility btn-lg {
+  height: var(--control-lg);
+  padding-inline: 20px;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+@utility btn-sm {
+  height: var(--control-sm);
+  padding-inline: 12px;
+}
+/* The accent button: the one primary action on a screen. */
+@utility btn-primary {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--accent) 88%, var(--background));
+  }
+}
+/* Raised surface with a hairline and a soft top highlight. */
+@utility btn-secondary {
+  background-color: var(--raised);
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: inset 0 1px 0 var(--highlight);
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--raised), var(--foreground) 6%);
+    border-color: var(--border-strong);
+  }
+}
+/* Text-only: secondary colour, raised step on hover. */
+@utility btn-ghost {
+  color: var(--secondary-foreground);
+  &:hover:not(:disabled) {
+    background-color: var(--raised);
+    color: var(--foreground);
+  }
+}
+/* A quiet text link in the muted role. */
+@utility link-quiet {
+  color: var(--muted-foreground);
+  transition-property: color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+  &:hover {
+    color: var(--foreground);
+  }
+}
+/* Nav link: 36 tall hit area. */
+@utility nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding-inline: 12px;
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--secondary-foreground);
+  transition-property: color, background-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+  &:hover {
+    color: var(--foreground);
+    background-color: var(--raised);
+  }
+  & svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+/* Tab, chip or segmented button. Selected via aria-selected, aria-pressed or
+   data-selected; icons inside are forced to 16px. */
+@utility tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control);
+  padding-inline: 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+  & svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  &:hover {
+    color: var(--foreground);
+  }
+  &[aria-selected="true"],
+  &[aria-pressed="true"],
+  &[data-selected="true"] {
+    background-color: var(--raised);
+    border-color: var(--border);
+    box-shadow: inset 0 1px 0 var(--highlight);
+    color: var(--foreground);
+  }
+  &:active {
+    transform: scale(var(--press));
+  }
+}
+/* Keyboard shortcut. */
+@utility keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 24px;
+  padding-inline: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tag);
+  background-color: var(--raised);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--secondary-foreground);
+}
+/* 16px icon box (18px: icon-lg). Colour comes from the surrounding text role. */
+@utility icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+@utility icon-lg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Bars: 4px tall, 2px radius, animate transform, never width.               */
+/* ------------------------------------------------------------------------ */
+
+/* <div class="bar-track"><div class="bar-fill" style={{ "--v": 0.72 }} /></div>
+   --v is 0 to 1. Use bar-fill-accent on the one bar that matters. */
+@utility bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--raised);
+  overflow: hidden;
+}
+@utility bar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background-color: var(--muted-foreground);
+  transform-origin: left center;
+  transform: scaleX(var(--v, 0));
+  transition-property: transform, background-color;
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-standard);
+}
+@utility bar-fill-accent {
+  background-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Type scale. Weights 400 and 500 only. Negative tracking only from 28px up. */
+/* ------------------------------------------------------------------------ */
+
+/* Hero headline: 36 on a phone up to 64, 500, 1.05, -0.03em. */
+@utility text-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.25rem + 3.2vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+}
+/* Section title: 28 to 32, 500, 1.15. */
+@utility text-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  @media (min-width: 768px) {
+    font-size: 2rem;
+  }
+}
+/* Pull quote: 28 to 40, 500. */
+@utility text-quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.1rem + 2vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+/* Hero subhead and section lede: 18/28, at most 36rem. Colour is yours:
+   text-secondary-foreground for a lede, text-foreground for a tagline. */
+@utility text-lead {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  max-width: 36rem;
+}
+/* Big figure: 32, 500, tabular. */
+@utility text-figure {
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+/* Meta, counts, ids, captions: mono 12/16 muted, tabular. */
+@utility text-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+/* Code: mono 13/24. */
+@utility text-code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5rem;
 }

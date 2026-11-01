@@ -1,9 +1,9 @@
 ---
-title: Manifest Format
-sidebar_label: Manifest Format
+title: Manifest format
+sidebar_label: Manifest format
 ---
 
-# Manifest Format
+# Manifest format
 
 A **provider manifest** is a JSON file that describes a tool provider and its tools. Manifests are the input to the `compile` command and the `ToolCompiler` API.
 

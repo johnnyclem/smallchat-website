@@ -1,12 +1,12 @@
 ---
-title: Resolution Cache
-sidebar_label: Resolution Cache
+title: Resolution cache
+sidebar_label: Resolution cache
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Resolution Cache
+# Resolution cache
 
 The `ResolutionCache` is an LRU cache that stores resolved dispatches — analogous to the inline method cache in `objc_msgSend`. On a cache hit, dispatch skips the embedding and vector search entirely. On a cache miss, the full resolution runs and the result is stored for future calls.
 

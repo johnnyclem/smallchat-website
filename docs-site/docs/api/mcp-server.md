@@ -3,7 +3,7 @@ title: MCPServer
 sidebar_label: MCPServer
 ---
 
-# MCPServer API Reference
+# MCPServer API reference
 
 `MCPServer` is what `smallchat serve` runs. It is an MCP aggregator built on the official SDK (`@modelcontextprotocol/sdk`): it serves a compiled toolkit's tools and forwards each `tools/call`, by exact name, to the upstream MCP server that owns the tool. It also serves tools and MCP Apps views you register programmatically. See [`serve`](../cli/serve.md) for the behaviour a client sees.
 

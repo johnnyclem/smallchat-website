@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { EASE, Icon, Rich, StatusDot } from "@/components/site";
+import { cn } from "@/lib/utils";
 
 interface ToolGroup {
   id: string;
   name: string;
-  icon: string;
   toolCount: number;
   avgSchemaTokens: number;
   description: string;
@@ -18,17 +19,17 @@ interface OverlapPair {
 }
 
 const toolGroups: ToolGroup[] = [
-  { id: "atlassian", name: "Atlassian", icon: "\u{1F537}", toolCount: 47, avgSchemaTokens: 320, description: "Jira issues, Confluence pages, Bitbucket repos, project management" },
-  { id: "github", name: "GitHub", icon: "\u{1F419}", toolCount: 34, avgSchemaTokens: 280, description: "Repos, issues, PRs, actions, code search, gists" },
-  { id: "slack", name: "Slack", icon: "\u{1F4AC}", toolCount: 22, avgSchemaTokens: 240, description: "Messages, channels, reactions, threads, user lookup" },
-  { id: "google", name: "Google Drive", icon: "\u{1F4CA}", toolCount: 32, avgSchemaTokens: 310, description: "Drive files, Sheets, Docs, shared drives, permissions" },
-  { id: "icloud", name: "iCloud", icon: "\u{2601}\u{FE0F}", toolCount: 24, avgSchemaTokens: 270, description: "iCloud Drive files, photos, notes, reminders, sharing" },
-  { id: "notion", name: "Notion", icon: "\u{1F4DD}", toolCount: 28, avgSchemaTokens: 290, description: "Pages, databases, blocks, search, comments" },
-  { id: "linear", name: "Linear", icon: "\u{1F53A}", toolCount: 19, avgSchemaTokens: 260, description: "Issues, projects, cycles, teams, labels" },
-  { id: "discord", name: "Discord", icon: "\u{1F3AE}", toolCount: 26, avgSchemaTokens: 250, description: "Messages, channels, roles, reactions, voice" },
-  { id: "stripe", name: "Stripe", icon: "\u{1F4B3}", toolCount: 42, avgSchemaTokens: 380, description: "Payments, subscriptions, customers, invoices, products" },
-  { id: "aws", name: "AWS", icon: "\u{2601}\u{FE0F}", toolCount: 85, avgSchemaTokens: 420, description: "S3, Lambda, DynamoDB, EC2, CloudWatch, IAM" },
-  { id: "vercel", name: "Vercel", icon: "\u{25B2}", toolCount: 18, avgSchemaTokens: 230, description: "Deployments, domains, env vars, logs, projects" },
+  { id: "atlassian", name: "Atlassian", toolCount: 47, avgSchemaTokens: 320, description: "Jira issues, Confluence pages, Bitbucket repos, project management" },
+  { id: "github", name: "GitHub", toolCount: 34, avgSchemaTokens: 280, description: "Repos, issues, PRs, actions, code search, gists" },
+  { id: "slack", name: "Slack", toolCount: 22, avgSchemaTokens: 240, description: "Messages, channels, reactions, threads, user lookup" },
+  { id: "google", name: "Google Drive", toolCount: 32, avgSchemaTokens: 310, description: "Drive files, Sheets, Docs, shared drives, permissions" },
+  { id: "icloud", name: "iCloud", toolCount: 24, avgSchemaTokens: 270, description: "iCloud Drive files, photos, notes, reminders, sharing" },
+  { id: "notion", name: "Notion", toolCount: 28, avgSchemaTokens: 290, description: "Pages, databases, blocks, search, comments" },
+  { id: "linear", name: "Linear", toolCount: 19, avgSchemaTokens: 260, description: "Issues, projects, cycles, teams, labels" },
+  { id: "discord", name: "Discord", toolCount: 26, avgSchemaTokens: 250, description: "Messages, channels, roles, reactions, voice" },
+  { id: "stripe", name: "Stripe", toolCount: 42, avgSchemaTokens: 380, description: "Payments, subscriptions, customers, invoices, products" },
+  { id: "aws", name: "AWS", toolCount: 85, avgSchemaTokens: 420, description: "S3, Lambda, DynamoDB, EC2, CloudWatch, IAM" },
+  { id: "vercel", name: "Vercel", toolCount: 18, avgSchemaTokens: 230, description: "Deployments, domains, env vars, logs, projects" },
 ];
 
 const overlapPairs: OverlapPair[] = [
@@ -43,15 +44,6 @@ const overlapPairs: OverlapPair[] = [
   { a: "aws", b: "vercel", count: 2 },
 ];
 
-function pairKey(a: string, b: string): string {
-  return a < b ? `${a}:${b}` : `${b}:${a}`;
-}
-
-const overlapMap = new Map<string, number>();
-for (const pair of overlapPairs) {
-  overlapMap.set(pairKey(pair.a, pair.b), pair.count);
-}
-
 function getOverlapPartners(id: string): string[] {
   const partners: string[] = [];
   for (const pair of overlapPairs) {
@@ -61,9 +53,11 @@ function getOverlapPartners(id: string): string[] {
   return partners;
 }
 
+// The illustrative model behind the numbers. The footnote prints these assumptions.
 const CONTEXT_WINDOW = 128_000;
 const COST_PER_1K_INPUT = 0.003;
 const BASELINE_TOKENS = 800;
+const COMPILED_TOKENS_PER_TOOL = 180 * 0.35;
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -71,24 +65,53 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
-function BarFill({ percent, color, animate }: { percent: number; color: string; animate: boolean }) {
+function percentTone(p: number) {
+  if (p > 80) return "text-negative";
+  if (p > 50) return "text-caution";
+  return "text-foreground";
+}
+
+const AXIS = [0, 32, 64, 96, 128];
+
+/**
+ * One bar of the context chart. The fill scales on the x axis, nothing animates its width.
+ * Quarter marks cut the bar like a ruler, so the share reads against the 128k window.
+ */
+function ContextBar({ label, percent, active, lit }: { label: string; percent: number; active: boolean; lit: boolean }) {
   return (
-    <div className="w-full h-3 rounded-full bg-white/5 overflow-hidden relative">
-      <motion.div
-        className="h-full rounded-full"
-        style={{ background: color }}
-        initial={false}
-        animate={{ width: `${Math.min(percent, 100)}%` }}
-        transition={{ duration: animate ? 0.6 : 0, ease: "easeOut" }}
-      />
-      {percent > 100 && (
-        <div className="absolute inset-0 rounded-full border-2 border-red-500/60 animate-pulse" />
-      )}
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <span className={cn("text-sm", active ? "text-foreground" : "text-subtle")}>{label}</span>
+        <span className={cn("font-mono text-[28px] leading-9 tabular-nums", active ? percentTone(percent) : "text-subtle")}>{percent.toFixed(1)}%</span>
+      </div>
+      <div className="relative h-8 overflow-hidden rounded-sm bg-raised" role="presentation">
+        <div
+          className={cn(
+            "h-full w-full origin-left transition-[transform,opacity] duration-300",
+            active ? "opacity-100" : "opacity-50",
+            percent > 100 ? "bg-negative" : lit ? "bg-accent" : "bg-subtle",
+          )}
+          style={{ transform: `scaleX(${Math.min(percent, 100) / 100})` }}
+        />
+        {[25, 50, 75].map((at) => (
+          <span key={at} aria-hidden className="absolute inset-y-0 w-px bg-deep/60" style={{ left: `${at}%` }} />
+        ))}
+      </div>
     </div>
   );
 }
 
-export function CompilerComparison({ embedded = false }: { embedded?: boolean }) {
+function Figure({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="font-mono text-xl font-medium tabular-nums text-foreground">{value}</div>
+      <div className="text-xs text-muted-foreground">{note}</div>
+    </div>
+  );
+}
+
+export function CompilerComparison() {
   const [selected, setSelected] = useState<Set<string>>(new Set(["atlassian", "github", "linear"]));
   const [showAll, setShowAll] = useState(false);
   const [compiled, setCompiled] = useState(false);
@@ -106,38 +129,25 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
     const selectedIds = new Set(selectedGroups.map((g) => g.id));
 
     const rawToolCount = selectedGroups.reduce((sum, g) => sum + g.toolCount, 0);
-    const rawSchemaTokens = selectedGroups.reduce((sum, g) => sum + g.toolCount * g.avgSchemaTokens, 0);
-    const rawTokens = rawSchemaTokens + BASELINE_TOKENS;
+    const rawTokens = selectedGroups.reduce((sum, g) => sum + g.toolCount * g.avgSchemaTokens, 0) + BASELINE_TOKENS;
 
     // Cross-provider overlaps are flagged as collisions. 1.0 never merges
     // distinct tools: each keeps its own <providerId>/<toolName> id.
     let overlapCount = 0;
     for (const pair of overlapPairs) {
-      if (selectedIds.has(pair.a) && selectedIds.has(pair.b)) {
-        overlapCount += pair.count;
-      }
+      if (selectedIds.has(pair.a) && selectedIds.has(pair.b)) overlapCount += pair.count;
     }
 
-    const compiledToolCount = rawToolCount;
-    const compressionRatio = 0.35;
-    const compiledSchemaTokens = Math.round(compiledToolCount * 180 * compressionRatio);
-    const compiledTokens = compiledSchemaTokens + BASELINE_TOKENS;
-
-    const rawContextPercent = (rawTokens / CONTEXT_WINDOW) * 100;
-    const compiledContextPercent = (compiledTokens / CONTEXT_WINDOW) * 100;
-
-    const rawCost = (rawTokens / 1000) * COST_PER_1K_INPUT;
-    const compiledCost = (compiledTokens / 1000) * COST_PER_1K_INPUT;
+    const compiledTokens = Math.round(rawToolCount * COMPILED_TOKENS_PER_TOOL) + BASELINE_TOKENS;
 
     return {
       rawToolCount,
       rawTokens,
-      rawContextPercent,
-      rawCost,
-      compiledToolCount,
+      rawContextPercent: (rawTokens / CONTEXT_WINDOW) * 100,
+      rawCost: (rawTokens / 1000) * COST_PER_1K_INPUT,
       compiledTokens,
-      compiledContextPercent,
-      compiledCost,
+      compiledContextPercent: (compiledTokens / CONTEXT_WINDOW) * 100,
+      compiledCost: (compiledTokens / 1000) * COST_PER_1K_INPUT,
       overlapCount,
       tokenSavings: Math.round(((rawTokens - compiledTokens) / rawTokens) * 100),
     };
@@ -158,338 +168,223 @@ export function CompilerComparison({ embedded = false }: { embedded?: boolean })
   const activeTokens = compiled ? stats.compiledTokens : stats.rawTokens;
   const activeContext = compiled ? stats.compiledContextPercent : stats.rawContextPercent;
   const activeCost = compiled ? stats.compiledCost : stats.rawCost;
-  const activeTools = compiled ? stats.compiledToolCount : stats.rawToolCount;
-
-  const content = (
-    <div className={embedded ? "space-y-10 min-w-0" : "max-w-5xl mx-auto space-y-12 min-w-0"}>
-      {!embedded && (
-        <div className="text-center space-y-4">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-            See the difference
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pick some MCP tool groups. Toggle the compiler. Watch the numbers drop.
-          </p>
-        </div>
-      )}
-
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 min-w-0">
-          <div className="space-y-4 min-w-0">
-            <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Select tool groups
-            </div>
-            <div className="space-y-2">
-              {visibleGroups.map((group) => {
-                const isSelected = selected.has(group.id);
-                const partners = getOverlapPartners(group.id);
-                const hasOverlap = isSelected && partners.some((id) => selected.has(id));
-
-                return (
-                  <button
-                    key={group.id}
-                    onClick={() => toggleGroup(group.id)}
-                    className={`w-full text-left rounded-xl p-3 border transition-all duration-200 flex items-start gap-3 group ${
-                      isSelected
-                        ? "border-primary/40 bg-primary/5 hover:bg-primary/10"
-                        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10"
-                    }`}
-                  >
-                    <span className="text-xl mt-0.5 shrink-0">{group.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-medium text-sm ${isSelected ? "text-white" : "text-gray-400"}`}>
-                          {group.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-mono">
-                          {group.toolCount} tools
-                        </span>
-                        {hasOverlap && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-medium">
-                            overlaps
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{group.description}</p>
-                    </div>
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                      isSelected
-                        ? "bg-primary border-primary text-white"
-                        : "border-white/20"
-                    }`}>
-                      {isSelected && <Check className="w-3 h-3" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            {toolGroups.length > 6 && (
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors mx-auto"
-              >
-                {showAll ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                {showAll
-                  ? "Show fewer"
-                  : `Show ${toolGroups.length - 6} more`}
-                {!showAll && hiddenSelectedCount > 0 && (
-                  <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-medium">
-                    {hiddenSelectedCount} selected
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-6 min-w-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                Context impact
-              </div>
-              <button
-                onClick={() => setCompiled(!compiled)}
-                className={`relative inline-flex h-9 items-center rounded-full px-1 transition-colors duration-300 w-full sm:w-[260px] border ${
-                  compiled
-                    ? "bg-primary/20 border-primary/40"
-                    : "bg-white/5 border-white/10"
-                }`}
-              >
-                <motion.div
-                  className="absolute h-7 rounded-full bg-white/10"
-                  initial={false}
-                  animate={{
-                    left: compiled ? "50%" : "2px",
-                    right: compiled ? "2px" : "50%",
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-                <span className={`relative z-10 flex-1 text-center text-xs font-medium transition-colors ${!compiled ? "text-white" : "text-muted-foreground"}`}>
-                  Without smallchat
-                </span>
-                <span className={`relative z-10 flex-1 text-center text-xs font-medium transition-colors ${compiled ? "text-white" : "text-muted-foreground"}`}>
-                  With smallchat
-                </span>
-              </button>
-            </div>
-
-            <div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-6">
-              <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                <div className="text-center">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Tools loaded</div>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`tools-${compiled}-${activeTools}`}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.2 }}
-                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
-                    >
-                      {activeTools}
-                    </motion.div>
-                  </AnimatePresence>
-                  {compiled && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-[10px] text-green-400 mt-0.5"
-                    >
-                      none merged
-                    </motion.div>
-                  )}
-                </div>
-                <div className="text-center">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Tokens</div>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`tokens-${compiled}-${activeTokens}`}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.2 }}
-                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
-                    >
-                      {formatNumber(activeTokens)}
-                    </motion.div>
-                  </AnimatePresence>
-                  {compiled && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-[10px] text-green-400 mt-0.5"
-                    >
-                      {stats.tokenSavings}% smaller
-                    </motion.div>
-                  )}
-                </div>
-                <div className="text-center">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground mb-1">Cost / req</div>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`cost-${compiled}-${activeCost}`}
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.2 }}
-                      className={`text-xl sm:text-2xl font-bold font-mono ${compiled ? "text-primary" : "text-white"}`}
-                    >
-                      ${activeCost.toFixed(4)}
-                    </motion.div>
-                  </AnimatePresence>
-                  {compiled && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-[10px] text-green-400 mt-0.5"
-                    >
-                      ${(stats.rawCost - stats.compiledCost).toFixed(4)} saved
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Context window usage (128k)</span>
-                  <span className={`font-mono font-medium ${
-                    activeContext > 50
-                      ? activeContext > 80
-                        ? "text-red-400"
-                        : "text-yellow-400"
-                      : compiled
-                      ? "text-green-400"
-                      : "text-white"
-                  }`}>
-                    {activeContext.toFixed(1)}%
-                  </span>
-                </div>
-                <BarFill
-                  percent={activeContext}
-                  color={
-                    activeContext > 80
-                      ? "linear-gradient(90deg, #ef4444, #dc2626)"
-                      : activeContext > 50
-                      ? "linear-gradient(90deg, #eab308, #f59e0b)"
-                      : compiled
-                      ? "linear-gradient(90deg, hsl(210 100% 60%), hsl(270 100% 60%))"
-                      : "linear-gradient(90deg, #6b7280, #9ca3af)"
-                  }
-                  animate={true}
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground/50 font-mono">
-                  <span>0</span>
-                  <span>32k</span>
-                  <span>64k</span>
-                  <span>96k</span>
-                  <span>128k</span>
-                </div>
-              </div>
-
-              {!compiled && activeContext > 30 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="flex items-start gap-2 text-xs text-yellow-400/80 bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3"
-                >
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-medium">High context usage.</span>{" "}
-                    Raw tool schemas consume {activeContext.toFixed(0)}% of your context window before a single user message.
-                    That leaves less room for conversation history and reasoning.
-                  </div>
-                </motion.div>
-              )}
-
-              {compiled && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="space-y-3 pt-2 border-t border-white/5"
-                >
-                  <div className="text-xs font-medium text-muted-foreground">What the compiler did</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {stats.overlapCount > 0 && (
-                      <div className="flex items-start gap-2 text-xs">
-                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1.5 shrink-0" />
-                        <div>
-                          <span className="text-yellow-400 font-medium">{stats.overlapCount} cross-provider overlaps</span>
-                          <span className="text-muted-foreground"> flagged (e.g., "search issues" in both Jira and GitHub); both tools are kept</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-start gap-2 text-xs">
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0" />
-                      <div>
-                        <span className="text-purple-400 font-medium">Near-duplicates refused</span>
-                        <span className="text-muted-foreground"> — tools at ≥ 0.95 cosine are a compile error, unless you pass --allow-duplicates</span>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 text-xs">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                      <div>
-                        <span className="text-blue-400 font-medium">Out of the context window</span>
-                        <span className="text-muted-foreground"> with intent dispatch — the model sends an intent and the runtime holds the schemas (smallchat serve lists every tool with its schema)</span>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 text-xs">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                      <div>
-                        <span className="text-green-400 font-medium">Dispatch table</span>
-                        <span className="text-muted-foreground"> — pre-built lookup replaces runtime discovery</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-3">
-                    <div className="flex items-start gap-2 text-xs">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5 shrink-0" />
-                      <div>
-                        <span className="text-orange-400 font-medium">Provider-qualified ids</span>
-                        <span className="text-muted-foreground">
-                          {" "}— tools with similar semantics are never merged, even across providers.
-                          Each keeps its canonical id, <code className="font-mono">&lt;providerId&gt;/&lt;toolName&gt;</code>, and a caller can always run one exactly.
-                        </span>
-                      </div>
-                    </div>
-                    {selected.has("google") && selected.has("icloud") ? (
-                      <div className="rounded-lg bg-black/40 border border-white/5 p-3 font-mono text-[11px] leading-relaxed text-gray-400">
-                        <div className="text-muted-foreground text-[10px] font-sans mb-2 font-medium">Example: iCloud MCP + Google Drive MCP both expose <span className="text-orange-400">findFiles()</span></div>
-                        <div><span className="text-purple-400">// Two providers, one tool name: both stay</span></div>
-                        <div><span className="text-blue-400">icloud</span>/findFiles(fileName: <span className="text-green-400">string</span>)</div>
-                        <div><span className="text-blue-400">gdrive</span>/findFiles(fileName: <span className="text-green-400">string</span>)</div>
-                        <div className="mt-2"><span className="text-purple-400">// The caller can always name one exactly</span></div>
-                        <div>runtime.<span className="text-orange-400">dispatchById</span>(<span className="text-green-400">"gdrive/findFiles"</span>, {"{"} fileName {"}"})</div>
-                      </div>
-                    ) : (
-                      <div className="text-[11px] text-muted-foreground/60 italic">
-                        Try selecting both iCloud and Google Drive to see how two providers with the same tool name stay apart.
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground/50">
-                Estimates based on typical MCP schema sizes. Actual results vary by tool complexity and provider.
-              </p>
-            </div>
-          </div>
-        </div>
-    </div>
-  );
-
-  if (embedded) return content;
 
   return (
-    <section id="comparison" className="py-24 px-4 sm:px-6 bg-black/40 border-y border-white/5 scroll-mt-20 overflow-hidden">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6 }}
-      >
-        {content}
-      </motion.div>
-    </section>
+    <div className="grid min-w-0 gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-12">
+      <div className="min-w-0">
+        <div className="space-y-4 lg:sticky lg:top-24">
+        <h3 className="flex h-10 items-center text-sm font-medium text-subtle">Select tool groups</h3>
+        <ul className="list-none divide-y overflow-hidden rounded-xl border bg-card p-0">
+          {visibleGroups.map((group) => {
+            const isSelected = selected.has(group.id);
+            const hasOverlap = isSelected && getOverlapPartners(group.id).some((id) => selected.has(id));
+            return (
+              <li key={group.id}>
+                <button
+                  onClick={() => toggleGroup(group.id)}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    "grid w-full cursor-pointer grid-cols-[20px_minmax(0,1fr)_auto] items-start gap-3 px-4 py-3 text-left transition-colors",
+                    isSelected ? "bg-raised" : "hover:bg-raised/50",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "flex h-5 w-5 items-center justify-center rounded border",
+                      isSelected ? "border-foreground bg-foreground text-background" : "border-border-strong",
+                    )}
+                  >
+                    {isSelected && <Icon as={Check} />}
+                  </span>
+                  <span className="min-w-0 space-y-1">
+                    <span className="flex items-center gap-3">
+                      <span className={cn("text-sm font-medium", isSelected ? "text-foreground" : "text-subtle")}>{group.name}</span>
+                      {hasOverlap && (
+                        <span className="flex items-center gap-1 font-mono text-xs text-caution">
+                          <StatusDot className="bg-caution" /> overlaps
+                        </span>
+                      )}
+                    </span>
+                    <span className="block truncate text-sm text-muted-foreground">{group.description}</span>
+                  </span>
+                  <span className="pt-0.5 font-mono text-xs tabular-nums text-muted-foreground">{group.toolCount} tools</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <button
+          onClick={() => setShowAll(!showAll)}
+          aria-expanded={showAll}
+          className="inline-flex h-10 cursor-pointer items-center gap-2 text-sm text-subtle transition-colors hover:text-foreground"
+        >
+          <Icon as={showAll ? ChevronUp : ChevronDown} />
+          {showAll ? "Show fewer" : `Show ${toolGroups.length - 6} more`}
+          {!showAll && hiddenSelectedCount > 0 && (
+            <span className="ml-1 border-l pl-3 text-xs text-muted-foreground">{hiddenSelectedCount} selected</span>
+          )}
+        </button>
+        </div>
+      </div>
+
+      <div className="min-w-0 space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-sm font-medium text-subtle">Context impact</h3>
+          <div role="group" aria-label="Compare with and without smallchat" className="flex h-10 w-full overflow-hidden rounded-lg border bg-deep sm:w-auto">
+            {[
+              { v: false, label: "Without smallchat" },
+              { v: true, label: "With smallchat" },
+            ].map((opt) => (
+              <button
+                key={opt.label}
+                onClick={() => setCompiled(opt.v)}
+                aria-pressed={compiled === opt.v}
+                className={cn(
+                  "h-full flex-1 cursor-pointer px-4 text-sm font-medium transition-colors sm:flex-none",
+                  compiled === opt.v ? "bg-raised text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6 rounded-xl border bg-card p-6">
+          <div className="space-y-5">
+            <div className="text-xs text-muted-foreground">Context window usage, 128k tokens</div>
+            <ContextBar label="Without smallchat" percent={stats.rawContextPercent} active={!compiled} lit={false} />
+            <ContextBar label="With smallchat" percent={stats.compiledContextPercent} active={compiled} lit />
+            <div className="relative h-4 font-mono text-xs text-muted-foreground" aria-hidden>
+              {AXIS.map((k, i) => (
+                <span
+                  key={k}
+                  className={cn("absolute top-0", i === 0 ? "" : i === AXIS.length - 1 ? "-translate-x-full" : "-translate-x-1/2")}
+                  style={{ left: `${(i / (AXIS.length - 1)) * 100}%` }}
+                >
+                  {k === 0 ? "0" : `${k}k`}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 border-t pt-6">
+            <Figure label="Tools loaded" value={String(stats.rawToolCount)} note={compiled ? "none merged" : "baseline"} />
+            <Figure
+              label="Tokens"
+              value={formatNumber(activeTokens)}
+              note={compiled ? `${stats.tokenSavings}% fewer vs without` : "baseline"}
+            />
+            <Figure
+              label="Cost per request"
+              value={`$${activeCost.toFixed(4)}`}
+              note={compiled ? `$${(stats.rawCost - stats.compiledCost).toFixed(4)} less` : "baseline"}
+            />
+          </div>
+
+          {!compiled && activeContext > 30 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              className="flex items-start gap-3 rounded-lg border bg-deep p-4 text-sm leading-relaxed text-subtle"
+            >
+              <StatusDot className="mt-2 bg-caution" />
+              <span>
+                <span className="font-medium text-foreground">High context usage. </span>
+                Raw tool schemas use {activeContext.toFixed(0)}% of the context window before the first user message. That leaves less room for
+                conversation history and reasoning.
+              </span>
+            </motion.p>
+          )}
+
+          {compiled && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              className="space-y-4 border-t pt-6"
+            >
+              <h4 className="text-sm font-medium text-foreground">What the compiler did</h4>
+              <ul className="list-none space-y-3 p-0 text-sm leading-relaxed">
+                {stats.overlapCount > 0 && (
+                  <li className="flex gap-3">
+                    <StatusDot className="mt-2 bg-caution" />
+                    <span>
+                      <span className="font-medium text-foreground">{stats.overlapCount} cross-provider overlaps</span>
+                      <span className="text-subtle"> flagged (for example "search issues" in both Jira and GitHub). Both tools are kept.</span>
+                    </span>
+                  </li>
+                )}
+                <li className="flex gap-3">
+                  <StatusDot className="mt-2 bg-muted-foreground" />
+                  <span>
+                    <span className="font-medium text-foreground">Near-duplicates refused</span>
+                    <span className="text-subtle"> at 0.95 cosine or above is a compile error, unless you pass <Rich text="`--allow-duplicates`" />.</span>
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <StatusDot className="mt-2 bg-muted-foreground" />
+                  <span>
+                    <span className="font-medium text-foreground">Schemas out of the context window</span>
+                    <span className="text-subtle">
+                      {" "}
+                      with intent dispatch. The model sends an intent and the runtime holds the schemas (<Rich text="`smallchat serve`" /> lists every tool with its schema).
+                    </span>
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <StatusDot className="mt-2 bg-muted-foreground" />
+                  <span>
+                    <span className="font-medium text-foreground">Dispatch table</span>
+                    <span className="text-subtle"> is a pre-built lookup that replaces runtime discovery.</span>
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <StatusDot className="mt-2 bg-muted-foreground" />
+                  <span>
+                    <span className="font-medium text-foreground">Provider-qualified ids</span>
+                    <span className="text-subtle">
+                      {" "}
+                      keep tools with similar semantics apart, even across providers. Each keeps its canonical id,{" "}
+                      <code className="font-mono text-foreground">&lt;providerId&gt;/&lt;toolName&gt;</code>, and a caller can always run one exactly.
+                    </span>
+                  </span>
+                </li>
+              </ul>
+              {selected.has("google") && selected.has("icloud") ? (
+                <div className="space-y-2 overflow-x-auto rounded-lg border bg-deep p-4 font-mono text-[13px] leading-6 text-subtle" tabIndex={0}>
+                  <div className="font-sans text-xs text-muted-foreground">
+                    Example: iCloud MCP and Google Drive MCP both expose <span className="font-mono text-foreground">findFiles()</span>
+                  </div>
+                  <div className="token-comment">// Two providers, one tool name: both stay</div>
+                  <div>
+                    <span className="token-function">icloud</span>/findFiles(fileName: <span className="token-type">string</span>)
+                  </div>
+                  <div>
+                    <span className="token-function">gdrive</span>/findFiles(fileName: <span className="token-type">string</span>)
+                  </div>
+                  <div className="token-comment pt-2">// The caller can always name one exactly</div>
+                  <div className="whitespace-nowrap">
+                    runtime.<span className="token-function">dispatchById</span>(<span className="token-string">"gdrive/findFiles"</span>, {"{ fileName }"})
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Select both iCloud and Google Drive to see two providers with the same tool name stay apart
+                </p>
+              )}
+            </motion.div>
+          )}
+        </div>
+
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Illustrative model, not a benchmark. Without smallchat sends every schema at typical MCP sizes plus {BASELINE_TOKENS} tokens of base prompt. With
+          smallchat assumes a compact header of about {Math.round(COMPILED_TOKENS_PER_TOOL)} tokens per tool. Input is priced at $3 per million tokens.
+          Actual results vary by tool complexity and provider.
+        </p>
+      </div>
+    </div>
   );
 }

@@ -46,7 +46,7 @@ smallchat maps this model directly:
 
 The mapping is not metaphorical — the implementation structure mirrors the Obj-C runtime deliberately.
 
-## Primitives, not a framework
+## One primitive, the dispatch layer
 
 Most LLM frameworks are opinionated end-to-end systems. They own your agent loop, your memory, your prompts. smallchat is different: it provides one well-defined primitive — the dispatch layer — and gets out of the way.
 

@@ -20,25 +20,25 @@ smallchat models LLM tool use as message dispatch. The LLM expresses intent. The
 │  dispatch("find flights", { to: "NYC"}) │
 ├─────────────────────────────────────────┤
 │           DispatchContext               │
-│  selector table · resolution cache     │
-│  overload tables · pins · policy       │
+│  selector table · resolution cache      │
+│  overload tables · pins · policy        │
 ├─────────────────────────────────────────┤
 │             ToolClass                   │
-│  dispatch table (selector → IMP)       │
-│  protocols · categories · superclass   │
+│  dispatch table (selector → IMP)        │
+│  protocols · categories · superclass    │
 ├─────────────────────────────────────────┤
-│     SelectorTable · VectorIndex        │
-│  tool selectors · cosine lookup        │
+│     SelectorTable · VectorIndex         │
+│  tool selectors · cosine lookup         │
 └─────────────────────────────────────────┘
 ```
 
 Each layer has a focused responsibility with no upward dependencies.
 
-### Selector Table (`src/core/selector-table.ts`)
+### Selector table (`src/core/selector-table.ts`)
 
 The table of compiled tool (and alias) selectors and the vector index resolution searches — analogous to `sel_registerName`. It holds tools only: an intent is embedded on its own and never added to the table, so what an intent resolves to cannot depend on which intents the process saw before. `"search for code"` and `"find code"` are two intents that may resolve to the same tool; they never become one selector.
 
-### Resolution Cache (`src/core/resolution-cache.ts`)
+### Resolution cache (`src/core/resolution-cache.ts`)
 
 LRU cache for resolved dispatches — analogous to `objc_msgSend`'s inline cache. Hot intents skip the full vector-similarity search on repeat calls. Entries are version-tagged with provider version, model version, and schema fingerprint.
 
@@ -46,7 +46,7 @@ LRU cache for resolved dispatches — analogous to `objc_msgSend`'s inline cache
 
 Groups related tools under a single provider with a dispatch table (`selector → IMP`), an optional superclass whose selectors it inherits (ranked like any other candidate), and protocol conformance.
 
-### Overload Table (`src/core/overload-table.ts`)
+### Overload table (`src/core/overload-table.ts`)
 
 Maps a single selector to multiple signatures, resolved by argument types and arity. Resolution priority: exact type match > superclass match > union match > any.
 
@@ -58,7 +58,7 @@ The hot path. `toolkit_dispatch(context, intent, args)` embeds the intent, searc
 
 Parse → Embed → Link pipeline. Reads tool definitions, computes semantic embeddings, groups tools into classes, and emits a compiled artifact. Optional Phase 2.5 generates semantic overloads by grouping tools above a similarity threshold.
 
-### SCObject System (`src/core/sc-object.ts`)
+### SCObject system (`src/core/sc-object.ts`)
 
 NSObject-inspired base class for typed parameter passing. Enables runtime type checking (`isKindOfClass`, `isMemberOfClass`) and auto-wrapping of plain values into `SCData`, `SCArray`, etc.
 
@@ -159,7 +159,7 @@ One generator, the same policy as `dispatch()`, no middleware.
 
 ## Design philosophy
 
-### Primitives, not a framework
+### One primitive, the dispatch layer
 
 smallchat provides one well-defined primitive — the dispatch layer — and gets out of the way. It does not own your agent loop, your memory, your prompts, or your UI. You compose primitives with the language itself.
 

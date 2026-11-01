@@ -1,9 +1,9 @@
 ---
-title: CLI Reference
+title: CLI reference
 sidebar_label: Overview
 ---
 
-# CLI Reference
+# CLI reference
 
 The `@smallchat/core` package ships a CLI for compiling manifests, inspecting artifacts, testing dispatch resolution, and running the MCP server.
 

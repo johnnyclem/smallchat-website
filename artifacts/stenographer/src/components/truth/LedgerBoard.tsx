@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ReadModel, EntryView } from "@/lib/truth/read";
 import { EntryCard, type EntryAct } from "./EntryCard";
-import { ChainStrip } from "./pieces";
+import { ChainTape } from "./pieces";
 
 type Filter = "all" | "truth" | "docket" | "history";
 
@@ -11,7 +11,7 @@ export function LedgerBoard({
   highlight,
   onAct,
   canAct,
-  emptyText = "Nothing on the record yet.",
+  emptyText = "Nothing on the record yet",
   defaultFilter = "all",
   actorName,
 }: {
@@ -47,25 +47,21 @@ export function LedgerBoard({
     { id: "history", label: "History", n: model.entries.filter((e) => !e.current).length },
   ];
   return (
-    <div className="space-y-4">
-      <div className="flex gap-1.5 flex-wrap">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter the ledger">
         {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setFilter(t.id)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium border cursor-pointer transition-colors ${filter === t.id ? "text-white bg-white/[0.08] border-white/15" : "text-muted-foreground border-transparent hover:text-white/70"}`}
-          >
-            {t.label} <span className="font-mono text-[10px] opacity-70">{t.n}</span>
+          <button key={t.id} type="button" onClick={() => setFilter(t.id)} aria-pressed={filter === t.id} className="tab-item h-8">
+            {t.label} <span className="font-mono text-xs tabular-nums text-secondary-foreground">{t.n}</span>
           </button>
         ))}
       </div>
-      <div className="space-y-2.5 max-h-[34rem] overflow-y-auto pr-1">
-        {shown.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">{filter === "all" ? emptyText : "Nothing here."}</p>}
+      <div className="flex max-h-[34rem] flex-col gap-4 overflow-y-auto" tabIndex={0} aria-label="Ledger entries">
+        {shown.length === 0 && <p className="py-8 text-sm text-muted-foreground">{filter === "all" ? emptyText : "Nothing here"}</p>}
         {shown.map((e) => (
           <EntryCard key={e.id} entry={e} byId={byId} highlight={highlight?.has(e.id)} onAct={onAct} canAct={canAct} actorName={actorName} />
         ))}
       </div>
-      <ChainStrip lines={model.lines} highlight={highlight} />
+      <ChainTape lines={model.lines} highlight={highlight} />
     </div>
   );
 }
