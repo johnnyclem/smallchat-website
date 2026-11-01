@@ -13,6 +13,8 @@ import TabItem from '@theme/TabItem';
 
 smallchat is a message-passing tool compiler for LLM-powered applications. It models LLM tool use as **message dispatch** — the same mechanism that powers the Smalltalk and Objective-C runtimes. Tool intent arrives as natural language. The runtime resolves it to a concrete implementation.
 
+<ResolveCard />
+
 ## The big idea
 
 Modern AI applications have a tool problem. You have dozens of tools across multiple providers. The LLM generates an intent — "search for code" — and something has to figure out which tool to call with what arguments. Most frameworks solve this with string matching, hand-crafted routing tables, or by dumping all tool schemas into a prompt and hoping the model picks the right one.
@@ -144,7 +146,7 @@ for try await event in runtime.dispatchStream("search for code", args: ["query":
 
 ## Next steps
 
-- **[Getting Started](./getting-started.md)** — install, compile, and run your first dispatch
+- **[Getting started](./getting-started.md)** — install, compile, and run your first dispatch
 - **[What it does](./what-it-does.md)** — the compile → embed → dispatch pipeline in detail
 - **[Why it matters](./why-it-matters.md)** — the problem smallchat solves, and why this approach works
-- **[Deep Dive](./concepts/index.md)** — internals: SelectorTable, ResolutionCache, OverloadTable, streaming, swizzling
+- **[Deep dive](./concepts/index.md)** — internals: SelectorTable, ResolutionCache, OverloadTable, streaming, swizzling

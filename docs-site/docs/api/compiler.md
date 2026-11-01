@@ -3,7 +3,7 @@ title: ToolCompiler
 sidebar_label: ToolCompiler
 ---
 
-# ToolCompiler API Reference
+# ToolCompiler API reference
 
 `ToolCompiler` runs the Parse → Embed → Link pipeline over provider manifests, and `buildArtifact()` turns its result into a format 1.0 artifact: the file `smallchat compile` writes, pinned to the embedder that produced its vectors. The compiler never merges distinct tools. Two tools whose embeddings are at or above `duplicateThreshold` are a `DuplicateToolError`, unless `allowDuplicates` keeps both and reports the pair.
 
@@ -22,7 +22,7 @@ const compiler = new ToolCompiler(embedder, new MemoryVectorIndex(), {
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `embedder` | `Embedder` | Produces the vectors. Use `createEmbedder('onnx')` (the bundled all-MiniLM-L6-v2 model, the default for `smallchat compile`) or `'hash'`, a deterministic placeholder for tests with no semantic meaning. A custom embedder must declare a `fingerprint` for its artifact to be written and loaded. |
+| `embedder` | `Embedder` | Produces the vectors. Use `createEmbedder('onnx')` (the bundled `all-MiniLM-L6-v2` model, the default for `smallchat compile`) or `'hash'`, a deterministic placeholder for tests with no semantic meaning. A custom embedder must declare a `fingerprint` for its artifact to be written and loaded. |
 | `vectorIndex` | `VectorIndex` | Where the compiler indexes selectors while it links, e.g. `MemoryVectorIndex` |
 | `options` | `CompilerOptions` | Optional. Options set here win over the project's smallchat.json `compiler` block. |
 

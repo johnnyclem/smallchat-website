@@ -1,9 +1,9 @@
 ---
-title: Method Swizzling
-sidebar_label: Method Swizzling
+title: Method swizzling
+sidebar_label: Method swizzling
 ---
 
-# Method Swizzling
+# Method swizzling
 
 Method swizzling replaces a tool implementation at runtime — analogous to
 method swizzling in Objective-C. The original implementation is returned, so

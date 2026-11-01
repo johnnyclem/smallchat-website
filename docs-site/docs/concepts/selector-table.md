@@ -1,9 +1,9 @@
 ---
-title: Selector Table
-sidebar_label: Selector Table
+title: Selector table
+sidebar_label: Selector table
 ---
 
-# Selector Table
+# Selector table
 
 The `SelectorTable` holds the compiled **tool selectors** — the dispatch keys
 of every tool — and their vectors. It is the analogue of the table behind

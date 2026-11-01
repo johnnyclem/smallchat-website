@@ -1,12 +1,12 @@
 ---
-title: Truth Ledger
-sidebar_label: Truth Ledger
+title: Truth ledger
+sidebar_label: Truth ledger
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Truth Ledger
+# Truth ledger
 
 Long-running agents accumulate "facts" with no record of who asserted them, what the evidence
 was, or whether anyone ever disputed them. The truth-ledger interop gives smallchat's memory

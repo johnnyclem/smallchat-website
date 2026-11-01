@@ -1,12 +1,12 @@
 ---
-title: SCObject System
-sidebar_label: SCObject System
+title: SCObject system
+sidebar_label: SCObject system
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# SCObject System
+# SCObject system
 
 The `SCObject` hierarchy is an NSObject-inspired base class for typed parameter passing. It enables runtime type checking, typed overload matching, and a consistent object model across dispatch boundaries.
 

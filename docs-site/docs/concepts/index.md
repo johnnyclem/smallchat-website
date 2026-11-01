@@ -1,9 +1,9 @@
 ---
-title: Deep Dive
+title: Deep dive
 sidebar_label: Overview
 ---
 
-# Deep Dive
+# Deep dive
 
 This section documents the internals of smallchat for engineers who want to understand or extend the runtime.
 
@@ -15,15 +15,15 @@ This section documents the internals of smallchat for engineers who want to unde
 │  dispatch("find flights", { to: "NYC"}) │
 ├─────────────────────────────────────────┤
 │           DispatchContext               │
-│  selector table · resolution cache     │
-│  overload tables · forwarding chain    │
+│  selector table · resolution cache      │
+│  overload tables · forwarding chain     │
 ├─────────────────────────────────────────┤
 │             ToolClass                   │
-│  dispatch table (selector → IMP)       │
-│  protocols · categories · superclass   │
+│  dispatch table (selector → IMP)        │
+│  protocols · categories · superclass    │
 ├─────────────────────────────────────────┤
-│     SelectorTable · VectorIndex        │
-│  tool selectors · cosine lookup        │
+│     SelectorTable · VectorIndex         │
+│  tool selectors · cosine lookup         │
 └─────────────────────────────────────────┘
 ```
 
@@ -41,15 +41,15 @@ Each layer has a focused responsibility:
 
 ## What is covered in this section
 
-- **[Selector Table](./selector-table.md)** — how tool selectors are embedded and searched, and how intents are identified
+- **[Selector table](./selector-table.md)** — how tool selectors are embedded and searched, and how intents are identified
 - **[Dispatch](./dispatch.md)** — the hot path: `toolkit_dispatch` and `smallchat_dispatchStream`
 - **[ToolClass & ToolProxy](./tool-class.md)** — provider grouping, superclass chains, lazy loading
-- **[Resolution Cache](./resolution-cache.md)** — LRU cache mechanics and version tagging
-- **[SCObject System](./sc-object.md)** — NSObject-inspired parameter hierarchy
-- **[Function Overloading](./overloading.md)** — multiple implementations per selector
+- **[Resolution cache](./resolution-cache.md)** — LRU cache mechanics and version tagging
+- **[SCObject system](./sc-object.md)** — NSObject-inspired parameter hierarchy
+- **[Function overloading](./overloading.md)** — multiple implementations per selector
 - **[Streaming](./streaming.md)** — three tiers, event sequence, cancellation
-- **[Method Swizzling](./swizzling.md)** — runtime method replacement for testing and routing
-- **[Truth Ledger](./truth-ledger.md)** — reading Stenographer's truth format v2 as ground truth, and how agents settle claims only together
+- **[Method swizzling](./swizzling.md)** — runtime method replacement for testing and routing
+- **[Truth ledger](./truth-ledger.md)** — reading Stenographer's truth format v2 as ground truth, and how agents settle claims only together
 
 ## Key source files
 
