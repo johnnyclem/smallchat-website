@@ -1,39 +1,295 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "@workspace/site-kit/theme.css";
 @source "../../../lib/site-kit/src";
 
+/*
+ * stenographer skins the shared kit with the court record's own material:
+ * the warm ink ramp (html data-ramp="warm" in index.html), IBM Plex for the
+ * interface and the typed record, Newsreader for the large headlines only,
+ * and one accent that means one thing, signed truth, plus the one primary
+ * action. Fonts load once, from the <link> in index.html.
+ */
+
 :root {
-  --primary: 38 95% 56%;
-  --primary-glow: rgba(248, 168, 40, 0.35);
+  --accent: #f8a828;
+  --accent-foreground: #161513;
+
+  /* The one bright object below the hero: a transcript page. */
+  --paper: #f4efe4;
+  --paper-ink: #1f1b16;
+  --paper-secondary: #5e554a;
+  --paper-amber: #9a5b00;
+  --paper-rule: color-mix(in srgb, var(--paper-ink) 16%, transparent);
 }
 
-/* The hero's copy button holds the npm install command, which is wider than a
-   narrow phone: tighten its padding there and let the label truncate instead of
-   widening the page (the button still copies the whole command). */
-@media (max-width: 639px) {
-  #top .btn-glass {
-    padding-inline: 1.25rem;
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* The record speaks in a text serif: the hero headline, section titles and the pull quote. */
+  --font-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+}
+
+/* The kit's warm muted text is 4.2:1 on the raised step; this one is 4.5:1 or better on every surface it sits on. */
+:root[data-ramp="warm"] {
+  --muted-foreground: #918a80;
+}
+
+html {
+  background-color: var(--background);
+}
+
+/* Newsreader at display size wants a little more air than the kit's -0.03em. */
+.text-display {
+  letter-spacing: -0.02em;
+}
+
+/* The kit's footer links are 20 to 24px tall; give them a 32px target without touching the kit. */
+footer a:not(.nav-link) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Controls                                                                  */
+/* ------------------------------------------------------------------------ */
+
+/* The off-white action: the button that submits inside a panel. The amber
+   button is the page's one primary action and stays in the hero. */
+@utility btn-solid {
+  background-color: var(--foreground);
+  color: var(--background);
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--foreground) 88%, var(--background));
   }
 }
-#top .btn-glass > span {
-  min-width: 0;
+
+/* Inputs: 40 tall, set into the card by the page colour. */
+.field {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  /* A control's edge needs 3:1 against the card it sits on, so this is stronger than a hairline. */
+  border: 1px solid color-mix(in srgb, var(--foreground) 40%, transparent);
+  border-radius: var(--radius-control);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 20px;
+  transition-property: border-color, background-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+}
+.field::placeholder {
+  color: var(--muted-foreground);
+}
+.field:hover {
+  border-color: color-mix(in srgb, var(--foreground) 56%, transparent);
+}
+textarea.field {
+  resize: vertical;
 }
 
-/* The truth graph: a new node pops in, a TB under appeal wears a slowly turning ring. */
-@keyframes truth-pop {
-  0% { transform: scale(0.2); }
-  60% { transform: scale(1.25); }
-  100% { transform: scale(1); }
+/* ------------------------------------------------------------------------ */
+/* The numbered margin: a mono line number against a hairline, like pleading */
+/* paper. Used on ledger entries, the chain tape, the rules, the walk's      */
+/* choices and the transcript excerpt, and nowhere else.                     */
+/* ------------------------------------------------------------------------ */
+
+.margin-no {
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
 }
-.truth-pop > * {
+
+/* ------------------------------------------------------------------------ */
+/* The chain tape: one tick per ledger line, 28 tall                         */
+/* ------------------------------------------------------------------------ */
+
+.tape {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.tick {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding-inline: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tag);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--secondary-foreground);
+}
+.tick[data-type="UV"] {
+  background-color: var(--raised);
+}
+.tick[data-type="TRANSITION"] {
+  color: var(--muted-foreground);
+}
+.tick[data-type="RULING"] {
+  background-color: var(--raised);
+  border-bottom: 2px solid var(--negative);
+}
+.tick[data-type="TB"] {
+  border-color: transparent;
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 500;
+}
+.tick[data-new="true"] {
+  border-color: var(--foreground);
+}
+
+/* ------------------------------------------------------------------------ */
+/* The truth graph: a new node fades and scales in once; nothing loops.      */
+/* ------------------------------------------------------------------------ */
+
+@keyframes truth-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.truth-in > * {
   transform-box: fill-box;
   transform-origin: center;
-  animation: truth-pop 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: truth-in 300ms var(--ease-standard) both;
 }
-@keyframes truth-spin {
-  to { stroke-dashoffset: -14; }
+@media (prefers-reduced-motion: reduce) {
+  .truth-in > * {
+    animation: none;
+  }
 }
-.truth-spin {
-  animation: truth-spin 1.2s linear infinite;
+
+/* ------------------------------------------------------------------------ */
+/* The transcript page: warm paper, ink, amber ink only on a TB line         */
+/* ------------------------------------------------------------------------ */
+
+.paper {
+  border-radius: var(--radius-card);
+  background-color: var(--paper);
+  color: var(--paper-ink);
+}
+.paper-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--paper-rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--paper-secondary);
+}
+.paper-head strong {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--paper-ink);
+}
+.paper-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.paper-table th {
+  font-weight: 500;
+}
+.paper-table td {
+  padding: 8px 12px 8px 0;
+  vertical-align: top;
+}
+.paper-table tr:first-child td {
+  padding-top: 16px;
+}
+.paper-table tr:last-child td {
+  padding-bottom: 16px;
+}
+.paper-table .p-seq {
+  width: 48px;
+  padding-right: 12px;
+  border-right: 1px solid var(--paper-rule);
+  text-align: right;
+  font-size: 12px;
+  color: var(--paper-secondary);
+}
+.paper-table .p-type {
+  width: 104px;
+  padding-left: 12px;
+  font-size: 12px;
+  color: var(--paper-secondary);
+}
+.paper-table .p-hash {
+  width: 112px;
+  font-size: 12px;
+  color: var(--paper-secondary);
+}
+.paper-table .p-text {
+  padding-right: 16px;
+  overflow-wrap: anywhere;
+}
+.paper-table .p-who {
+  display: block;
+  font-size: 12px;
+  color: var(--paper-secondary);
+}
+.paper-table tr[data-tb="true"] td,
+.paper-table tr[data-tb="true"] .p-who {
+  color: var(--paper-amber);
+}
+.paper-table tr[data-tb="true"] .p-type {
+  font-weight: 600;
+}
+.paper-table tr[data-tb="true"] .p-text {
+  font-weight: 500;
+}
+.paper-foot {
+  padding: 12px 16px;
+  border-top: 1px solid var(--paper-rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper-secondary);
+}
+@media (max-width: 639px) {
+  .paper-table .p-hash {
+    display: none;
+  }
+  .paper-table .p-seq {
+    width: 36px;
+  }
+  .paper-table .p-type {
+    width: 88px;
+    padding-left: 8px;
+  }
+  .paper-table .p-text {
+    padding-right: 12px;
+  }
 }

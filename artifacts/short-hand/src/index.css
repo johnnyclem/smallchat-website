@@ -1,9 +1,327 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "@workspace/site-kit/theme.css";
 @source "../../../lib/site-kit/src";
 
+/*
+ * short-hand skin over the shared kit: plain graphite neutrals (the kit's
+ * defaults), brand pink as the one accent, IBM Plex. The world of a printed
+ * transcript under an editor's redline shows in the marks, not the surfaces:
+ * pink means what survives (a cited line, an L4 section) plus the primary
+ * action, the slider fill and the one key figure.
+ */
 :root {
-  --primary: 330 86% 70%;
-  --primary-glow: rgba(244, 114, 182, 0.35);
+  --accent: #f472b6;
+  --accent-foreground: #141415;
+
+  /* Level hues. Used only inside the hero view and the budget demo. */
+  --level-4: #f472b6;
+  --level-3: #78b4dc;
+  --level-2: #6dbf93;
+  --level-1: #c9c9ce;
+  --level-0: #8b8b92;
+
+  /* The highlighter: accent at 26% over a card. */
+  --mark: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+@theme static {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer components {
+  /* ------------------------------------------------------------------ */
+  /* Hero                                                                */
+  /* ------------------------------------------------------------------ */
+
+  .hero {
+    padding-top: var(--nav-h);
+  }
+  .hero-inner {
+    padding-block: 48px;
+  }
+  @media (min-width: 1280px) {
+    .hero {
+      display: flex;
+      align-items: center;
+      min-height: min(100svh, 56rem);
+    }
+    .hero-inner {
+      padding-block: 64px;
+    }
+  }
+  /* 40 on a phone to 64, 500, line height 1.05. Tracking opens up from 56px. */
+  .hero-title {
+    font-size: clamp(2.5rem, 0.5rem + 4vw, 4rem);
+    line-height: 1.05;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  @media (min-width: 1200px) {
+    .hero-title {
+      letter-spacing: -0.03em;
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Tape: the numbered transcript. Struck = archived, lit = cited.      */
+  /* ------------------------------------------------------------------ */
+
+  .tape {
+    list-style: none;
+    margin: 0;
+    padding: 8px 16px;
+  }
+  .tape-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 24px;
+    column-gap: 8px;
+    padding-block: 2px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tape--full .tape-row {
+    grid-template-columns: 28px 72px minmax(0, 1fr) 24px;
+  }
+  .tape-id,
+  .tape-role,
+  .tape-tok {
+    color: var(--muted-foreground);
+  }
+  .tape-tok {
+    text-align: right;
+  }
+  .tape-text {
+    min-width: 0;
+    margin-inline: -4px;
+    padding-inline: 4px;
+    color: var(--secondary-foreground);
+  }
+  .tape--hero .tape-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tape-row[data-state="struck"] .tape-text,
+  .tape-row[data-state="struck"] .tape-id {
+    color: var(--muted-foreground);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+  .tape-row[data-state="cited"] .tape-id {
+    color: var(--accent);
+  }
+  .tape-row[data-state="cited"] .tape-text {
+    color: var(--foreground);
+  }
+  .tape-row[data-state="cited"] .tape-mark {
+    margin-inline: -4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background-color: var(--mark);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .tape-more {
+    padding-block: 2px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--muted-foreground);
+  }
+  .tape-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--muted-foreground);
+  }
+  .tape-key s {
+    text-decoration-thickness: 1px;
+  }
+  .tape-key mark {
+    padding: 2px 4px;
+    border-radius: 4px;
+    background-color: var(--mark);
+    color: var(--foreground);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Frame: the typed context frame, sections ruled by hairlines.        */
+  /* ------------------------------------------------------------------ */
+
+  .frame-section + .frame-section {
+    border-top: 1px solid var(--border);
+  }
+  .frame-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .frame-kind {
+    color: var(--secondary-foreground);
+  }
+  .frame-tok {
+    margin-left: auto;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+  .level-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding-inline: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-tag);
+    font-weight: 500;
+  }
+  .frame-items {
+    list-style: none;
+    margin: 0;
+    padding: 4px 16px 12px;
+  }
+  .frame-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    padding-block: 2px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+  .frame-role {
+    color: var(--muted-foreground);
+  }
+  /* The signature: the id of the message each line came from. */
+  .frame-cite {
+    min-width: 28px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Slider: 4px track, 16px thumb, accent fill.                         */
+  /* ------------------------------------------------------------------ */
+
+  .range {
+    position: relative;
+    height: 32px;
+  }
+  .range-rail {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 14px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--raised);
+  }
+  .range-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    background-color: var(--accent);
+    transform-origin: left center;
+    transform: scaleX(var(--v, 0));
+  }
+  .range-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .range-input:focus,
+  .range-input:focus-visible {
+    outline: none;
+  }
+  .range-input::-webkit-slider-runnable-track {
+    height: 32px;
+    background: transparent;
+  }
+  .range-input::-moz-range-track {
+    height: 32px;
+    background: transparent;
+  }
+  .range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background-color: var(--foreground);
+    cursor: grab;
+  }
+  .range-input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background-color: var(--foreground);
+    cursor: grab;
+  }
+  .range-input:active::-webkit-slider-thumb {
+    cursor: grabbing;
+  }
+  .range-input:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .range-input:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Small pieces                                                        */
+  /* ------------------------------------------------------------------ */
+
+  /* Inline code marker on a raised step. */
+  .code-inline {
+    padding: 1px 4px;
+    border-radius: var(--radius-tag);
+    background-color: var(--raised);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-variant-emoji: text;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+  .fade-in {
+    animation: fade-in 160ms var(--ease-standard) both;
+  }
+  .stat-label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--secondary-foreground);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

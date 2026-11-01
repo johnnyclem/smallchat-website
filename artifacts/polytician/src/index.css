@@ -1,9 +1,585 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "@workspace/site-kit/theme.css";
 @source "../../../lib/site-kit/src";
 
+/*
+ * polytician: a technical drawing sheet at night.
+ * Ink ramp (data-ramp="ink" on <html>), one drafting-lamp teal accent,
+ * IBM Plex Sans with IBM Plex Mono for ids, scores and tool names. The Plex
+ * stylesheet is a <link> in index.html, so it starts loading with the page.
+ * Type scale: 12 mono meta, 14 UI and code, 16 body, 18 lede, 24, 32, 52.
+ * Signature: the title block, a thin ruled mono strip at the foot of a product view.
+ */
 :root {
-  --primary: 255 91% 76%;
-  --primary-glow: rgba(169, 139, 250, 0.35);
+  --accent: #4fd1b5;
+  --accent-foreground: #07080d;
+}
+:root[data-ramp="ink"] {
+  --accent-foreground: #07080d;
+}
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Unlayered on purpose: these refine kit utilities (tab-item, bar-fill), and layered CSS would lose to them. */
+
+/* ---------- type ---------- */
+.hero-title {
+  font-size: clamp(2.25rem, 1.25rem + 2.4vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.code-inline {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+.code-long {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- tabs: raised step plus a 2px accent marker ---------- */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+@media (min-width: 640px) {
+  .tabs {
+    display: flex;
+  }
+}
+.tabs .tab-item {
+  position: relative;
+  justify-content: center;
+}
+@media (min-width: 640px) {
+  .tabs .tab-item {
+    justify-content: flex-start;
+  }
+}
+.tabs .tab-item[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background-color: var(--accent);
+}
+
+/* chips: a tab-item with a hairline while unpressed */
+.chip {
+  border-color: var(--border);
+  color: var(--secondary-foreground);
+}
+.chip:hover {
+  border-color: var(--border-strong);
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--border-strong);
+}
+
+/* ---------- title block: the signature ---------- */
+.titleblock {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background-color: var(--surface-deep);
+}
+.tb-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -1px 0 0 -1px;
+}
+.tb-cell {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.tb-cell dt {
+  color: var(--muted-foreground);
+}
+.tb-cell dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--secondary-foreground);
+}
+
+/* ---------- spec list: ruled cells, term | value, one width for every tab ---------- */
+.spec {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background-color: var(--card);
+}
+.spec-row {
+  display: grid;
+}
+.spec-row + .spec-row {
+  border-top: 1px solid var(--border);
+}
+.spec-row dt {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface-deep);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+/* Mono only where the term is a literal: a flag, a transport, a tool name. */
+.spec-row dt.lit {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+.spec-row dd {
+  padding: 16px;
+  color: var(--secondary-foreground);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.spec-row dd > p {
+  max-width: 44rem;
+}
+@media (min-width: 768px) {
+  .spec-row {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+  .spec-row dt {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+  }
+  .spec-row dd {
+    padding: 16px 20px;
+  }
+}
+
+/* ---------- markers: filled dot derived, ring generated, never a hue ---------- */
+.marker {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--secondary-foreground);
+}
+.legend > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ---------- command field in the hero: hairline only, same height as the button beside it ---------- */
+.cmd-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: var(--control-lg);
+  padding: 0 8px 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--secondary-foreground);
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+}
+.cmd-field:hover {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+/* One line, never wrapped: a narrow screen scrolls the command (the group is focusable) instead. */
+.cmd-text {
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.cmd-text::-webkit-scrollbar {
+  display: none;
+}
+/* Under 481px the command is wider than the field, so its right edge fades to say it scrolls. */
+@media (max-width: 480.999px) {
+  .cmd-text {
+    mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+}
+@media (min-width: 640px) {
+  .cmd-field {
+    width: auto;
+  }
+}
+
+/* ---------- concept sheet ---------- */
+.sheet {
+  container-type: inline-size;
+  container-name: sheet;
+  overflow: hidden;
+}
+.sheet-switch {
+  display: block;
+  padding: 12px 16px 0;
+}
+.seg {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(max-content, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background-color: var(--surface-deep);
+}
+.seg .tab-item {
+  justify-content: center;
+  padding-inline: 4px;
+}
+.sheet-body {
+  display: grid;
+  gap: 24px;
+}
+.sheet-vec-foot {
+  margin-top: 12px;
+}
+/* Below 36rem the three views share one cell, so the sheet keeps the height of
+   the tallest and nothing under it moves when the segmented control changes. */
+@container sheet (max-width: 35.999rem) {
+  .sheet-view {
+    grid-area: 1 / 1;
+  }
+  .sheet-view[data-on="false"] {
+    visibility: hidden;
+  }
+  /* A phone shows the graph and a count; the table of entities is the wide view. */
+  .ent {
+    display: none;
+  }
+}
+@container sheet (min-width: 36rem) {
+  .sheet-switch {
+    display: none;
+  }
+  .sheet-body {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 24px 32px;
+  }
+  .sheet-md {
+    grid-column: 1 / -1;
+  }
+  .sheet-extra-note {
+    display: none;
+  }
+  /* The vector column is as tall as the ThoughtForm column: its caption sits on the bottom edge. */
+  .sheet-vec {
+    display: flex;
+    flex-direction: column;
+  }
+  .sheet-vec-foot {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+}
+.view-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.view-no {
+  color: var(--muted-foreground);
+}
+.view-name {
+  font-weight: 500;
+  color: var(--foreground);
+}
+.view-prov {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+.view-prov .marker {
+  margin-top: 0;
+  color: var(--secondary-foreground);
+}
+.sentence {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  color: var(--foreground);
+}
+
+/* node-link figure */
+.fig {
+  display: block;
+  width: 272px;
+  max-width: 100%;
+  height: auto;
+  font-family: var(--font-mono);
+}
+.fig-node {
+  fill: var(--raised);
+  stroke: var(--border-strong);
+}
+.fig-text {
+  fill: var(--foreground);
+  font-size: 12px;
+}
+.fig-id,
+.fig-conf {
+  fill: var(--muted-foreground);
+  font-size: 12px;
+}
+.fig-label {
+  fill: var(--secondary-foreground);
+  font-size: 12px;
+}
+.fig-edge {
+  fill: none;
+  stroke: var(--secondary-foreground);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* entity table */
+.ent {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.ent th,
+.ent td {
+  height: 24px;
+  padding: 0 8px 0 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 400;
+}
+.ent th {
+  color: var(--muted-foreground);
+}
+.ent td {
+  color: var(--secondary-foreground);
+}
+.ent td.ent-text {
+  max-width: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ent td.ent-linked {
+  color: var(--foreground);
+}
+/* Types come from a heuristic, so they sit a step quieter than the text they label. */
+.ent td.ent-type {
+  color: var(--muted-foreground);
+}
+.ent .num {
+  padding-right: 0;
+  text-align: right;
+}
+.sheet-extra-note {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* 384 floats as square cells: 32 across on a phone, 24 across from 36rem, capped at 22rem so the field
+   is about as tall as the ThoughtForm column beside it. */
+.vec {
+  --cols: 32;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 1px;
+}
+.vec > span {
+  aspect-ratio: 1;
+  border-radius: 1px;
+}
+@container sheet (min-width: 36rem) {
+  .vec {
+    --cols: 24;
+    max-width: 22rem;
+  }
+}
+
+/* ---------- conversion matrix: a grid, three equal columns at every width ---------- */
+.mx {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+.mx thead,
+.mx tbody,
+.mx tr {
+  display: contents;
+}
+.mx-cell,
+.mx-na {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 40px;
+}
+.mx-cell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-standard);
+}
+.mx-cell:hover {
+  background-color: var(--raised);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.mx-cell:active {
+  transform: scale(var(--press));
+}
+.mx-cell[aria-pressed="true"] {
+  background-color: var(--raised);
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 var(--highlight);
+  color: var(--foreground);
+}
+.mx-head {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.mx-diag {
+  display: block;
+  width: 12px;
+  height: 1px;
+  background-color: var(--border-strong);
+}
+/* Under 640px each row announces itself above its cells, so the three columns get the full width. */
+.mx-corner,
+.mx-from {
+  display: none;
+}
+.mx-to {
+  grid-column: 1 / -1;
+}
+.mx-row {
+  grid-column: 1 / -1;
+  padding-top: 8px;
+  text-align: left;
+}
+.mx-row::before {
+  content: "from ";
+}
+@media (max-width: 359.999px) {
+  .mx-pad {
+    padding-inline: 12px;
+  }
+}
+@media (min-width: 640px) {
+  .mx {
+    grid-template-columns: 5.75rem repeat(3, minmax(0, 1fr));
+    max-width: 22.5rem;
+  }
+  .mx-corner,
+  .mx-from {
+    display: block;
+  }
+  .mx-to {
+    grid-column: 2 / -1;
+  }
+  .mx-from,
+  .mx-row {
+    padding: 0 8px 0 0;
+    text-align: right;
+  }
+  .mx-row {
+    grid-column: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 40px;
+  }
+  .mx-row::before {
+    content: none;
+  }
+}
+@media (min-width: 1024px) {
+  .mx {
+    width: 22.5rem;
+  }
+}
+
+/* ---------- search results ---------- */
+.hit[data-step="mid"] .bar-fill {
+  background-color: var(--secondary-foreground);
+}
+.hit[data-step="top"] .bar-track {
+  background-color: var(--card);
+}
+.hit[data-step="top"] .bar-fill {
+  background-color: var(--accent);
 }

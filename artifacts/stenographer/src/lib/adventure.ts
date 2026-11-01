@@ -86,7 +86,7 @@ const notSigner = (refs: Refs): Actor => (refs.signer === "kim" ? YOU : KIM);
 export const SCENES: Record<string, Scene> = {
   start: {
     id: "start",
-    title: "Tuesday morning. Something changed in the fridge.",
+    title: "Tuesday morning. Something changed in the fridge",
     lead: "Saturday's dozen eggs are gone. \"12 eggs\" is dead, and the house ledger doesn't know yet. Who says so first?",
     choices: [
       {
@@ -161,7 +161,7 @@ export const SCENES: Record<string, Scene> = {
   },
   "one-agent": {
     id: "one-agent",
-    title: "One camera agrees. Not truth yet.",
+    title: "One camera agrees. Not truth yet",
     lead: "The fridge cam's approval waits beside the ledger. It promotes nothing alone. Who else?",
     choices: [
       {
@@ -198,7 +198,7 @@ export const SCENES: Record<string, Scene> = {
   },
   nominated: {
     id: "nominated",
-    title: "Nominated: corroborated, still a UV.",
+    title: "Nominated: corroborated, still a UV",
     lead: "One ADDENDUM with a corroborates link carries the three sessions as its quorum. It goes first on the docket. No number of gadgets mints a TB.",
     choices: [
       {
@@ -233,7 +233,7 @@ export const SCENES: Record<string, Scene> = {
   },
   truth: {
     id: "truth",
-    title: "A TB stands.",
+    title: "A TB stands",
     lead: "Ground truth, signed and answerable: eggs are at zero and on the grocery list. Stenographer would now object when the meal planner schedules an omelette. Nothing is edited from here: a TB is challenged or struck, never changed.",
     choices: [
       {
@@ -273,7 +273,7 @@ export const SCENES: Record<string, Scene> = {
   },
   appeal: {
     id: "appeal",
-    title: "Under appeal. Still truth.",
+    title: "Under appeal. Still truth",
     lead: "The contesting UV sits on the docket. A person resolves it: refute it with evidence, approve it (which overrides the TB), or strike it.",
     choices: [
       {
@@ -317,7 +317,7 @@ export const SCENES: Record<string, Scene> = {
   },
   upheld: {
     id: "upheld",
-    title: "Upheld. The TB is active again.",
+    title: "Upheld. The TB is active again",
     lead: "The challenge is history and the truth stands, with the dispute visible in the chain forever. The record shows the doubt and its answer.",
     choices: [
       {
@@ -344,7 +344,7 @@ export const SCENES: Record<string, Scene> = {
   },
   appeal2: {
     id: "appeal2",
-    title: "Under appeal again.",
+    title: "Under appeal again",
     lead: "This time the change is real: Kim shopped on Thursday, and the carton is on the shelf.",
     choices: [
       {
@@ -386,7 +386,7 @@ export const SCENES: Record<string, Scene> = {
   },
   overridden: {
     id: "overridden",
-    title: "Overridden. A successor TB.",
+    title: "Overridden. A successor TB",
     lead: "The old TB is history and the new one is ground truth: a dozen eggs, signed by the person who approved the challenge. The chain holds both, and the objection now fires on \"out of eggs\".",
     choices: [
       {
@@ -407,7 +407,7 @@ export const SCENES: Record<string, Scene> = {
   },
   refuted: {
     id: "refuted",
-    title: "Refuted. The claim is history.",
+    title: "Refuted. The claim is history",
     lead: "Kim's count closed it. A refuted UV is never cited as support. If the claim was right after all, file it again with better grounds.",
     choices: [
       {
@@ -431,7 +431,7 @@ export const SCENES: Record<string, Scene> = {
   },
   struck: {
     id: "struck",
-    title: "Struck. The ruling is on the record.",
+    title: "Struck. The ruling is on the record",
     lead: "The UV is inadmissible, with Kim's opinion beside it. The three gadget approvals that nominated it are history too. Nothing was deleted.",
     choices: [
       {
