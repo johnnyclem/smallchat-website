@@ -1,79 +1,77 @@
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldAlert, ShieldCheck, ShieldX, Lock, Unlock, ChevronRight, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { ShieldCheck, ShieldX, Lock, Unlock } from "lucide-react";
+import { EASE, Icon, StatusDot } from "@/components/site";
+import { cn } from "@/lib/utils";
 
 type Approach = "mcp" | "smallchat" | "open-agent";
+type Kind = "comment" | "plain" | "name" | "string" | "danger" | "keyword" | "blank";
 
 interface ApproachData {
   id: Approach;
   label: string;
   tagline: string;
-  color: string;
-  bgGlow: string;
   icon: typeof ShieldCheck;
-  position: "Too Rigid" | "Just Right" | "Too Dangerous";
-  positionColor: string;
+  position: "Too rigid" | "Just right" | "Too dangerous";
   traits: { label: string; value: string; good: boolean }[];
   codeTitle: string;
-  codeLines: { text: string; className: string }[];
+  codeLines: { text: string; kind: Kind }[];
   risks: string[];
   benefits: string[];
+  callout: { title: string; body: string; icon: typeof ShieldCheck };
 }
 
 const approaches: ApproachData[] = [
   {
     id: "mcp",
     label: "MCP + Structured Output",
-    tagline: "Every tool is a JSON schema. Every call is a prayer.",
-    color: "text-blue-400",
-    bgGlow: "rgba(59,130,246,0.06)",
+    tagline: "Every tool ships its full JSON schema",
     icon: Lock,
-    position: "Too Rigid",
-    positionColor: "text-blue-400",
+    position: "Too rigid",
     traits: [
       { label: "Context cost", value: "Extremely high", good: false },
       { label: "Type safety", value: "Schema-level only", good: false },
-      { label: "Flexibility", value: "None — exact match required", good: false },
+      { label: "Flexibility", value: "None: exact match required", good: false },
       { label: "Security", value: "Sandboxed per-tool", good: true },
     ],
     codeTitle: "Typical MCP tool registration",
     codeLines: [
-      { text: "// 47 tools × ~320 tokens each = 15,040 tokens", className: "text-gray-500" },
-      { text: "// just for tool schemas, before any conversation", className: "text-gray-500" },
-      { text: '{', className: "text-gray-400" },
-      { text: '  "name": "jira_search_issues",', className: "text-blue-400" },
-      { text: '  "description": "Search for Jira issues...",', className: "text-gray-400" },
-      { text: '  "parameters": {', className: "text-gray-400" },
-      { text: '    "type": "object",', className: "text-gray-400" },
-      { text: '    "properties": {', className: "text-gray-400" },
-      { text: '      "jql": { "type": "string", ... },', className: "text-gray-400" },
-      { text: '      "maxResults": { "type": "integer", ... },', className: "text-gray-400" },
-      { text: '      "fields": { "type": "array", ... }', className: "text-gray-400" },
-      { text: '    },', className: "text-gray-400" },
-      { text: '    "required": ["jql"]', className: "text-gray-400" },
-      { text: "  }", className: "text-gray-400" },
-      { text: "}", className: "text-gray-400" },
-      { text: "// ... repeat 46 more times", className: "text-red-400/60" },
+      { text: "// 47 tools × ~320 tokens each = 15,040 tokens", kind: "comment" },
+      { text: "// just for tool schemas, before any conversation", kind: "comment" },
+      { text: "{", kind: "plain" },
+      { text: '  "name": "jira_search_issues",', kind: "name" },
+      { text: '  "description": "Search for Jira issues...",', kind: "plain" },
+      { text: '  "parameters": {', kind: "plain" },
+      { text: '    "type": "object",', kind: "plain" },
+      { text: '    "properties": {', kind: "plain" },
+      { text: '      "jql": { "type": "string", ... },', kind: "plain" },
+      { text: '      "maxResults": { "type": "integer", ... },', kind: "plain" },
+      { text: '      "fields": { "type": "array", ... }', kind: "plain" },
+      { text: "    },", kind: "plain" },
+      { text: '    "required": ["jql"]', kind: "plain" },
+      { text: "  }", kind: "plain" },
+      { text: "}", kind: "plain" },
+      { text: "// ... repeat 46 more times", kind: "comment" },
     ],
     risks: [
       "Context window fills up before conversation starts",
-      "No semantic understanding — model must guess exact tool names",
+      "No semantic understanding: the model must guess exact tool names",
       "Adding providers multiplies token cost linearly",
       "Duplicate tools across providers waste tokens",
     ],
-    benefits: [
-      "Tools are sandboxed — limited blast radius",
-    ],
+    benefits: ["Tools are sandboxed, so the blast radius is limited"],
+    callout: {
+      title: "Safe, with a context cost",
+      body: "MCP's structured output approach is sandboxed and predictable, but it pays for safety with rigidity. Every tool puts its full JSON schema into the context window, using tokens before the conversation even starts. Adding more providers means linearly more cost, and nothing helps the model choose between overlapping tools.",
+      icon: Lock,
+    },
   },
   {
     id: "smallchat",
     label: "smallchat",
-    tagline: "Schema-checked. Semantically resolved. Exact by id.",
-    color: "text-green-400",
-    bgGlow: "rgba(34,197,94,0.06)",
+    tagline: "Schema-checked, semantically resolved, exact by id",
     icon: ShieldCheck,
-    position: "Just Right",
-    positionColor: "text-green-400",
+    position: "Just right",
     traits: [
       { label: "Context cost", value: "Minimal with intent dispatch", good: true },
       { label: "Type safety", value: "JSON Schema, checked before a tool runs", good: true },
@@ -82,22 +80,22 @@ const approaches: ApproachData[] = [
     ],
     codeTitle: "smallchat compiled output",
     codeLines: [
-      { text: "// Compiler ingests 150+ tools from 10 providers", className: "text-gray-500" },
-      { text: "// into one content-hashed artifact", className: "text-gray-500" },
-      { text: "", className: "" },
-      { text: "import { loadRuntime } from '@smallchat/core';", className: "text-green-400" },
-      { text: "", className: "" },
-      { text: "const { runtime } = await loadRuntime('./tools.toolkit.json');", className: "text-gray-300" },
-      { text: "", className: "" },
-      { text: "// Semantic resolution — proposes one tool, runs nothing", className: "text-gray-500" },
-      { text: 'const r = await runtime.resolve(', className: "text-gray-300" },
-      { text: '  "find my recent cloud files about quarterly reports"', className: "text-orange-300" },
-      { text: ");", className: "text-gray-300" },
-      { text: "", className: "" },
-      { text: "// Run exactly that tool; args are schema-checked first", className: "text-gray-500" },
-      { text: "if (r.outcome === 'resolved')", className: "text-gray-300" },
-      { text: "  await runtime.dispatchById(r.chosen!, { query: 'quarterly' });", className: "text-gray-300" },
-      { text: "// else needs-disambiguation: the caller picks a tool id", className: "text-gray-500" },
+      { text: "// The compiler turns every registered tool", kind: "comment" },
+      { text: "// into one content-hashed artifact", kind: "comment" },
+      { text: "", kind: "blank" },
+      { text: "import { loadRuntime } from '@smallchat/core';", kind: "keyword" },
+      { text: "", kind: "blank" },
+      { text: "const { runtime } = await loadRuntime('./tools.toolkit.json');", kind: "plain" },
+      { text: "", kind: "blank" },
+      { text: "// Semantic resolution: proposes one tool, runs nothing", kind: "comment" },
+      { text: "const r = await runtime.resolve(", kind: "plain" },
+      { text: '  "find my recent cloud files about quarterly reports"', kind: "string" },
+      { text: ");", kind: "plain" },
+      { text: "", kind: "blank" },
+      { text: "// Run exactly that tool; args are schema-checked first", kind: "comment" },
+      { text: "if (r.outcome === 'resolved')", kind: "plain" },
+      { text: "  await runtime.dispatchById(r.chosen!, { query: 'quarterly' });", kind: "plain" },
+      { text: "// else needs-disambiguation: the caller picks a tool id", kind: "comment" },
     ],
     risks: [],
     benefits: [
@@ -107,366 +105,220 @@ const approaches: ApproachData[] = [
       "Tools annotated destructive run only by exact id, a pinned phrase or EXACT similarity",
       "Every decision carries a replayable proof and a canonical call digest",
     ],
+    callout: {
+      title: "The compiler is your security boundary",
+      body: "smallchat can only run the tools you compile or register, and MCP calls name them exactly. It adds no shell or filesystem access; its only tool of its own is the read-only smallchat_resolve (off with --no-resolve-tool). A tool you did not compile or register does not exist at runtime. Each tool still has whatever access its own server gives it.",
+      icon: ShieldCheck,
+    },
   },
   {
     id: "open-agent",
-    label: "Open Agents (openclaw / nanoclaw)",
-    tagline: "Full autonomy. Full root access. What could go wrong?",
-    color: "text-red-400",
-    bgGlow: "rgba(239,68,68,0.06)",
+    label: "Open agents",
+    tagline: "Full autonomy and full access to the host",
     icon: Unlock,
-    position: "Too Dangerous",
-    positionColor: "text-red-400",
+    position: "Too dangerous",
     traits: [
-      { label: "Context cost", value: "Low — dynamic loading", good: true },
+      { label: "Context cost", value: "Low: tools load on demand", good: true },
       { label: "Type safety", value: "None", good: false },
-      { label: "Flexibility", value: "Unlimited — including shell access", good: false },
-      { label: "Security", value: "Full root on host machine", good: false },
+      { label: "Flexibility", value: "Unlimited, including shell access", good: false },
+      { label: "Security", value: "Full access to the host machine", good: false },
     ],
     codeTitle: "Typical open agent setup",
     codeLines: [
-      { text: "// The agent has full access to everything", className: "text-gray-500" },
-      { text: "// including your filesystem, network, and secrets", className: "text-gray-500" },
-      { text: "", className: "" },
-      { text: "const agent = new OpenAgent({", className: "text-gray-300" },
-      { text: '  model: "gpt-4",', className: "text-gray-400" },
-      { text: "  tools: ['*'],", className: "text-red-400" },
-      { text: "  permissions: {", className: "text-gray-400" },
-      { text: "    filesystem: true,", className: "text-red-400" },
-      { text: "    network: true,", className: "text-red-400" },
-      { text: "    shell: true,", className: "text-red-400" },
-      { text: "    env_vars: true,", className: "text-red-400" },
-      { text: "  }", className: "text-gray-400" },
-      { text: "});", className: "text-gray-300" },
-      { text: "", className: "" },
-      { text: '// "Hey agent, clean up my project files"', className: "text-gray-500" },
-      { text: "// > rm -rf / ... oops", className: "text-red-400/60" },
+      { text: "// The agent has full access to everything", kind: "comment" },
+      { text: "// including your filesystem, network, and secrets", kind: "comment" },
+      { text: "", kind: "blank" },
+      { text: "const agent = new OpenAgent({", kind: "plain" },
+      { text: '  model: "gpt-4",', kind: "plain" },
+      { text: "  tools: ['*'],", kind: "danger" },
+      { text: "  permissions: {", kind: "plain" },
+      { text: "    filesystem: true,", kind: "danger" },
+      { text: "    network: true,", kind: "danger" },
+      { text: "    shell: true,", kind: "danger" },
+      { text: "    env_vars: true,", kind: "danger" },
+      { text: "  }", kind: "plain" },
+      { text: "});", kind: "plain" },
+      { text: "", kind: "blank" },
+      { text: '// "Hey agent, clean up my project files"', kind: "comment" },
+      { text: "// the agent runs rm -rf /", kind: "comment" },
     ],
     risks: [
-      "Full root access to the host machine",
+      "Full access to the host machine",
       "Can read environment variables, API keys, secrets",
-      "Unrestricted shell execution — rm -rf is one hallucination away",
-      "No compile-time checks — errors surface at runtime (or never)",
+      "Unrestricted shell execution: one hallucinated command can delete files",
+      "No compile-time checks: errors surface at runtime, or never",
       "Network access enables data exfiltration",
     ],
-    benefits: [
-      "Low context overhead — tools loaded on demand",
-    ],
+    benefits: ["Low context overhead, because tools load on demand"],
+    callout: {
+      title: "Full access means total access",
+      body: "An open agent set up this way has full access to your host machine. One hallucinated shell command can delete files, exfiltrate secrets, or modify system state. There is no compile step, no type checking, and no boundary between what the model can do and everything.",
+      icon: ShieldX,
+    },
   },
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+const KIND_CLASS: Record<Kind, string> = {
+  comment: "token-comment",
+  plain: "text-subtle",
+  name: "token-function",
+  string: "token-string",
+  keyword: "token-keyword",
+  danger: "text-negative",
+  blank: "",
 };
 
-const stagger = {
-  visible: { transition: { staggerChildren: 0.08 } },
-};
+function Spectrum({ active, onSelect }: { active: Approach; onSelect: (a: Approach) => void }) {
+  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-export function SafetySpectrum({ embedded = false }: { embedded?: boolean }) {
+  // A radio group is one tab stop. Arrow keys, Home and End move the choice and the focus together.
+  const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const last = approaches.length - 1;
+    let next = -1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = index === last ? 0 : index + 1;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = index === 0 ? last : index - 1;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = last;
+    if (next < 0) return;
+    e.preventDefault();
+    onSelect(approaches[next].id);
+    refs.current[approaches[next].id]?.focus();
+  };
+
+  return (
+    <div role="radiogroup" aria-label="Approach to tool calling" className="relative grid grid-cols-[3fr_4fr_3fr]">
+      <div aria-hidden className="absolute left-0 right-0 top-1.5 h-px bg-border-strong" />
+      {approaches.map((a, i) => {
+        const isActive = active === a.id;
+        return (
+          <button
+            key={a.id}
+            ref={(el) => {
+              refs.current[a.id] = el;
+            }}
+            role="radio"
+            aria-checked={isActive}
+            tabIndex={isActive ? 0 : -1}
+            onClick={() => onSelect(a.id)}
+            onKeyDown={(e) => onKeyDown(e, i)}
+            className={cn(
+              "relative flex cursor-pointer flex-col gap-1 text-left transition-colors",
+              a.id === "mcp" && "items-start",
+              a.id === "smallchat" && "items-center text-center",
+              a.id === "open-agent" && "items-end text-right",
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "mb-3 h-3 w-3 rounded-full border transition-colors",
+                isActive ? "border-accent bg-accent" : "border-border-strong bg-card",
+              )}
+            />
+            <span className={cn("text-sm font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>{a.position}</span>
+            <span className={cn("text-xs sm:text-sm", isActive ? "text-subtle" : "text-muted-foreground")}>{a.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function SafetySpectrum() {
   const [active, setActive] = useState<Approach>("smallchat");
   const current = approaches.find((a) => a.id === active)!;
 
-  const Wrapper = embedded ? "div" as const : motion.div;
-  const wrapperProps = embedded ? {} : { variants: fadeUp };
-
-  const innerContent = (
-    <div className={embedded ? "space-y-12 relative" : "max-w-5xl mx-auto space-y-16"}>
-      {!embedded && (
-        <motion.div variants={fadeUp} className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center text-primary bg-primary/10 px-3 py-1 rounded-full text-sm font-medium">
-            <ShieldAlert className="w-4 h-4 mr-2" />
-            The Safety Spectrum
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-            Not too rigid. Not too dangerous.
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Every approach to tool calling makes a tradeoff between control and capability.
-            Most get it wrong.
-          </p>
-        </motion.div>
-      )}
-
-        <Wrapper {...wrapperProps}>
-          <div className="relative max-w-3xl mx-auto">
-            <div className="h-2 rounded-full bg-white/5 relative overflow-hidden">
-              <div
-                className="absolute inset-y-0 rounded-full transition-all duration-500"
-                style={{
-                  background:
-                    "linear-gradient(to right, rgba(59,130,246,0.6), rgba(34,197,94,0.6), rgba(239,68,68,0.6))",
-                  left: 0,
-                  right: 0,
-                }}
-              />
-            </div>
-
-            <div className="flex justify-between mt-0 relative">
-              {approaches.map((approach) => {
-                const isActive = active === approach.id;
-                return (
-                  <button
-                    key={approach.id}
-                    onClick={() => setActive(approach.id)}
-                    className={`flex flex-col items-center pt-4 group cursor-pointer transition-all duration-300 ${
-                      approach.id === "mcp"
-                        ? "items-start"
-                        : approach.id === "open-agent"
-                          ? "items-end"
-                          : "items-center"
-                    }`}
-                    style={{
-                      width: approach.id === "smallchat" ? "40%" : "30%",
-                    }}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 transition-all duration-300 -mt-[13px] mb-3 ${
-                        isActive
-                          ? `${approach.color} border-current scale-125 shadow-lg`
-                          : "border-white/20 bg-white/5"
-                      }`}
-                      style={
-                        isActive
-                          ? {
-                              boxShadow: `0 0 12px ${approach.bgGlow.replace("0.06", "0.4")}`,
-                            }
-                          : {}
-                      }
-                    />
-                    <div
-                      className={`text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
-                        isActive ? approach.positionColor : "text-white/30"
-                      }`}
-                    >
-                      {approach.position}
-                    </div>
-                    <div
-                      className={`text-xs sm:text-sm font-medium mt-1 transition-colors duration-300 text-center ${
-                        isActive ? "text-white" : "text-white/40"
-                      }`}
-                    >
-                      {approach.label}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </Wrapper>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="grid lg:grid-cols-2 gap-8"
-          >
-            <div className="space-y-6">
-              <div className="glass-panel rounded-2xl p-6 space-y-5">
-                <div className="flex items-start gap-3">
-                  <current.icon
-                    className={`w-8 h-8 ${current.color} shrink-0 mt-0.5`}
-                  />
-                  <div>
-                    <h3 className={`text-xl font-bold ${current.color}`}>
-                      {current.label}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1 italic">
-                      {current.tagline}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {current.traits.map((trait, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between text-sm py-2 border-b border-white/5 last:border-0"
-                    >
-                      <span className="text-muted-foreground">{trait.label}</span>
-                      <span
-                        className={`font-medium ${
-                          trait.good ? "text-green-400" : "text-red-400/80"
-                        }`}
-                      >
-                        {trait.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {current.risks.length > 0 && (
-                  <div className="glass-panel rounded-xl p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-red-400 uppercase tracking-wider">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      Risks
-                    </div>
-                    {current.risks.map((risk, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-gray-400">
-                        <XCircle className="w-3.5 h-3.5 text-red-400/60 shrink-0 mt-0.5" />
-                        {risk}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {current.benefits.length > 0 && (
-                  <div className="glass-panel rounded-xl p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-green-400 uppercase tracking-wider">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Benefits
-                    </div>
-                    {current.benefits.map((benefit, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-gray-400">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-400/60 shrink-0 mt-0.5" />
-                        {benefit}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="glass-panel rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-white/[0.02] border-b border-white/5">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-                  </div>
-                  <span className="text-[11px] text-muted-foreground ml-2 font-mono">
-                    {current.codeTitle}
-                  </span>
-                </div>
-                <div className="p-4 font-mono text-[12px] leading-relaxed space-y-0.5 overflow-x-auto">
-                  {current.codeLines.map((line, i) => (
-                    <div key={i} className={`whitespace-pre ${line.className}`}>
-                      {line.text || "\u00A0"}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {active === "smallchat" && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="glass-panel rounded-xl p-4 border-green-500/20 bg-green-500/[0.03]"
-                >
-                  <div className="flex items-start gap-3">
-                    <ShieldCheck className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
-                    <div className="text-xs text-gray-400 space-y-1">
-                      <div className="text-green-400 font-semibold text-sm">
-                        The compiler is your security boundary.
-                      </div>
-                      <p>
-                        smallchat can only run the tools you compile or register, and MCP calls name them exactly.
-                        It adds no shell or filesystem access; its only tool of its own is the read-only
-                        smallchat_resolve (off with --no-resolve-tool).
-                        A tool you did not compile or register does not exist at runtime.
-                        Each tool still has whatever access its own server gives it.
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {active === "open-agent" && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="glass-panel rounded-xl p-4 border-red-500/20 bg-red-500/[0.03]"
-                >
-                  <div className="flex items-start gap-3">
-                    <ShieldX className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                    <div className="text-xs text-gray-400 space-y-1">
-                      <div className="text-red-400 font-semibold text-sm">
-                        Root access means total access.
-                      </div>
-                      <p>
-                        Open agents like openclaw and nanoclaw grant the model full access to your host machine.
-                        One hallucinated shell command can delete files, exfiltrate secrets, or modify system state.
-                        There is no compile step, no type checking, and no boundary between "what the model can do" and "everything."
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {active === "mcp" && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="glass-panel rounded-xl p-4 border-blue-500/20 bg-blue-500/[0.03]"
-                >
-                  <div className="flex items-start gap-3">
-                    <Lock className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                    <div className="text-xs text-gray-400 space-y-1">
-                      <div className="text-blue-400 font-semibold text-sm">
-                        Safe, but at what cost?
-                      </div>
-                      <p>
-                        MCP's structured output approach is sandboxed and predictable — but it pays for safety with rigidity.
-                        Every tool dumps its full JSON schema into the context window, burning tokens before the conversation even starts.
-                        Adding more providers means linearly more cost, and nothing helps the model choose
-                        between overlapping tools.
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        <Wrapper {...wrapperProps} className="flex justify-center pt-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
-            {approaches.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => setActive(a.id)}
-                aria-label={`View ${a.label} approach`}
-                className={`flex items-center gap-2 transition-all duration-300 cursor-pointer ${
-                  active === a.id ? `${a.color} font-medium` : "hover:text-white/60"
-                }`}
-              >
-                <a.icon className="w-4 h-4 shrink-0" />
-                <span className="text-xs sm:text-sm">{a.label}</span>
-                {active === a.id && <ChevronRight className="w-3 h-3 shrink-0" />}
-              </button>
-            ))}
-          </div>
-        </Wrapper>
-    </div>
-  );
-
-  if (embedded) return innerContent;
-
   return (
-    <section id="safety" className="py-32 px-6 relative overflow-hidden scroll-mt-20">
-      <div
-        className="absolute inset-0 pointer-events-none transition-all duration-700"
-        style={{
-          background: `radial-gradient(ellipse at center, ${current.bgGlow} 0%, transparent 70%)`,
-        }}
-      />
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={stagger}
-      >
-        {innerContent}
-      </motion.div>
-    </section>
+    <div className="space-y-10">
+      <Spectrum active={active} onSelect={setActive} />
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2, ease: EASE }}
+          className="grid gap-6 xl:grid-cols-2"
+        >
+          <div className="min-w-0 space-y-6">
+            <div className="space-y-4 rounded-xl border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <Icon as={current.icon} className="mt-1.5 text-muted-foreground" />
+                <div className="space-y-1">
+                  <h3 className="text-xl font-medium">{current.label}</h3>
+                  <p className="text-sm text-subtle">{current.tagline}</p>
+                </div>
+              </div>
+              <dl className="divide-y">
+                {current.traits.map((trait) => (
+                  <div key={trait.label} className="flex items-start justify-between gap-6 py-3 text-sm first:pt-0 last:pb-0">
+                    <dt className="text-muted-foreground">{trait.label}</dt>
+                    <dd className="flex items-center gap-2 text-right text-foreground">
+                      <StatusDot className={trait.good ? "bg-positive" : "bg-negative"} />
+                      {trait.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            {current.risks.length > 0 && (
+              <div className="space-y-3 rounded-xl border bg-card p-6">
+                <h4 className="text-sm font-medium text-foreground">Risks</h4>
+                <ul className="list-none space-y-2 p-0">
+                  {current.risks.map((risk) => (
+                    <li key={risk} className="flex gap-3 text-sm leading-relaxed text-subtle">
+                      <StatusDot className="mt-2 bg-negative" />
+                      {risk}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {current.benefits.length > 0 && (
+              <div className="space-y-3 rounded-xl border bg-card p-6">
+                <h4 className="text-sm font-medium text-foreground">Benefits</h4>
+                <ul className="list-none space-y-2 p-0">
+                  {current.benefits.map((benefit) => (
+                    <li key={benefit} className="flex gap-3 text-sm leading-relaxed text-subtle">
+                      <StatusDot className="mt-2 bg-positive" />
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 space-y-6">
+            <figure className="overflow-hidden rounded-xl border bg-deep">
+              <figcaption className="flex h-10 items-center border-b bg-card px-4 font-mono text-xs text-muted-foreground">
+                {current.codeTitle}
+              </figcaption>
+              <div className="overflow-x-auto p-4" tabIndex={0}>
+                <pre className="font-mono text-[13px] leading-6">
+                  <code>
+                    {current.codeLines.map((line, i) => (
+                      <span key={i} className={cn("block whitespace-pre", KIND_CLASS[line.kind])}>
+                        {line.text || " "}
+                      </span>
+                    ))}
+                  </code>
+                </pre>
+              </div>
+            </figure>
+
+            <div className="flex items-start gap-3 rounded-xl border bg-card p-6">
+              <Icon as={current.callout.icon} className="mt-0.5 text-muted-foreground" />
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-foreground">{current.callout.title}</h4>
+                <p className="text-sm leading-relaxed text-subtle">{current.callout.body}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
